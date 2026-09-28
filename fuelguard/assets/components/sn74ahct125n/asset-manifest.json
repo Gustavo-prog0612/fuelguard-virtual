@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "reference": "U2",
+  "name": "Buffer Quádruplo SN74AHCT125N",
+  "manufacturer": "Texas Instruments",
+  "model": "SN74AHCT125N",
+  "revision": "Rev O (JEDEC MS-001 BA)",
+  "sourceUrl": "https://gitlab.com/kicad/libraries/kicad-packages3D",
+  "license": "CC-BY-SA 4.0",
+  "format": "Modelo CAD Real Integrado (Classe B / KiCad Packages3D)",
+  "sourceUnit": "mm",
+  "dimensionsMm": {
+    "width": 6.35,
+    "height": 19.3,
+    "depth": 4.57
+  },
+  "scale": [1.0, 1.0, 1.0],
+  "transforms": {
+    "positionOffsetMm": [0.0, 0.0, 0.0],
+    "rotationDeg": [0, 0, 0]
+  },
+  "fidelityClass": "B",
+  "confidenceRationale": "Conforme norma oficial JEDEC MS-001 BA e biblioteca KiCad Packages3D (Package_DIP.3dshapes). Corpo termoplástico preto chanfrado, entalhe semicircular no pino 1, ponto dimple e 14 pinos THT estanhados.",
+  "verificationDate": "2026-09-28",
+  "mounting": {
+    "type": "THT_INSERTION",
+    "targetHost": "BB1",
+    "pinCount": 14,
+    "pitchMm": 2.54,
+    "spanMm": 7.62
+  }
+}

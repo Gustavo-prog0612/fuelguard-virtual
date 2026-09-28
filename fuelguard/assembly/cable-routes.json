@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "cables": [
+    {
+      "id": "CBL_01_5V_MAIN",
+      "netName": "+5V_VBUS",
+      "origin": { "component": "U1", "pin": "5V", "posMm": [-75.0, 14.5, -28.0] },
+      "destination": { "component": "BB1_RAIL_POS", "pin": "+", "posMm": [-30.0, 9.5, -24.0] },
+      "color": "#ef4444",
+      "signalType": "POWER_5V",
+      "wireGaugeAwg": 22,
+      "visualDiameterMm": 1.4,
+      "estimatedLengthMm": 72.0,
+      "terminals": { "start": "DUPONT_MALE_2.54", "end": "DUPONT_MALE_2.54" },
+      "waypoints": [
+        [-75.0, 14.5, -28.0],
+        [-65.0, 22.0, -28.0],
+        [-45.0, 20.0, -26.0],
+        [-30.0, 9.5, -24.0]
+      ]
+    },
+    {
+      "id": "CBL_02_GND_MAIN",
+      "netName": "GND",
+      "origin": { "component": "U1", "pin": "GND", "posMm": [-75.0, 14.5, -25.4] },
+      "destination": { "component": "BB1_RAIL_NEG", "pin": "-", "posMm": [-30.0, 9.5, -21.4] },
+      "color": "#18181b",
+      "signalType": "GROUND",
+      "wireGaugeAwg": 22,
+      "visualDiameterMm": 1.4,
+      "estimatedLengthMm": 68.0,
+      "terminals": { "start": "DUPONT_MALE_2.54", "end": "DUPONT_MALE_2.54" },
+      "waypoints": [
+        [-75.0, 14.5, -25.4],
+        [-65.0, 20.0, -25.4],
+        [-45.0, 18.0, -23.0],
+        [-30.0, 9.5, -21.4]
+      ]
+    },
+    {
+      "id": "CBL_03_TRIG_3V3",
+      "netName": "TRIG_3V3",
+      "origin": { "component": "U1", "pin": "IO5", "posMm": [-75.0, 14.5, -20.3] },
+      "destination": { "component": "U2", "pin": "1A (Pin 2)", "posMm": [-18.0, 12.0, -14.5] },
+      "color": "#a855f7",
+      "signalType": "DIGITAL_OUT",
+      "wireGaugeAwg": 24,
+      "visualDiameterMm": 1.1,
+      "estimatedLengthMm": 65.0,
+      "terminals": { "start": "DUPONT_MALE_2.54", "end": "DUPONT_MALE_2.54" },
+      "waypoints": [
+        [-75.0, 14.5, -20.3],
+        [-55.0, 24.0, -18.0],
+        [-32.0, 22.0, -16.0],
+        [-18.0, 12.0, -14.5]
+      ]
+    },
+    {
+      "id": "CBL_04_TRIG_5V_BUF",
+      "netName": "TRIG_5V",
+      "origin": { "component": "U2", "pin": "1Y (Pin 3)", "posMm": [-18.0, 12.0, -12.0] },
+      "destination": { "component": "SEN1_BOARD", "pin": "TRIG", "posMm": [-10.0, 14.0, -74.0] },
+      "color": "#a855f7",
+      "signalType": "DIGITAL_5V",
+      "wireGaugeAwg": 24,
+      "visualDiameterMm": 1.1,
+      "estimatedLengthMm": 85.0,
+      "terminals": { "start": "DUPONT_MALE_2.54", "end": "JST_XH_4P" },
+      "waypoints": [
+        [-18.0, 12.0, -12.0],
+        [-15.0, 25.0, -35.0],
+        [-12.0, 24.0, -58.0],
+        [-10.0, 14.0, -74.0]
+      ]
+    },
+    {
+      "id": "CBL_05_ECHO_5V_RAW",
+      "netName": "ECHO_5V_RAW",
+      "origin": { "component": "SEN1_BOARD", "pin": "ECHO", "posMm": [-6.0, 14.0, -74.0] },
+      "destination": { "component": "R_DIV", "pin": "VIN", "posMm": [-18.0, 12.0, 4.0] },
+      "color": "#06b6d4",
+      "signalType": "DIGITAL_5V_ECHO",
+      "wireGaugeAwg": 24,
+      "visualDiameterMm": 1.1,
+      "estimatedLengthMm": 105.0,
+      "terminals": { "start": "JST_XH_4P", "end": "DUPONT_MALE_2.54" },
+      "waypoints": [
+        [-6.0, 14.0, -74.0],
+        [-4.0, 28.0, -50.0],
+        [-10.0, 26.0, -20.0],
+        [-18.0, 12.0, 4.0]
+      ]
+    },
+    {
+      "id": "CBL_06_ECHO_3V0_SAFE",
+      "netName": "ECHO_3V0_SAFE",
+      "origin": { "component": "R_DIV", "pin": "VOUT", "posMm": [-18.0, 12.0, 6.0] },
+      "destination": { "component": "U1", "pin": "IO6", "posMm": [-75.0, 14.5, -17.8] },
+      "color": "#38bdf8",
+      "signalType": "ATTENUATED_3V0",
+      "wireGaugeAwg": 24,
+      "visualDiameterMm": 1.1,
+      "estimatedLengthMm": 64.0,
+      "terminals": { "start": "DUPONT_MALE_2.54", "end": "DUPONT_MALE_2.54" },
+      "waypoints": [
+        [-18.0, 12.0, 6.0],
+        [-35.0, 22.0, -5.0],
+        [-58.0, 21.0, -12.0],
+        [-75.0, 14.5, -17.8]
+      ]
+    },
+    {
+      "id": "CBL_07_SPI_BUS_HARNESS",
+      "netName": "SPI_BUS_4VIA",
+      "origin": { "component": "U1", "pin": "IO10-IO13", "posMm": [-75.0, 14.5, 18.0] },
+      "destination": { "component": "RFID1", "pin": "SPI_HEADER", "posMm": [14.0, 14.0, 64.0] },
+      "color": "#3b82f6",
+      "signalType": "SPI_COMM",
+      "wireGaugeAwg": 26,
+      "visualDiameterMm": 2.2,
+      "estimatedLengthMm": 120.0,
+      "terminals": { "start": "DUPONT_MALE_4P", "end": "DUPONT_FEMALE_4P" },
+      "waypoints": [
+        [-75.0, 14.5, 18.0],
+        [-50.0, 26.0, 35.0],
+        [-15.0, 25.0, 52.0],
+        [14.0, 14.0, 64.0]
+      ]
+    },
+    {
+      "id": "CBL_08_REED_LID",
+      "netName": "LID_INTERLOCK",
+      "origin": { "component": "SW1_ASSEMBLY", "pin": "SENSE", "posMm": [90.0, 218.0, 62.0] },
+      "destination": { "component": "U1", "pin": "IO7", "posMm": [-75.0, 14.5, -15.2] },
+      "color": "#f59e0b",
+      "signalType": "SAFETY_INTERLOCK",
+      "wireGaugeAwg": 24,
+      "visualDiameterMm": 1.2,
+      "estimatedLengthMm": 280.0,
+      "terminals": { "start": "CRIMP_LID_HEADER", "end": "DUPONT_MALE_2.54" },
+      "waypoints": [
+        [90.0, 218.0, 62.0],
+        [88.0, 160.0, 68.0],
+        [70.0, 80.0, 50.0],
+        [20.0, 30.0, 25.0],
+        [-35.0, 20.0, 0.0],
+        [-75.0, 14.5, -15.2]
+      ]
+    },
+    {
+      "id": "CBL_09_COAXIAL_PIEZO",
+      "netName": "ACOUSTIC_PIEZO_COAX",
+      "origin": { "component": "SEN1_PROBE", "pin": "COAX_BNC", "posMm": [90.0, 224.0, -10.0] },
+      "destination": { "component": "SEN1_BOARD", "pin": "COAX_JACK", "posMm": [-10.0, 14.0, -82.0] },
+      "color": "#334155",
+      "signalType": "RF_ACOUSTIC_COAX",
+      "wireGaugeAwg": 20,
+      "visualDiameterMm": 2.8,
+      "estimatedLengthMm": 320.0,
+      "terminals": { "start": "M20_INTERNAL_GLAND", "end": "COAXIAL_PLUG" },
+      "waypoints": [
+        [90.0, 224.0, -10.0],
+        [85.0, 180.0, -35.0],
+        [60.0, 120.0, -65.0],
+        [25.0, 60.0, -80.0],
+        [-10.0, 14.0, -82.0]
+      ]
+    }
+  ]
+}

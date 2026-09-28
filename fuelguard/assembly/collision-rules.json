@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "collisionChecks": [
+    {
+      "ruleId": "COL-01",
+      "name": "Zero Cable Penetration through Rigid Solids",
+      "description": "Fios flexíveis e cabos não podem penetrar a carcaça de acrílico do galão, a superfície da bancada ou os corpos dos circuitos integrados.",
+      "minClearanceMm": 2.0
+    },
+    {
+      "ruleId": "COL-02",
+      "name": "Breadboard Hole Alignment and Zero Floating",
+      "description": "Todo módulo montado na protoboard deve ter coordenadas Z/X coincidentes com os furos de passo 2.54mm e coordenada Y de apoio exatamente na face superior da protoboard (Y = 8.5mm).",
+      "toleranceMm": 0.2
+    },
+    {
+      "ruleId": "COL-03",
+      "name": "Water Volume Boundary Containment",
+      "description": "O cilindro de água deve ter raio estritamente menor que o raio interno do tanque acrílico (r_água <= 71.5mm vs r_interno = 72.0mm) e altura delimitada entre o fundo interno e a cota máxima de 200mm.",
+      "radialMarginMm": 0.5
+    },
+    {
+      "ruleId": "COL-04",
+      "name": "Ultrasonic Line-of-Sight Clearance",
+      "description": "O cone acústico de 55° emitido pela sonda JSN-SR04T não pode sofrer oclusão por cabos ou pela borda do galão antes de atingir a superfície do líquido.",
+      "coneDivergenceDeg": 55.0
+    }
+  ]
+}

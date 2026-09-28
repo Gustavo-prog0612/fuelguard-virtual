@@ -33,8 +33,7 @@ const NAV_TABS: { id: AppRoute; label: string; shortcut: string }[] = [
   { id: 'signals', label: '2. Sinais', shortcut: '2' },
   { id: 'events', label: '3. Eventos', shortcut: '3' },
   { id: 'tests', label: '4. Testes', shortcut: '4' },
-  { id: 'docs', label: '5. Guia & Design', shortcut: '5' },
-  { id: 'cad', label: '6. Projeto CAD', shortcut: '6' },
+  { id: 'cad', label: '5. Projeto CAD', shortcut: '5' },
 ];
 
 export const TopNavBar: React.FC<TopNavBarProps> = ({

@@ -17,8 +17,9 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@fuelguard/*": ["fuelguard/*"]
     }
   },
-  "include": ["src", "tests", "vite.config.ts"]
+  "include": ["src", "tests", "fuelguard", "vite.config.ts"]
 }

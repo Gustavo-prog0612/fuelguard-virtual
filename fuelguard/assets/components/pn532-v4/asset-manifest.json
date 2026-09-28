@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "reference": "RFID1",
+  "name": "Módulo PN532 NFC/RFID v4.0",
+  "manufacturer": "Elechouse / NXP",
+  "model": "PN532-V4",
+  "revision": "v4.0 (Modo SPI Selecionado)",
+  "sourceUrl": "https://www.elechouse.com/docs/pn532-v4/",
+  "license": "CC-BY-SA 3.0",
+  "format": "Modelo CAD Real Integrado (Classe B / Adafruit Open Hardware)",
+  "sourceUnit": "mm",
+  "dimensionsMm": {
+    "width": 42.7,
+    "height": 40.4,
+    "depth": 5.0
+  },
+  "scale": [1.0, 1.0, 1.0],
+  "transforms": {
+    "positionOffsetMm": [0.0, 0.0, 0.0],
+    "rotationDeg": [0, 0, 0]
+  },
+  "fidelityClass": "B",
+  "confidenceRationale": "Modelo de biblioteca confiável verificado contra a documentação técnica Elechouse PN532 v4 e layout Adafruit. Furação 4x M3 nos vértices (36x34mm) e chave DIP de seleção de protocolo.",
+  "verificationDate": "2026-09-28",
+  "mounting": {
+    "type": "STANDOFF_MOUNTED",
+    "screwType": "M3",
+    "holeDistanceMm": [36.0, 34.0],
+    "cableInterface": "DuPont / JST-XH 6P"
+  }
+}

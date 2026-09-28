@@ -16,7 +16,7 @@ describe('Marco M1: Casca do Sistema e Navegação — Design System Sereno', ()
     expect(screen.getByRole('tab', { name: /2\. Sinais/i })).toBeDefined();
     expect(screen.getByRole('tab', { name: /3\. Eventos/i })).toBeDefined();
     expect(screen.getByRole('tab', { name: /4\. Testes/i })).toBeDefined();
-    expect(screen.getByRole('tab', { name: /5\. Guia & Design/i })).toBeDefined();
+    expect(screen.getByRole('tab', { name: /5\. Projeto CAD/i })).toBeDefined();
   });
 
   it('alterna para a tela de 1. Bancada ao clicar na aba', () => {
@@ -58,14 +58,12 @@ describe('Marco M1: Casca do Sistema e Navegação — Design System Sereno', ()
     expect(screen.getByText(/Injeção de Estímulos e Falhas em Tempo Real/i)).toBeDefined();
   });
 
-  it('alterna para a tela de 5. Guia & Design e exibe o Design System', () => {
+  it('alterna para a tela de 5. Projeto CAD e exibe a estação EDA', () => {
     render(<App />);
-    const guideButton = screen.getByRole('tab', { name: /5\. Guia & Design/i });
-    fireEvent.click(guideButton);
+    const cadButton = screen.getByRole('tab', { name: /5\. Projeto CAD/i });
+    fireEvent.click(cadButton);
 
-    expect(screen.getByText(/FuelGuard Design System — Instrumento de Engenharia Sereno/i)).toBeDefined();
-    expect(screen.getByText(/Laboratório de Avaliação Tipográfica/i)).toBeDefined();
-    expect(screen.getAllByText(/OPÇÃO A/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Estação de Projeto CAD & Eletrônica/i)).toBeDefined();
   });
 
   it('alterna o estado da simulação pelo botão Play/Pause', () => {

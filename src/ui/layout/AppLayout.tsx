@@ -42,9 +42,7 @@ export const AppLayoutContent: React.FC = () => {
         setCurrentRoute('events');
       } else if (e.key === '4') {
         setCurrentRoute('tests');
-      } else if (e.key === '5') {
-        setCurrentRoute('docs');
-      } else if (e.key === '6') {
+      } else if (e.key === '5' || e.key === '6') {
         setCurrentRoute('cad');
       }
     };

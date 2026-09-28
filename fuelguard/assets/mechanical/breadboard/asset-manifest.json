@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "reference": "BB1",
+  "name": "Protoboard Solderless 830 Pontos (BB-830)",
+  "manufacturer": "BusBoard Prototype Systems / Standard",
+  "model": "BB-830-STANDARD",
+  "revision": "Revisão Standard com Linhas de Polaridade Coloridas",
+  "sourceUrl": "https://github.com/FreeCAD/FreeCAD-library",
+  "license": "Especificação Mecânica Pública",
+  "format": "Modelo CAD Real Integrado (Classe B / FreeCAD Standard Library)",
+  "sourceUnit": "mm",
+  "dimensionsMm": {
+    "width": 165.0,
+    "height": 55.0,
+    "depth": 8.5
+  },
+  "scale": [1.0, 1.0, 1.0],
+  "transforms": {
+    "positionOffsetMm": [-30.0, 4.25, 0.0],
+    "rotationDeg": [0, 0, 0]
+  },
+  "fidelityClass": "B",
+  "confidenceRationale": "Dimensões nominais rigorosamente padronizadas pelo passo de 2.54mm (0.1\") entre os 830 pontos de inserção. Inclui canaleta central de 0.3\" e 4 trilhos de barramento (+/-).",
+  "verificationDate": "2026-09-28",
+  "support": {
+    "type": "RESTING_ON_BENCH_SURFACE",
+    "frictionFeetCount": 4,
+    "hasAdhesiveBacking": true
+  }
+}

@@ -1,0 +1,173 @@
+/**
+ * FuelGuard Hardware Design — Netlist Canônica e Domínios de Tensão
+ * Define todas as redes elétricas interconectando o microcontrolador, condicionadores e sensores.
+ */
+
+export interface HardwareNet {
+  name: string;
+  nominalVoltageV: number;
+  maxAllowableVoltageV: number;
+  domain: '3.3V_LOGIC' | '5.0V_POWER' | 'GROUND' | 'ANALOG' | 'PASSIVE';
+  description: string;
+  sourcePin: string;
+  sinkPins: string[];
+  maxCurrentMa: number;
+  criticality: 'CRITICAL_PROTECTION' | 'STANDARD_SIGNAL' | 'POWER_RAIL';
+}
+
+export const FUELGUARD_HARDWARE_NETS: Record<string, HardwareNet> = {
+  '+5V_VBUS': {
+    name: '+5V_VBUS',
+    nominalVoltageV: 5.0,
+    maxAllowableVoltageV: 5.5,
+    domain: '5.0V_POWER',
+    description: 'Trilho de alimentação principal derivado do conector USB-C',
+    sourcePin: 'U1.5V',
+    sinkPins: ['SEN1.VCC', 'U2.VCC'],
+    maxCurrentMa: 500,
+    criticality: 'POWER_RAIL',
+  },
+  '+3.3V': {
+    name: '+3.3V',
+    nominalVoltageV: 3.3,
+    maxAllowableVoltageV: 3.6,
+    domain: '3.3V_LOGIC',
+    description: 'Trilho regulado gerado pelo regulador LDO onboard do ESP32-S3',
+    sourcePin: 'U1.3V3',
+    sinkPins: ['RFID1.VCC'],
+    maxCurrentMa: 300,
+    criticality: 'POWER_RAIL',
+  },
+  'GND': {
+    name: 'GND',
+    nominalVoltageV: 0.0,
+    maxAllowableVoltageV: 0.2,
+    domain: 'GROUND',
+    description: 'Terra analógico/digital unificado da bancada',
+    sourcePin: 'U1.GND',
+    sinkPins: ['SEN1.GND', 'RFID1.GND', 'SW1.PIN2', 'U2.GND', 'U2.1OE', 'R_DIV.GND', 'D1.CATODO', 'BZ1.NEG'],
+    maxCurrentMa: 800,
+    criticality: 'POWER_RAIL',
+  },
+  'TRIG_3V3': {
+    name: 'TRIG_3V3',
+    nominalVoltageV: 3.3,
+    maxAllowableVoltageV: 3.6,
+    domain: '3.3V_LOGIC',
+    description: 'Pulso de trigger emitido pelo GPIO5 do ESP32 (mínimo 10µs)',
+    sourcePin: 'U1.IO5',
+    sinkPins: ['U2.1A'],
+    maxCurrentMa: 10,
+    criticality: 'STANDARD_SIGNAL',
+  },
+  'TRIG_5V': {
+    name: 'TRIG_5V',
+    nominalVoltageV: 5.0,
+    maxAllowableVoltageV: 5.25,
+    domain: '5.0V_POWER',
+    description: 'Pulso de trigger elevado para TTL 5.0V com alta imunidade a ruídos',
+    sourcePin: 'U2.1Y',
+    sinkPins: ['SEN1.TRIG'],
+    maxCurrentMa: 20,
+    criticality: 'CRITICAL_PROTECTION',
+  },
+  'ECHO_5V_RAW': {
+    name: 'ECHO_5V_RAW',
+    nominalVoltageV: 5.0,
+    maxAllowableVoltageV: 5.25,
+    domain: '5.0V_POWER',
+    description: 'Pulso de retorno bruto de 5V emitido pela sonda ultrassônica JSN-SR04T',
+    sourcePin: 'SEN1.ECHO',
+    sinkPins: ['R_DIV.VIN'],
+    maxCurrentMa: 15,
+    criticality: 'CRITICAL_PROTECTION',
+  },
+  'ECHO_3V0_SAFE': {
+    name: 'ECHO_3V0_SAFE',
+    nominalVoltageV: 3.0,
+    maxAllowableVoltageV: 3.4,
+    domain: '3.3V_LOGIC',
+    description: 'Pulso de eco atenuado pelo divisor 10k/15k (3.00V), compatível com GPIO6',
+    sourcePin: 'R_DIV.VOUT',
+    sinkPins: ['U1.IO6'],
+    maxCurrentMa: 1.0,
+    criticality: 'CRITICAL_PROTECTION',
+  },
+  'LID_INTERLOCK': {
+    name: 'LID_INTERLOCK',
+    nominalVoltageV: 3.3,
+    maxAllowableVoltageV: 3.6,
+    domain: '3.3V_LOGIC',
+    description: 'Linha de contato magnético do Reed Switch com pull-up interno',
+    sourcePin: 'U1.IO7',
+    sinkPins: ['SW1.PIN1'],
+    maxCurrentMa: 0.5,
+    criticality: 'STANDARD_SIGNAL',
+  },
+  'SPI_CS': {
+    name: 'SPI_CS',
+    nominalVoltageV: 3.3,
+    maxAllowableVoltageV: 3.6,
+    domain: '3.3V_LOGIC',
+    description: 'SPI Chip Select para o leitor RFID/NFC',
+    sourcePin: 'U1.IO10',
+    sinkPins: ['RFID1.SS'],
+    maxCurrentMa: 5,
+    criticality: 'STANDARD_SIGNAL',
+  },
+  'SPI_MOSI': {
+    name: 'SPI_MOSI',
+    nominalVoltageV: 3.3,
+    maxAllowableVoltageV: 3.6,
+    domain: '3.3V_LOGIC',
+    description: 'SPI Master Out Slave In',
+    sourcePin: 'U1.IO11',
+    sinkPins: ['RFID1.MOSI'],
+    maxCurrentMa: 5,
+    criticality: 'STANDARD_SIGNAL',
+  },
+  'SPI_SCK': {
+    name: 'SPI_SCK',
+    nominalVoltageV: 3.3,
+    maxAllowableVoltageV: 3.6,
+    domain: '3.3V_LOGIC',
+    description: 'Clock serial do barramento SPI (4 MHz)',
+    sourcePin: 'U1.IO12',
+    sinkPins: ['RFID1.SCK'],
+    maxCurrentMa: 10,
+    criticality: 'STANDARD_SIGNAL',
+  },
+  'SPI_MISO': {
+    name: 'SPI_MISO',
+    nominalVoltageV: 3.3,
+    maxAllowableVoltageV: 3.6,
+    domain: '3.3V_LOGIC',
+    description: 'SPI Master In Slave Out',
+    sourcePin: 'RFID1.MISO',
+    sinkPins: ['U1.IO13'],
+    maxCurrentMa: 5,
+    criticality: 'STANDARD_SIGNAL',
+  },
+  'STATUS_LED_CTRL': {
+    name: 'STATUS_LED_CTRL',
+    nominalVoltageV: 3.3,
+    maxAllowableVoltageV: 3.6,
+    domain: '3.3V_LOGIC',
+    description: 'Sinal de modulação do LED de batimento de telemetria',
+    sourcePin: 'U1.IO4',
+    sinkPins: ['D1.ANODO'],
+    maxCurrentMa: 1.5,
+    criticality: 'STANDARD_SIGNAL',
+  },
+  'BUZZER_CTRL': {
+    name: 'BUZZER_CTRL',
+    nominalVoltageV: 3.3,
+    maxAllowableVoltageV: 3.6,
+    domain: '3.3V_LOGIC',
+    description: 'Sinal sonoro de bip e alerta de violação de tampa',
+    sourcePin: 'U1.IO14',
+    sinkPins: ['BZ1.POS'],
+    maxCurrentMa: 25,
+    criticality: 'STANDARD_SIGNAL',
+  },
+};

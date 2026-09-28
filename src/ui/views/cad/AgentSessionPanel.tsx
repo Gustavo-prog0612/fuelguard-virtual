@@ -30,7 +30,7 @@ interface AgentMessage {
 }
 
 interface AgentSessionPanelProps {
-  onSelectTab: (tab: 'schematic' | 'pcb' | '3d' | 'assembly' | 'drc' | 'catalog') => void;
+  onSelectTab: (tab: any) => void;
   onInjectFault: () => void;
   onRestoreSafe: () => void;
   isFaultActive: boolean;

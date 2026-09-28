@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "reference": "BZ1",
+  "name": "Buzzer Piezoelétrico THT Ø12mm",
+  "manufacturer": "CUI Devices",
+  "model": "CPE-1200",
+  "revision": "THT Radial 12mm (Passo 7.62mm)",
+  "sourceUrl": "https://gitlab.com/kicad/libraries/kicad-packages3D",
+  "license": "CC-BY-SA 4.0",
+  "format": "Modelo CAD Real Integrado (Classe A / CUI Devices)",
+  "sourceUnit": "mm",
+  "dimensionsMm": {
+    "width": 12.0,
+    "height": 9.5,
+    "depth": 12.0
+  },
+  "scale": [1.0, 1.0, 1.0],
+  "transforms": {
+    "positionOffsetMm": [0.0, 0.0, 0.0],
+    "rotationDeg": [0, 0, 0]
+  },
+  "fidelityClass": "A",
+  "confidenceRationale": "Geometria oficial CUI Devices CPE-1200 / KiCad Buzzer_Beeper. Corpo em PBT preto antichama, rebaixo superior escalonado, porta de ressonância acústica central e símbolo '+' em relevo.",
+  "verificationDate": "2026-09-28",
+  "mounting": {
+    "type": "THT_INSERTION",
+    "targetHost": "BB1",
+    "pinPitchMm": 7.62
+  }
+}

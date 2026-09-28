@@ -96,10 +96,10 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
   const [enableRipples, setEnableRipples] = useState<boolean>(true);
 
   // Parâmetros físicos do caminho acústico (Modo Sensores)
-  // Face da sonda estanque M20 a Y=144mm, lâmina d'água a curWaterHeight + 1
   const acousticDistanceMm = useMemo(() => {
-    const curWaterHeight = Math.max(8, (150 - 20) * (waterLevelPct / 100));
-    return Math.max(10, 144 - (curWaterHeight + 1));
+    if (waterLevelPct <= 0) return 144 - 2.5; // Distância máxima até o fundo interno do galão (141.5mm)
+    const curWaterHeight = (150 - 24) * (waterLevelPct / 100);
+    return Math.max(10, 144 - (curWaterHeight + 2.5));
   }, [waterLevelPct]);
 
   // Tempo de trânsito ultrassônico t = 2d / v_som (v_som = 343 m/s = 0.343 mm/μs)
@@ -107,7 +107,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     return (2 * acousticDistanceMm) / 343;
   }, [acousticDistanceMm]);
 
-  // Volume da água do recipiente em litros (nominal 5L)
+  // Volume da água do recipiente em litros (nominal 5.0L)
   const waterVolumeL = useMemo(() => {
     return (waterLevelPct / 100) * 5.0;
   }, [waterLevelPct]);
@@ -317,10 +317,8 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     floorMesh.receiveShadow = true;
     scene.add(floorMesh);
 
-    const benchGrid = new THREE.GridHelper(520, 26, 0x1e293b, 0x090d16);
-    benchGrid.position.y = -0.3;
-    benchGrid.visible = showGridRef.current;
-    scene.add(benchGrid);
+    // Piso limpo de estúdio com acabamento fosco
+
 
     // Grupo Raiz
     const benchGroup = new THREE.Group();
@@ -423,6 +421,17 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       h2.position.set(r, 4.3, 12);
       bbGroup.add(h1, h2);
     }
+
+    // Travas laterais em cauda de andorinha (interlocking dovetail tabs para montagem modular BB-830)
+    const dovetailMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.35 });
+    [-50, 0, 50].forEach((dx) => {
+      const mTab = new THREE.Mesh(new THREE.BoxGeometry(6.0, 6.0, 2.5), dovetailMat);
+      mTab.position.set(dx, 0, 28.75);
+      bbGroup.add(mTab);
+      const fSlot = new THREE.Mesh(new THREE.BoxGeometry(6.4, 6.4, 1.0), new THREE.MeshBasicMaterial({ color: 0xcbd5e1 }));
+      fSlot.position.set(dx, 0, -28.0);
+      bbGroup.add(fSlot);
+    });
 
     benchGroup.add(bbGroup);
     pickableObjects.push({ mesh: bbBody, compKey: 'breadboard_830' });
@@ -653,14 +662,46 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     jsnPcb.castShadow = enableShadows;
     jsnGroup.add(jsnPcb);
 
+    // 2 Furos de fixação M3 com anéis metalizados ENIG dourados (37.5mm entre centros)
+    const jsnEnigMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.95, roughness: 0.2 });
+    [-18.75, 18.75].forEach((hx) => {
+      const ring = new THREE.Mesh(new THREE.RingGeometry(1.6, 2.8, 16), jsnEnigMat);
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.set(hx, 0.82, 0);
+      jsnPcb.add(ring);
+    });
+
+    // CI Amplificador LM324 SOIC-14 de recepção de eco
+    const lm324 = new THREE.Mesh(
+      new THREE.BoxGeometry(8.65, 1.4, 3.9),
+      new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.3 })
+    );
+    lm324.position.set(6, 1.5, 4);
+    jsnGroup.add(lm324);
+    const pinGullMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9 });
+    for (let px = -3.8; px <= 3.8; px += 1.27) {
+      const pTop = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.9), pinGullMat);
+      pTop.position.set(6 + px, 0.9, 4 - 2.3);
+      const pBot = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.9), pinGullMat);
+      pBot.position.set(6 + px, 0.9, 4 + 2.3);
+      jsnGroup.add(pTop, pBot);
+    }
+
+    // Transformador de pulso com ferrite e presilha metálica de aterramento
     const xformer = new THREE.Mesh(
       new THREE.BoxGeometry(10, 8, 10),
       new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.6 })
     );
     xformer.position.set(-8, 4.8, 0);
     xformer.castShadow = enableShadows;
-    jsnGroup.add(xformer);
+    const xformerClamp = new THREE.Mesh(
+      new THREE.BoxGeometry(10.4, 1.2, 10.4),
+      new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.9 })
+    );
+    xformerClamp.position.set(-8, 6.0, 0);
+    jsnGroup.add(xformer, xformerClamp);
 
+    // Cristal oscilador HC-49/S metálico
     const crystal = new THREE.Mesh(
       new THREE.CylinderGeometry(1.8, 1.8, 6.5, 12),
       new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.9 })
@@ -669,20 +710,43 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     crystal.position.set(8, 2.0, -5);
     jsnGroup.add(crystal);
 
+    // Barra de 4 pinos angulados com corpo em PBT preto e pinos dourados
     const jsnHeader = new THREE.Mesh(
       new THREE.BoxGeometry(11, 4.0, 3.0),
       new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5 })
     );
     jsnHeader.position.set(0, 2.5, 12);
     jsnGroup.add(jsnHeader);
+    for (let hx = -3.81; hx <= 3.81; hx += 2.54) {
+      const pinGold = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.32, 0.32, 5.0, 8),
+        jsnEnigMat
+      );
+      pinGold.rotation.x = Math.PI / 2;
+      pinGold.position.set(hx, 2.5, 14.5);
+      jsnGroup.add(pinGold);
+    }
 
+    // Conector RCA coaxial fêmea dourado com anel isolador em polímero e pino central
     const rcaSocket = new THREE.Mesh(
       new THREE.CylinderGeometry(4.0, 4.0, 8.0, 16),
       new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9, roughness: 0.2 })
     );
     rcaSocket.rotation.x = Math.PI / 2;
     rcaSocket.position.set(14, 3.0, -12);
-    jsnGroup.add(rcaSocket);
+    const rcaInsulator = new THREE.Mesh(
+      new THREE.CylinderGeometry(3.0, 3.0, 8.2, 16),
+      new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4 })
+    );
+    rcaInsulator.rotation.x = Math.PI / 2;
+    rcaInsulator.position.set(14, 3.0, -12);
+    const rcaCenterPin = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.8, 0.8, 8.6, 12),
+      jsnEnigMat
+    );
+    rcaCenterPin.rotation.x = Math.PI / 2;
+    rcaCenterPin.position.set(14, 3.0, -12);
+    jsnGroup.add(rcaSocket, rcaInsulator, rcaCenterPin);
 
     benchGroup.add(jsnGroup);
     pickableObjects.push({ mesh: jsnPcb, compKey: 'jsn_sr04t' });
@@ -694,82 +758,147 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     tankGroup.position.set(85, 3.5, -10);
 
     const tankRadius = 55; // Raio externo Ø110mm didático
-    const tankWallThickness = 3.2; // Espessura de parede em acrílico
+    const tankWallThickness = 3.2; // Espessura de parede em acrílico PMMA
     const innerRadius = tankRadius - tankWallThickness; // 51.8mm (sem vazamento externo)
     const tankHeight = 150; // altura nominal 150mm
 
-    // Cilindro do tanque em acrílico translúcido
-    const tankGeo = new THREE.CylinderGeometry(tankRadius, tankRadius, tankHeight, 40, 1, true);
-    const tankMat = new THREE.MeshPhysicalMaterial({
+    // Geometrias dos cilindros externo e interno
+    const outerTankGeo = new THREE.CylinderGeometry(tankRadius, tankRadius, tankHeight, 44, 1, true);
+    const innerTankGeo = new THREE.CylinderGeometry(innerRadius, innerRadius, tankHeight - 2.5, 44, 1, true);
+
+    // Materiais PBR ópticos com transmissão e refração física (PMMA η=1.491)
+    const outerPmmaMatBack = new THREE.MeshPhysicalMaterial({
+      color: 0xf8fafc,
+      transmission: tankOpacityRef.current,
+      opacity: 1.0,
+      transparent: true,
+      roughness: 0.05,
+      ior: 1.491,
+      side: THREE.BackSide,
+      depthWrite: false,
+    });
+    const outerPmmaMatFront = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
       transmission: tankOpacityRef.current,
       opacity: 1.0,
       transparent: true,
-      roughness: 0.1,
-      ior: 1.49, // Refração física do acrílico
-      side: THREE.DoubleSide,
+      roughness: 0.07,
+      ior: 1.491,
+      side: THREE.FrontSide,
+      depthWrite: false,
     });
-    const tankMesh = new THREE.Mesh(tankGeo, tankMat);
-    tankMesh.position.y = tankHeight / 2;
-    tankGroup.add(tankMesh);
+    const innerPmmaMatBack = new THREE.MeshPhysicalMaterial({
+      color: 0xf1f5f9,
+      transmission: tankOpacityRef.current,
+      opacity: 1.0,
+      transparent: true,
+      roughness: 0.05,
+      ior: 1.491,
+      side: THREE.BackSide,
+      depthWrite: false,
+    });
+    const innerPmmaMatFront = new THREE.MeshPhysicalMaterial({
+      color: 0xffffff,
+      transmission: tankOpacityRef.current,
+      opacity: 1.0,
+      transparent: true,
+      roughness: 0.06,
+      ior: 1.491,
+      side: THREE.FrontSide,
+      depthWrite: false,
+    });
 
-    // Fundo do tanque
+    // 1. Parede externa posterior (renderOrder: 1)
+    const outerBackMesh = new THREE.Mesh(outerTankGeo, outerPmmaMatBack);
+    outerBackMesh.position.y = tankHeight / 2;
+    outerBackMesh.renderOrder = 1;
+    tankGroup.add(outerBackMesh);
+
+    // Fundo espesso do tanque em acrílico (renderOrder: 1)
     const bottomMesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(tankRadius, tankRadius, 2, 40),
-      tankMat
+      new THREE.CylinderGeometry(tankRadius, tankRadius, 2.5, 44),
+      outerPmmaMatFront
     );
-    bottomMesh.position.y = 1;
+    bottomMesh.position.y = 1.25;
+    bottomMesh.renderOrder = 1;
     tankGroup.add(bottomMesh);
 
-    // Escala graduada em litros (1L a 5L) gravada na lateral frontal
+    // 2. Parede interna posterior (renderOrder: 2)
+    const innerBackMesh = new THREE.Mesh(innerTankGeo, innerPmmaMatBack);
+    innerBackMesh.position.y = (tankHeight - 2.5) / 2 + 2.5;
+    innerBackMesh.renderOrder = 2;
+    tankGroup.add(innerBackMesh);
+
+    // 3. Coluna d'água didática interna (confinada estritamente no diâmetro interno, renderOrder: 3)
+    const waterRadius = innerRadius - 0.2; // 51.6mm
+    const waterGeo = new THREE.CylinderGeometry(waterRadius, waterRadius, 1, 40);
+    const waterMat = new THREE.MeshPhysicalMaterial({
+      color: 0x0284c7, // Azul ciano de absorção espectral natural
+      transmission: 0.86,
+      opacity: 0.95,
+      transparent: true,
+      roughness: 0.03,
+      metalness: 0.02,
+      ior: 1.333, // Índice de refração real da água potável
+      thickness: 50.0,
+      attenuationColor: new THREE.Color(0x0284c7),
+      attenuationDistance: 120,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    const waterMesh = new THREE.Mesh(waterGeo, waterMat);
+    waterMesh.renderOrder = 3;
+    tankGroup.add(waterMesh);
+
+    // 4. Menisco superior da água e anel de tensão superficial (renderOrder: 4)
+    const waterSurface = new THREE.Mesh(
+      new THREE.CircleGeometry(waterRadius, 40),
+      new THREE.MeshStandardMaterial({
+        color: 0x38bdf8,
+        roughness: 0.06,
+        metalness: 0.15,
+      })
+    );
+    waterSurface.rotation.x = -Math.PI / 2;
+    waterSurface.renderOrder = 4;
+    tankGroup.add(waterSurface);
+
+    const meniscusRing = new THREE.Mesh(
+      new THREE.RingGeometry(waterRadius - 1.5, waterRadius, 40),
+      new THREE.MeshStandardMaterial({
+        color: 0x0369a1,
+        roughness: 0.08,
+        transparent: true,
+        opacity: 0.75,
+      })
+    );
+    meniscusRing.rotation.x = -Math.PI / 2;
+    meniscusRing.renderOrder = 4;
+    tankGroup.add(meniscusRing);
+
+    // 5. Parede interna anterior (renderOrder: 5)
+    const innerFrontMesh = new THREE.Mesh(innerTankGeo, innerPmmaMatFront);
+    innerFrontMesh.position.y = (tankHeight - 2.5) / 2 + 2.5;
+    innerFrontMesh.renderOrder = 5;
+    tankGroup.add(innerFrontMesh);
+
+    // Escala graduada em litros (1L a 5L) gravada na lateral frontal (renderOrder: 5)
     const gradGroup = new THREE.Group();
     for (let l = 1; l <= 5; l++) {
       const gradLine = new THREE.Mesh(
-        new THREE.PlaneGeometry(12, 0.8),
+        new THREE.PlaneGeometry(14, 1.0),
         new THREE.MeshBasicMaterial({ color: 0x94a3b8, side: THREE.DoubleSide })
       );
-      gradLine.position.set(0, (tankHeight / 6) * l, tankRadius + 0.2);
+      gradLine.position.set(0, (tankHeight / 6) * l, tankRadius + 0.3);
       gradGroup.add(gradLine);
     }
     tankGroup.add(gradGroup);
 
-    // Coluna d'água didática interna (confinada estritamente no raio interno)
-    const waterGeo = new THREE.CylinderGeometry(innerRadius, innerRadius, 1, 36);
-    const waterMat = new THREE.MeshPhysicalMaterial({
-      color: 0x0284c7, // Azul ciano com absorção natural
-      transmission: 0.84,
-      opacity: 0.90,
-      transparent: true,
-      roughness: 0.04,
-      metalness: 0.02,
-      ior: 1.333, // Índice de refração real da água potável
-    });
-    const waterMesh = new THREE.Mesh(waterGeo, waterMat);
-    tankGroup.add(waterMesh);
-
-    // Menisco superior da água com anel de tensão superficial
-    const waterSurface = new THREE.Mesh(
-      new THREE.CircleGeometry(innerRadius, 36),
-      new THREE.MeshStandardMaterial({
-        color: 0x38bdf8,
-        roughness: 0.08,
-        metalness: 0.12,
-      })
-    );
-    waterSurface.rotation.x = -Math.PI / 2;
-    tankGroup.add(waterSurface);
-
-    const meniscusRing = new THREE.Mesh(
-      new THREE.RingGeometry(innerRadius - 1.2, innerRadius, 36),
-      new THREE.MeshStandardMaterial({
-        color: 0x0369a1,
-        roughness: 0.1,
-        transparent: true,
-        opacity: 0.7,
-      })
-    );
-    meniscusRing.rotation.x = -Math.PI / 2;
-    tankGroup.add(meniscusRing);
+    // 6. Parede externa anterior (renderOrder: 6)
+    const outerFrontMesh = new THREE.Mesh(outerTankGeo, outerPmmaMatFront);
+    outerFrontMesh.position.y = tankHeight / 2;
+    outerFrontMesh.renderOrder = 6;
+    tankGroup.add(outerFrontMesh);
 
     // =========================================================================
     // 10. TAMPA MÓVEL, SUPORTE, PN532 E SONDA JSN — MONTAGEM EXPLODIDA
@@ -786,7 +915,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     lidAssemblyGroup.add(lidMesh);
 
     // Sonda Ultrassônica Estanque M20 apontando perpendicular à água (Classe C)
-    const probeGeo = new THREE.CylinderGeometry(11, 11, 22, 28);
+    const probeGeo = new THREE.CylinderGeometry(10, 10, 20, 28);
     const probeMat = new THREE.MeshStandardMaterial({
       color: 0x94a3b8,
       metalness: 0.85,
@@ -796,6 +925,51 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     probeMesh.position.set(0, -6, 0);
     probeMesh.castShadow = enableShadows;
     lidAssemblyGroup.add(probeMesh);
+
+    // Flange usinado superior M20 (latão niquelado / alumínio)
+    const probeFlange = new THREE.Mesh(
+      new THREE.CylinderGeometry(12.5, 12.5, 3.0, 28),
+      new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.9, roughness: 0.15 })
+    );
+    probeFlange.position.set(0, 8.5, 0);
+    probeMesh.add(probeFlange);
+
+    // Anel O-Ring de vedação estanque em borracha nitrílica (preto)
+    const oRing = new THREE.Mesh(
+      new THREE.TorusGeometry(10.2, 1.2, 12, 32),
+      new THREE.MeshStandardMaterial({ color: 0x09090b, roughness: 0.85 })
+    );
+    oRing.rotation.x = Math.PI / 2;
+    oRing.position.set(0, 6.8, 0);
+    probeMesh.add(oRing);
+
+    // Roscas M20x1.5 usinadas no corpo
+    for (let rz = -4; rz <= 4; rz += 2.5) {
+      const threadRidge = new THREE.Mesh(
+        new THREE.TorusGeometry(10.2, 0.45, 8, 32),
+        new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.8, roughness: 0.3 })
+      );
+      threadRidge.rotation.x = Math.PI / 2;
+      threadRidge.position.set(0, rz, 0);
+      probeMesh.add(threadRidge);
+    }
+
+    // Face acústica piezoelétrica rebaixada (alumínio escovado) voltada para o líquido
+    const piezoFace = new THREE.Mesh(
+      new THREE.CircleGeometry(8.5, 28),
+      new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.92, roughness: 0.1, side: THREE.DoubleSide })
+    );
+    piezoFace.rotation.x = Math.PI / 2;
+    piezoFace.position.set(0, -10.05, 0);
+    probeMesh.add(piezoFace);
+
+    // Prensa-cabo traseiro no topo e alívio de tensão do cabo coaxial
+    const cableGland = new THREE.Mesh(
+      new THREE.CylinderGeometry(4.5, 5.5, 6.0, 16),
+      new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 })
+    );
+    cableGland.position.set(0, 12.0, 0);
+    probeMesh.add(cableGland);
 
     // Suporte acrílico transparente para o PN532
     const nfcBracket = new THREE.Mesh(
@@ -828,14 +1002,54 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     nfcPcb.castShadow = enableShadows;
     lidAssemblyGroup.add(nfcPcb);
 
-    // Bobina de antena planar impressa (espiras douradas)
-    const coil = new THREE.Mesh(
-      new THREE.RingGeometry(11, 19, 36),
-      new THREE.MeshStandardMaterial({ color: 0xf59e0b, side: THREE.DoubleSide, metalness: 0.9 })
+    // 4 Furos de fixação M3 com anéis metalizados em ouro ENIG nos vértices
+    const nfcEnigMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.95, roughness: 0.2 });
+    [
+      [-18, -17],
+      [18, -17],
+      [-18, 17],
+      [18, 17],
+    ].forEach(([hx, hz]) => {
+      const pad = new THREE.Mesh(new THREE.RingGeometry(1.6, 2.8, 16), nfcEnigMat);
+      pad.rotation.x = -Math.PI / 2;
+      pad.position.set(hx, 0.82, hz);
+      nfcPcb.add(pad);
+    });
+
+    // CI NXP PN532 em encapsulamento QFN-40 central
+    const pn532Ic = new THREE.Mesh(
+      new THREE.BoxGeometry(6.0, 0.9, 6.0),
+      new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.3 })
     );
-    coil.rotation.x = -Math.PI / 2;
-    coil.position.set(0, 16.4, 0);
-    lidAssemblyGroup.add(coil);
+    pn532Ic.position.set(0, 1.25, 0);
+    nfcPcb.add(pn532Ic);
+
+    // Cristal cerâmico oscilador 27.12 MHz
+    const oscCrystal = new THREE.Mesh(
+      new THREE.BoxGeometry(3.2, 0.8, 2.5),
+      new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.9 })
+    );
+    oscCrystal.position.set(7.0, 1.2, 2.0);
+    nfcPcb.add(oscCrystal);
+
+    // Regulador de tensão LDO 3.3V SOT-223
+    const sot223 = new THREE.Mesh(
+      new THREE.BoxGeometry(6.5, 1.6, 3.5),
+      new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.5 })
+    );
+    sot223.position.set(-10.0, 1.6, 8.0);
+    nfcPcb.add(sot223);
+
+    // Antena planar impressa (espiras concêntricas em ouro ENIG)
+    for (let radius = 12; radius <= 18; radius += 1.8) {
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(radius, radius + 0.6, 32),
+        nfcEnigMat
+      );
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.set(0, 0.82, 0);
+      nfcPcb.add(ring);
+    }
 
     // Chaves de seleção de modo SPI (DIP switches SEL0/SEL1)
     const dipSwitchNfc = new THREE.Mesh(
@@ -843,6 +1057,13 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.5 })
     );
     dipSwitchNfc.position.set(14, 16.5, 12);
+    // Sliders brancos da chave DIP (SEL0=0, SEL1=1 para modo SPI)
+    const sliderMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
+    const slider0 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.2), sliderMat);
+    slider0.position.set(-1.4, 0.7, -0.6);
+    const slider1 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.2), sliderMat);
+    slider1.position.set(1.4, 0.7, 0.6);
+    dipSwitchNfc.add(slider0, slider1);
     lidAssemblyGroup.add(dipSwitchNfc);
 
     const nfcHeader = new THREE.Mesh(
@@ -852,28 +1073,51 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     nfcHeader.position.set(-18, 17.0, -10);
     lidAssemblyGroup.add(nfcHeader);
 
-    // Ímã de neodímio na borda da tampa
-    const magnetMesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(5, 5, 2.5, 20),
-      new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.95, roughness: 0.15 })
+    // Ímã de neodímio N35 com polos identificados (Norte vermelho / Sul azul)
+    const magnetNorth = new THREE.Mesh(
+      new THREE.CylinderGeometry(5, 5, 1.25, 20),
+      new THREE.MeshStandardMaterial({ color: 0xef4444, metalness: 0.6, roughness: 0.3 })
     );
-    magnetMesh.position.set(tankRadius - 5, 4.5, 0);
-    lidAssemblyGroup.add(magnetMesh);
+    magnetNorth.position.set(tankRadius - 5, 5.125, 0);
+    const magnetSouth = new THREE.Mesh(
+      new THREE.CylinderGeometry(5, 5, 1.25, 20),
+      new THREE.MeshStandardMaterial({ color: 0x3b82f6, metalness: 0.6, roughness: 0.3 })
+    );
+    magnetSouth.position.set(tankRadius - 5, 3.875, 0);
+    lidAssemblyGroup.add(magnetNorth, magnetSouth);
 
     // Reed Switch na lateral superior do recipiente (Classe C)
     const reedGroup = new THREE.Group();
     reedGroup.position.set(tankRadius - 5, tankHeight - 10, 0);
 
     const reedGlass = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.6, 1.6, 14, 14),
-      new THREE.MeshPhysicalMaterial({ color: 0xffffff, transmission: 0.92, transparent: true })
+      new THREE.CylinderGeometry(1.6, 1.6, 12, 16),
+      new THREE.MeshPhysicalMaterial({ color: 0xffffff, transmission: 0.94, roughness: 0.05, transparent: true })
     );
     reedGlass.rotation.z = Math.PI / 2;
-    const reedBlades = new THREE.Mesh(
-      new THREE.BoxGeometry(10, 0.4, 0.8),
-      new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9 })
-    );
-    reedGroup.add(reedGlass, reedBlades);
+
+    const glassCap1 = new THREE.Mesh(new THREE.SphereGeometry(1.6, 12, 12), reedGlass.material);
+    glassCap1.position.set(6, 0, 0);
+    const glassCap2 = new THREE.Mesh(new THREE.SphereGeometry(1.6, 12, 12), reedGlass.material);
+    glassCap2.position.set(-6, 0, 0);
+
+    // Duas lâminas ferromagnéticas de ferro-níquel (Fe-Ni) sobrepostas com gap de 0.2mm
+    const bladeMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.95, roughness: 0.15 });
+    const bladeLeft = new THREE.Mesh(new THREE.BoxGeometry(6.0, 0.35, 0.8), bladeMat);
+    bladeLeft.position.set(-2.2, 0.12, 0);
+    const bladeRight = new THREE.Mesh(new THREE.BoxGeometry(6.0, 0.35, 0.8), bladeMat);
+    bladeRight.position.set(2.2, -0.12, 0);
+
+    // Terminais axiais estanhados
+    const leadMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9 });
+    const lead1 = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 8, 8), leadMat);
+    lead1.rotation.z = Math.PI / 2;
+    lead1.position.set(-9.5, 0, 0);
+    const lead2 = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 8, 8), leadMat);
+    lead2.rotation.z = Math.PI / 2;
+    lead2.position.set(9.5, 0, 0);
+
+    reedGroup.add(reedGlass, glassCap1, glassCap2, bladeLeft, bladeRight, lead1, lead2);
     tankGroup.add(reedGroup);
 
     // =========================================================================
@@ -924,7 +1168,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     tankGroup.add(lidAssemblyGroup);
     benchGroup.add(tankGroup);
 
-    pickableObjects.push({ mesh: tankMesh, compKey: 'tank_cylinder' });
+    pickableObjects.push({ mesh: outerFrontMesh, compKey: 'tank_cylinder' });
     pickableObjects.push({ mesh: probeMesh, compKey: 'jsn_sr04t' });
     pickableObjects.push({ mesh: nfcPcb, compKey: 'pn532_breakout' });
     pickableObjects.push({ mesh: reedGlass, compKey: 'reed_switch' });
@@ -1209,26 +1453,33 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       explodeGuidesGroup.visible = curExplode > 0.04;
       guideLineMat.opacity = Math.min(0.7, curExplode * 0.85);
 
-      // Visibilidade da grade de piso conforme toggle
-      benchGrid.visible = showGridRef.current;
 
       // Altura dinâmica e micro-ondulação da água potável
       const currentPct = waterLevelRef.current;
-      const curWaterHeight = Math.max(8, (tankHeight - 20) * (currentPct / 100));
-      waterMesh.scale.set(1, curWaterHeight, 1);
-      waterMesh.position.y = curWaterHeight / 2 + 1;
+      if (currentPct <= 0) {
+        waterMesh.visible = false;
+        waterSurface.visible = false;
+        meniscusRing.visible = false;
+      } else {
+        waterMesh.visible = true;
+        waterSurface.visible = true;
+        meniscusRing.visible = true;
+        const curWaterHeight = (tankHeight - 24) * (currentPct / 100);
+        waterMesh.scale.set(1, Math.max(0.001, curWaterHeight), 1);
+        waterMesh.position.y = curWaterHeight / 2 + 2.5;
 
-      // Sutil oscilação de menisco (ondulação discreta de líquido desacelerável/desligável)
-      const ripple = enableRipplesRef.current ? Math.sin(Date.now() * 0.0025) * 0.3 : 0;
-      waterSurface.position.y = curWaterHeight + 1 + ripple;
-      meniscusRing.position.y = curWaterHeight + 1.05 + ripple;
+        // Sutil oscilação de menisco (ondulação discreta de líquido)
+        const ripple = enableRipplesRef.current ? Math.sin(Date.now() * 0.0025) * 0.3 : 0;
+        waterSurface.position.y = curWaterHeight + 2.5 + ripple;
+        meniscusRing.position.y = curWaterHeight + 2.55 + ripple;
+      }
 
       // Modo Sensores: feixe acústico ultrassônico e pulso propagando
       const isSensorsMode = isSensorModeRef.current;
       acousticGroup.visible = isSensorsMode;
       if (isSensorsMode) {
         const probeY = tankHeight + lidExplodeY - 6;
-        const waterTopY = curWaterHeight + 1;
+        const waterTopY = currentPct <= 0 ? 2.5 : ((tankHeight - 24) * (currentPct / 100) + 2.5);
         const beamSpan = Math.max(3, probeY - waterTopY);
 
         acousticCone.scale.set(1, beamSpan, 1);
@@ -1240,8 +1491,11 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
         pulseRing.scale.setScalar(0.7 + pulseCycle * 1.6);
       }
 
-      // Transparência configurável do cilindro de acrílico
-      tankMat.transmission = tankOpacityRef.current;
+      // Transparência configurável dos cilindros de acrílico PMMA (PBR)
+      outerPmmaMatBack.transmission = tankOpacityRef.current;
+      outerPmmaMatFront.transmission = tankOpacityRef.current;
+      innerPmmaMatBack.transmission = tankOpacityRef.current;
+      innerPmmaMatFront.transmission = tankOpacityRef.current;
 
       // Visibilidade e Destaque de Cabos (Modo Conexões)
       const isVisible = showCablesRef.current;
@@ -1298,7 +1552,8 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       }
 
       renderer.dispose();
-      tankGeo.dispose();
+      outerTankGeo.dispose();
+      innerTankGeo.dispose();
       waterGeo.dispose();
       matGeo.dispose();
       bbBody.geometry.dispose();
@@ -1541,19 +1796,19 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
             <div className="space-y-1 font-mono text-[10px]">
               <div className="flex justify-between">
                 <span className="text-inst-muted font-ui">Transdutor:</span>
-                <span className="text-inst-primary">Sonda M20 Estanque</span>
+                <span className="text-inst-primary">Sonda M20 [MEDIDO]</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-inst-muted font-ui">Distância à Água (d):</span>
-                <strong className="text-sky-300">{acousticDistanceMm.toFixed(1)} mm</strong>
+                <strong className="text-sky-300">{acousticDistanceMm.toFixed(1)} mm <span className="text-[8px] text-sky-400/80">[SIMULADO]</span></strong>
               </div>
               <div className="flex justify-between">
                 <span className="text-inst-muted font-ui">Tempo de Eco (t_eco):</span>
-                <strong className="text-amber-300">{transitTimeMs.toFixed(3)} ms</strong>
+                <strong className="text-amber-300">{transitTimeMs.toFixed(3)} ms <span className="text-[8px] text-amber-400/80">[CALCULADO]</span></strong>
               </div>
               <div className="flex justify-between">
                 <span className="text-inst-muted font-ui">Volume Estimado:</span>
-                <strong className="text-emerald-400">{waterVolumeL.toFixed(2)} L ({waterLevelPct}%)</strong>
+                <strong className="text-emerald-400">{waterVolumeL.toFixed(2)} L ({waterLevelPct}%) <span className="text-[8px] text-emerald-400/80">[CALCULADO]</span></strong>
               </div>
             </div>
 
@@ -1566,6 +1821,11 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
                   <span className="block mt-0.5 opacity-90 text-[9px]">Distância inferior a 20 cm do datasheet. O pulso de disparo pode mascarar o eco.</span>
                 </div>
               </div>
+            ) : waterLevelPct === 0 ? (
+              <div className="p-1.5 rounded-xs bg-amber-950/40 border border-amber-700/60 text-amber-300 text-[10px] flex items-center gap-1.5">
+                <Info className="w-3 h-3 text-amber-400 shrink-0" />
+                <span className="text-[10px]">Tanque 100% Vazio (Distância ao fundo: 141.5mm)</span>
+              </div>
             ) : (
               <div className="p-1.5 rounded-xs bg-emerald-950/40 border border-emerald-700/60 text-emerald-300 text-[10px] flex items-center gap-1.5">
                 <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
@@ -1577,7 +1837,13 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
             <div className="pt-1.5 border-t border-inst-border">
               <span className="text-[10px] text-inst-muted block mb-1">5 Níveis Oficiais de Ensaio:</span>
               <div className="grid grid-cols-5 gap-1">
-                {[15, 25, 50, 75, 95].map((lvl) => (
+                {[
+                  { lvl: 0, label: '0%' },
+                  { lvl: 25, label: '25%' },
+                  { lvl: 50, label: '50%' },
+                  { lvl: 75, label: '75%' },
+                  { lvl: 100, label: '100%' },
+                ].map(({ lvl, label }) => (
                   <button
                     key={lvl}
                     onClick={() => {
@@ -1589,8 +1855,9 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
                         ? 'bg-sky-600 text-white border-sky-400'
                         : 'bg-inst-canvas text-inst-secondary hover:text-inst-primary border-inst-border'
                     }`}
+                    title={lvl === 0 ? 'Vazio (0%)' : lvl === 100 ? 'Cheio (100%)' : `${lvl}%`}
                   >
-                    {lvl}%
+                    {label}
                   </button>
                 ))}
               </div>
@@ -1605,12 +1872,14 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
               <Droplets className="w-3 h-3" />
               Nível d'Água (5L)
             </span>
-            <span className="text-inst-primary font-bold">{waterLevelPct}%</span>
+            <span className="text-inst-primary font-bold">
+              {waterLevelPct === 0 ? '0% (Vazio)' : waterLevelPct === 100 ? '100% (Cheio)' : `${waterLevelPct}%`}
+            </span>
           </div>
           <input
             type="range"
-            min="15"
-            max="95"
+            min="0"
+            max="100"
             value={waterLevelPct}
             onChange={(e) => {
               setIsManualOverride(true);
@@ -1619,7 +1888,13 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
             className="w-full accent-fuelguard-green cursor-pointer h-1.5 bg-inst-canvas rounded-xs"
           />
           <div className="grid grid-cols-5 gap-1 pt-0.5">
-            {[15, 25, 50, 75, 95].map((lvl) => (
+            {[
+              { lvl: 0, label: '0%' },
+              { lvl: 25, label: '25%' },
+              { lvl: 50, label: '50%' },
+              { lvl: 75, label: '75%' },
+              { lvl: 100, label: '100%' },
+            ].map(({ lvl, label }) => (
               <button
                 key={lvl}
                 onClick={() => {
@@ -1631,8 +1906,9 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
                     ? 'bg-sky-600 text-white border-sky-400'
                     : 'bg-inst-canvas text-inst-muted hover:text-inst-primary border-inst-border'
                 }`}
+                title={lvl === 0 ? '0% (Vazio)' : lvl === 100 ? '100% (Cheio)' : `${lvl}%`}
               >
-                {lvl}%
+                {label}
               </button>
             ))}
           </div>

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "reference": "SW1",
+  "name": "Sensor de Tampa Reed Switch Magnético 14mm",
+  "manufacturer": "Littelfuse",
+  "model": "MDSM-4R-15-20",
+  "revision": "Ampola Vidro 14mm N.A. + Ímã Neodímio N35",
+  "sourceUrl": "https://gitlab.com/kicad/libraries/kicad-packages3D",
+  "license": "CC-BY-SA 4.0",
+  "format": "Modelo CAD Real Integrado (Classe B / KiCad Switch_Magnetic)",
+  "sourceUnit": "mm",
+  "dimensionsMm": {
+    "width": 4.0,
+    "height": 28.0,
+    "depth": 4.0
+  },
+  "scale": [1.0, 1.0, 1.0],
+  "transforms": {
+    "positionOffsetMm": [0.0, 0.0, 0.0],
+    "rotationDeg": [0, 0, 0]
+  },
+  "fidelityClass": "B",
+  "confidenceRationale": "Geometria padronizada de ampola de vidro com lâminas ferromagnéticas de contato normalmente aberto. Ímã de neodímio N35 instalado no anel da tampa com curso de acionamento < 15mm.",
+  "verificationDate": "2026-09-28",
+  "mounting": {
+    "reedSwitch": "MOUNTED_ON_TANK_COLLAR",
+    "magnet": "MOUNTED_ON_LID_RIM",
+    "triggerDistanceMm": 12.0
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "reference": "D1",
+  "name": "LED Radial Ø5mm Verde Translúcido",
+  "manufacturer": "Kingbright",
+  "model": "WP7113GD",
+  "revision": "THT Radial 5mm (Chanfro Cátodo)",
+  "sourceUrl": "https://gitlab.com/kicad/libraries/kicad-packages3D",
+  "license": "CC-BY-SA 4.0",
+  "format": "Modelo CAD Real Integrado (Classe A / KiCad LED_THT)",
+  "sourceUnit": "mm",
+  "dimensionsMm": {
+    "width": 5.0,
+    "height": 8.6,
+    "depth": 5.0
+  },
+  "scale": [1.0, 1.0, 1.0],
+  "transforms": {
+    "positionOffsetMm": [0.0, 0.0, 0.0],
+    "rotationDeg": [0, 0, 0]
+  },
+  "fidelityClass": "A",
+  "confidenceRationale": "Modelo CAD oficial conferido contra a biblioteca KiCad Packages3D (LED_THT.3dshapes) e datasheet Kingbright WP7113GD: cúpula em resina epóxi óptica translúcida com transmissão PBR, chanfro na flange do cátodo, taça refletora leadframe interna e terminais estanhados.",
+  "verificationDate": "2026-09-28",
+  "mounting": {
+    "type": "THT_INSERTION",
+    "targetHost": "BB1",
+    "leadPitchMm": 2.54
+  }
+}

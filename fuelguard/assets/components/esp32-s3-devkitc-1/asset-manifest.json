@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "reference": "U1",
+  "name": "ESP32-S3 DevKitC-1 v1.1",
+  "manufacturer": "Espressif Systems",
+  "model": "ESP32-S3-DevKitC-1-N8R8",
+  "revision": "v1.1 (PCB Rev 2023)",
+  "sourceUrl": "https://github.com/espressif/kicad-libraries",
+  "license": "CC-BY-SA-4.0",
+  "format": "Modelo CAD Real Integrado (Classe A / KiCad Espressif)",
+  "sourceUnit": "mm",
+  "dimensionsMm": {
+    "width": 25.5,
+    "height": 68.0,
+    "depth": 12.8
+  },
+  "scale": [1.0, 1.0, 1.0],
+  "transforms": {
+    "positionOffsetMm": [0.0, 0.0, 0.0],
+    "rotationDeg": [0, 0, 0]
+  },
+  "fidelityClass": "A",
+  "confidenceRationale": "Geometria oficial confirmada a partir das bibliotecas KiCad e guia de hardware da Espressif. Inclui blindagem metálica WROOM-1, portas USB-C em aço, antena MIFA ouro e pinos 2x22.",
+  "verificationDate": "2026-09-28",
+  "mounting": {
+    "type": "THT_INSERTION",
+    "targetHost": "BB1",
+    "pinCount": 44,
+    "pitchMm": 2.54,
+    "spanMm": 22.86
+  }
+}
