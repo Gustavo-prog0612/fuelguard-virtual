@@ -35,8 +35,8 @@ export const EventsView: React.FC = () => {
 
   const initialLogs = [
     { time: '00:00.000', level: 'SYSTEM', msg: '[SYSTEM] ESP32-S3 WROOM-1 boot complete (FreeRTOS v10.4.3). Relógio sincronizado.' },
-    { time: '00:00.020', level: 'INFO', msg: '[FW] Periféricos inicializados: SPI (PN532 @ 4MHz), GPIO5 (TRIG), GPIO6 (ECHO), GPIO7 (Reed).' },
-    { time: '00:00.200', level: 'INFO', msg: '[FW] JSN ping: echo=2450us dist=42.3cm quality=VALID -> Median=42.3cm h=57.7cm vol=577L' },
+    { time: '00:00.020', level: 'INFO', msg: '[FW] Periféricos inicializados: SPI (PN532 @ 4MHz), UART1 SEN0311 (GPIO16 RX), GPIO7 (Reed), GPIO14 (buzzer).' },
+    { time: '00:00.200', level: 'INFO', msg: '[FW] SEN0311 UART: dist=80mm quality=VALID -> Median=80mm h=8.0cm vol=3.2L' },
   ];
 
   const displayLogs = sim.uartLogs.length > 0 ? sim.uartLogs : initialLogs;
@@ -343,7 +343,7 @@ export const EventsView: React.FC = () => {
 
           <div className="space-y-2 text-xs font-mono max-h-96 overflow-y-auto pr-1">
             {(sim.events.length > 0 ? sim.events.slice(-6).reverse() : [
-              { seq: 42, sim_time_ms: 14200, kind: 'tank.level_update', payload: { percentage: 57.7, water_height_cm: 57.7, volume_liters: 577 } },
+              { seq: 42, sim_time_ms: 14200, kind: 'tank.level_update', payload: { percentage: 50.0, water_height_cm: 8.0, volume_liters: 3.2 } },
               { seq: 41, sim_time_ms: 12100, kind: 'nfc.tag_read', payload: { uid: '04:3A:7F:2C:5D', operator_name: 'Operador Didático' } },
               { seq: 40, sim_time_ms: 8050, kind: 'lid.state_change', payload: { is_open: false, bounces_count: 12 } },
               { seq: 39, sim_time_ms: 0, kind: 'clock.tick', payload: { delta_ms: 20 } },

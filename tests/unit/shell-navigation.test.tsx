@@ -6,8 +6,8 @@ describe('Marco M1: Casca do Sistema e Navegação — Design System Sereno', ()
   it('renderiza o cabeçalho com identidade visual FuelGuard e especificações do hardware', () => {
     render(<App />);
     expect(screen.getByText(/FuelGuard/i)).toBeDefined();
-    expect(screen.getByText(/Virtual Test Bench/i)).toBeDefined();
-    expect(screen.getByText(/ESP32-S3 • JSN-SR04T • PN532 • Recipiente com Água/i)).toBeDefined();
+    expect(screen.getByText(/Real Hardware Reference/i)).toBeDefined();
+    expect(screen.getByText(/ESP32-S3 v1.1 • PN532 V4 • SEN0311 UART • PCB sob gate/i)).toBeDefined();
   });
 
   it('exibe todos os 5 itens de navegação na barra de tarefas', () => {
@@ -58,12 +58,12 @@ describe('Marco M1: Casca do Sistema e Navegação — Design System Sereno', ()
     expect(screen.getByText(/Injeção de Estímulos e Falhas em Tempo Real/i)).toBeDefined();
   });
 
-  it('alterna para a tela de 5. Projeto CAD e exibe a estação EDA', () => {
+  it('alterna para a tela de 5. Projeto CAD e exibe a estação EDA', async () => {
     render(<App />);
     const cadButton = screen.getByRole('tab', { name: /5\. Projeto CAD/i });
     fireEvent.click(cadButton);
 
-    expect(screen.getByText(/Estação de Projeto CAD & Eletrônica/i)).toBeDefined();
+    expect(await screen.findByText(/Estação de Projeto CAD & Eletrônica/i)).toBeDefined();
   });
 
   it('alterna o estado da simulação pelo botão Play/Pause', () => {

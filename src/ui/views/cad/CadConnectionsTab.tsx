@@ -13,7 +13,7 @@ import {
   Filter,
   Search,
 } from 'lucide-react';
-import cableRoutesData from '@/../fuelguard/assembly/cable-routes.json';
+import cableRoutesData from '@/../hardware/assembly/cable-routes.json';
 
 type SignalGroupFilter = 'ALL' | 'POWER' | 'ULTRASONIC' | 'NFC' | 'PERIPHERALS';
 
@@ -30,7 +30,7 @@ export const CadConnectionsTab: React.FC<CadConnectionsTabProps> = () => {
   const filteredCables = useMemo(() => {
     return cables.filter((c) => {
       const isPower = c.signalType.includes('POWER') || c.signalType.includes('GROUND');
-      const isUltra = c.id.includes('TRIG') || c.id.includes('ECHO') || c.signalType.includes('TTL') || c.signalType.includes('DIVIDER');
+      const isUltra = c.id.includes('LEVEL') || c.signalType.includes('UART');
       const isNfc = c.id.includes('NFC') || c.id.includes('SPI') || c.id.includes('SDA') || c.id.includes('SCL');
       const isPerip = c.id.includes('REED') || c.id.includes('BUZZER') || c.id.includes('LED');
 
@@ -63,15 +63,15 @@ export const CadConnectionsTab: React.FC<CadConnectionsTabProps> = () => {
               </h2>
             </div>
             <p className="text-xs text-inst-secondary mt-1 max-w-4xl leading-relaxed">
-              Todos os condutores da bancada física possuem terminais reais em ambas as pontas (macho ou fêmea 2.54mm,
-              JST-XH ou conector RCA estanque). As rotas obedecem o raio de curvatura mínimo de 15mm para evitar fadiga mecânica.
+              As rotas representam o chicote físico da bancada em milímetros, com origem, destino, net, terminais e waypoints.
+              Comprimentos e folgas permanecem calculados até serem conferidos na montagem real.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-1 rounded-xs bg-emerald-950 text-emerald-300 border border-emerald-800 text-[11px] font-mono font-bold flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span>100% dos Cabos Conectados (Sem pontas soltas)</span>
+              <span>Rotas cadastradas • revisão física pendente</span>
             </span>
           </div>
         </div>
@@ -83,16 +83,16 @@ export const CadConnectionsTab: React.FC<CadConnectionsTabProps> = () => {
             <span className="text-sm font-bold text-inst-primary">{cables.length} Cabos Físicos</span>
           </div>
           <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border">
-            <span className="text-[10px] text-inst-muted block uppercase">Terminações Homologadas:</span>
-            <span className="text-sm font-bold text-emerald-400">24 / 24 Terminais Reais</span>
+            <span className="text-[10px] text-inst-muted block uppercase">Terminações descritas:</span>
+            <span className="text-sm font-bold text-emerald-400">{cables.length * 2} pontos</span>
           </div>
           <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border">
             <span className="text-[10px] text-inst-muted block uppercase">Bitolas Utilizadas:</span>
             <span className="text-sm font-bold text-sky-400">AWG 22 (Alimentação) / AWG 26 (Sinal)</span>
           </div>
           <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border">
-            <span className="text-[10px] text-inst-muted block uppercase">Raio Mínimo de Curvatura:</span>
-            <span className="text-sm font-bold text-purple-400">R &gt;= 15.0 mm [MEDIDO]</span>
+            <span className="text-[10px] text-inst-muted block uppercase">Folga / curvatura:</span>
+            <span className="text-sm font-bold text-amber-300">Pendente de medição</span>
           </div>
         </div>
       </div>
@@ -107,7 +107,7 @@ export const CadConnectionsTab: React.FC<CadConnectionsTabProps> = () => {
           {[
             { id: 'ALL', label: 'Todos' },
             { id: 'POWER', label: 'Alimentação' },
-            { id: 'ULTRASONIC', label: 'Ultrassom (JSN-SR04T)' },
+            { id: 'ULTRASONIC', label: 'Nível (A02YYUW/SEN0311 UART)' },
             { id: 'NFC', label: 'NFC / RFID (PN532)' },
             { id: 'PERIPHERALS', label: 'Periféricos (Reed/Buzzer/LED)' },
           ].map((item) => (
@@ -146,11 +146,11 @@ export const CadConnectionsTab: React.FC<CadConnectionsTabProps> = () => {
                 <th className="p-3">ID do Cabo</th>
                 <th className="p-3">Net Name</th>
                 <th className="p-3">Tipo de Sinal</th>
-                <th className="p-3">Tensão [MEDIDO]</th>
+                <th className="p-3">Tensão [CALCULADO]</th>
                 <th className="p-3">Origem & Terminal</th>
                 <th className="p-3">Destino & Terminal</th>
                 <th className="p-3">Bitola</th>
-                <th className="p-3">Comprimento [MEDIDO]</th>
+                <th className="p-3">Comprimento [CALCULADO]</th>
                 <th className="p-3">Waypoints [CALCULADO]</th>
               </tr>
             </thead>

@@ -1,35 +1,24 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "reference": "TK1",
-  "name": "Recipiente Didático Cilíndrico de Teste Hidrostático (5L)",
-  "manufacturer": "FuelGuard Lab Rig",
-  "model": "TK-WATER-5L-CYL",
-  "revision": "v1.0 (Acrílico Dupla Parede com Tampa de Encaixe e Bocal M20)",
-  "sourceUrl": "https://github.com/easyw/kicadStepUpMod",
-  "license": "Design Didático FuelGuard",
-  "format": "Modelo CAD Real Integrado (Classe D / KiCad StepUp PBR)",
+  "reference": "TK1/LID1",
+  "name": "Tanque acrílico transparente FG-TANK-6L-R1",
+  "manufacturer": "FuelGuard bench design",
+  "model": "FG-TANK-6L-R1",
+  "revision": "R1 paramétrico; paredes 3 mm; tampa 5 mm",
+  "sourceUrl": "hardware/measurements/measurement-register.json#MEAS-TANK-01",
+  "license": "Projeto próprio de bancada",
+  "format": "CAD paramétrico de referência; não é peça fisicamente confirmada",
   "sourceUnit": "mm",
-  "dimensionsMm": {
-    "outerDiameter": 150.0,
-    "innerDiameter": 144.0,
-    "wallThickness": 3.0,
-    "height": 220.0,
-    "maxCapacityLiters": 5.0
-  },
+  "dimensionsMm": { "outerWidth": 206, "outerLength": 206, "wallThickness": 3, "height": 168, "lidThickness": 5, "maxCapacityLiters": 6.4 },
+  "internalDimensionsMm": { "width": 200, "length": 200, "height": 160 },
+  "operationalVolumeLiters": { "min": 1, "max": 5 },
   "scale": [1.0, 1.0, 1.0],
-  "transforms": {
-    "positionOffsetMm": [85.0, 110.0, 0.0],
-    "rotationDeg": [0, 0, 0]
-  },
-  "fidelityClass": "D",
-  "confidenceRationale": "Placeholder geométrico PBR didático para testes de reflexão ultrassônica em coluna d'água. Possui malha externa, malha interna com espessura de 3mm, tampa acrílica perfurada e volume de fluido com refração e transmissão óptica. NÃO representa tanque automotivo nem hidrocarbonetos.",
-  "disclaimerNote": "Recipiente didático exclusivo para ensaios hidrostáticos com água potável. Não serve como gabarito veicular de combustível.",
-  "verificationDate": "2026-09-28",
-  "fluidPhysics": {
-    "medium": "Potable Water",
-    "speedOfSoundMs": 343.0,
-    "refractiveIndex": 1.333,
-    "transmission": 0.88,
-    "volumeCalculationFormula": "V = PI * (r_in)^2 * h"
-  }
+  "transforms": { "positionOffsetMm": [85.0, 110.0, 0.0], "rotationDeg": [0, 0, 0] },
+  "fidelityClass": "C",
+  "confidenceRationale": "Dimensões são uma baseline paramétrica aprovada pelo projeto: acrílico transparente, volume interno 6,4 L, operação 1–5 L. A peça deve ser fabricada, medida e aferida com água.",
+  "disclaimerNote": "O CAD pode orientar o desenho da bancada, mas não substitui a inspeção da tampa, a medição dos quatro M3 e a calibração física.",
+  "verificationStatus": "PENDING_PHYSICAL_EVIDENCE",
+  "verificationDate": null,
+  "mounting": { "lidFasteners": "4x M3", "sensor": "SEN0311 centralizado na tampa; distância operacional 35–135 mm", "cableGland": "passagem superior com gota antes da protoboard", "lidSwitch": "MC-38 lateral + ímã em suporte separado" },
+  "fluidPhysics": { "medium": "água de demonstração", "speedOfSoundMs": null, "volumeCalculationFormula": "V(L)=200mm*200mm*h(mm)/1,000,000; validar por aferição", "calibrationStatus": "NOT_CALIBRATED" }
 }

@@ -57,14 +57,14 @@ export const AgentSessionPanel: React.FC<AgentSessionPanelProps> = ({
     {
       id: 'm1',
       sender: 'system',
-      text: 'Inicializado subsistema tscircuit IR v1.0.0. Carrier board 180×120mm configurada com ESP32-S3 e condicionadores de sinal.',
+      text: 'Inicializado subsistema de verificação. Referência em protoboard carregada; a placa adaptadora FuelGuard permanece não projetada.',
       timestamp: '14:20:01',
       tags: ['SYS', 'INIT'],
     },
     {
       id: 'm2',
       sender: 'agent',
-      text: 'Bancada didática nominal carregada. Níveis lógicos seguros validados: 3.3V GPIO6 com atenuação via divisor 10k/15k e disparo 5V via buffer 74AHCT125.',
+      text: 'Baseline real carregada. UART do SEN0311 em 3,3 V/GPIO16, SPI do PN532 V4 e interlock MC-38 registrados; medições físicas continuam pendentes.',
       timestamp: '14:20:05',
       tags: ['EDA', 'SAFE'],
     },
@@ -93,18 +93,18 @@ export const AgentSessionPanel: React.FC<AgentSessionPanelProps> = ({
       if (lower.includes('drc') || lower.includes('auditoria') || lower.includes('verificar')) {
         onSelectTab('drc');
         responseText = isFaultActive
-          ? 'ALERTA DRC: Detectada violação fatal DRC-01! Tensão de 5.0V conectada diretamente ao GPIO6 do ESP32-S3 sem atenuação.'
+          ? 'ALERTA DRC: Detectada violação fatal DRC-01! Tensão de 5,0 V conectada diretamente ao GPIO16/UART1_RX do ESP32-S3.'
           : 'Auditoria DRC executada: 0 violações críticas. Todos os pinos estão dentro das margens elétricas seguras da Espressif.';
         tags = ['DRC', isFaultActive ? 'ERROR' : 'PASS'];
       } else if (lower.includes('curto') || lower.includes('falha') || lower.includes('5v')) {
         onInjectFault();
         onSelectTab('drc');
-        responseText = 'Injeção de falha executada: Linha de 5V do sensor JSN conectada diretamente ao pino IO6 do ESP32-S3. DRC agora acusa risco de dano por sobretensão.';
+        responseText = 'Injeção de falha executada: linha UART de 5 V do SEN0311 conectada diretamente ao GPIO16 do ESP32-S3. DRC acusa risco de sobretensão.';
         tags = ['FAULT', 'HAZARD'];
       } else if (lower.includes('restaurar') || lower.includes('nominal') || lower.includes('seguro')) {
         onRestoreSafe();
         onSelectTab('schematic');
-        responseText = 'Topologia restaurada para fiação nominal segura com divisor de tensão resistivo (3.00V máx no GPIO6).';
+        responseText = 'Topologia restaurada para a fiação nominal: SEN0311 em 3,3 V, TX no GPIO16/UART1_RX e RX/MODE em nível alto.';
         tags = ['SAFE', 'NOMINAL'];
       } else if (lower.includes('3d') || lower.includes('gemeo') || lower.includes('placa 3d')) {
         onSelectTab('3d');
@@ -114,22 +114,22 @@ export const AgentSessionPanel: React.FC<AgentSessionPanelProps> = ({
         onSelectTab('schematic');
         responseText = 'Exibindo esquemático vetorial unificado com simbologia IEC e zonas funcionais isoladas.';
         tags = ['SCH', 'EDA'];
+      } else if (lower.includes('pcb') && lower.includes('kicad')) {
+        onExportKiCadPcb();
+        responseText = 'A exportação de PCB só é permitida para um pacote com contorno, footprints e roteamento reais. Para a referência FuelGuard ela permanece bloqueada.';
+        tags = ['PCB', 'BLOCKED'];
       } else if (lower.includes('pcb') || lower.includes('layout')) {
         onSelectTab('pcb');
-        responseText = 'Exibindo layout de PCB 2D em FR-4 com camadas Top Copper, Serigrafia, Máscara e Vias.';
-        tags = ['PCB', '2D'];
+        responseText = 'Exibindo o estado da placa adaptadora. O FuelGuard ainda não possui PCB fabricável; a referência atual é em protoboard.';
+        tags = ['PCB', 'PENDING'];
       } else if (lower.includes('montagem') || lower.includes('assembly') || lower.includes('galão') || lower.includes('bancada')) {
         onSelectTab('assembly');
-        responseText = 'Alternado para a Montagem Física 3D da Bancada (Assembly View). Visualizando arranjo real com protoboard, ESP32-S3 DevKitC-1 v1.1, galão com água translúcida, sonda JSN e jumpers 3D.';
+        responseText = 'Alternado para a montagem física 3D da bancada. Visualizando MB-102, ESP32-S3 v1.1, PN532 V4 frontal, tanque FG-TANK-6L-R1, probe SEN0311 e chicote com drip loop.';
         tags = ['ASSEMBLY', '3D'];
       } else if (lower.includes('circuit json') || lower.includes('json')) {
         onExportCircuitJson();
         responseText = 'Pacote canônico Circuit JSON gerado e exportado com sucesso.';
         tags = ['EXPORT', 'JSON'];
-      } else if (lower.includes('pcb') && lower.includes('kicad')) {
-        onExportKiCadPcb();
-        responseText = 'Layout KiCad PCB (.kicad_pcb) gerado e exportado com sucesso.';
-        tags = ['EXPORT', 'KICAD_PCB'];
       } else if (lower.includes('kicad')) {
         onExportKiCadSch();
         responseText = 'Gerado e baixado arquivo KiCad 8/9 demonstrativo (.kicad_sch). Arquivo pronto para importação no KiCad EDA.';
@@ -212,7 +212,7 @@ export const AgentSessionPanel: React.FC<AgentSessionPanelProps> = ({
             <span className="truncate">Auditar DRC</span>
           </button>
           <button
-            onClick={() => handleSendPrompt(isFaultActive ? 'Restaurar topologia nominal segura' : 'Injetar falha de sobretensão 5V no GPIO6')}
+            onClick={() => handleSendPrompt(isFaultActive ? 'Restaurar topologia nominal segura' : 'Injetar falha de sobretensão 5V no GPIO16')}
             className={`p-1.5 text-left rounded-xs border transition flex items-center gap-1.5 truncate ${
               isFaultActive 
                 ? 'bg-emerald-950/40 border-emerald-800 text-emerald-300 hover:border-emerald-600'

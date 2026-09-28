@@ -44,7 +44,7 @@ export class SimulationEngine {
   private mcu: McuStateMachine;
 
   // Variáveis Físicas do Ensaio
-  private currentWaterHeightCm: number = 57.7;
+  private currentWaterHeightCm: number = 8.0;
   private ambientTempC: number = 24.8;
   private activeScenarioId: string = 'nominal';
 
@@ -249,8 +249,8 @@ export class SimulationEngine {
         fault_id: faultId,
         name: faultId,
         description: 'Falha intencional de bancada didática',
-        safety_violation: faultId === 'FAULT_ECHO_5V',
-        target_pin: faultId === 'FAULT_ECHO_5V' ? 'GPIO6' : 'GND',
+        safety_violation: faultId === 'FAULT_LEVEL_UART_5V',
+        target_pin: faultId === 'FAULT_LEVEL_UART_5V' ? 'GPIO16' : 'GND',
       });
     } else {
       this.injectedFaults.delete(faultId);

@@ -9,8 +9,8 @@ export interface CalibrationPoint {
 }
 
 export class TankGeometry {
-  public static readonly DEFAULT_H_REF_CM = 100.0; // 1 metro de profundidade total
-  public static readonly DEFAULT_BASE_AREA_M2 = 0.1; // Base de 31.6 cm x 31.6 cm (~100 L total)
+  public static readonly DEFAULT_H_REF_CM = 16.0; // FG-TANK-6L-R1: 160 mm internos
+  public static readonly DEFAULT_BASE_AREA_M2 = 0.04; // 200 x 200 mm internos
 
   private hrefCm: number;
   private baseAreaM2: number;
@@ -25,11 +25,12 @@ export class TankGeometry {
     this.baseAreaM2 = baseAreaM2;
     this.calibrationCurve = customPoints || [
       { hCm: 0, volL: 0 },
-      { hCm: 20, volL: 20 },
-      { hCm: 40, volL: 40 },
-      { hCm: 60, volL: 60 },
-      { hCm: 80, volL: 80 },
-      { hCm: 100, volL: 100 },
+      { hCm: 2.5, volL: 1.0 },
+      { hCm: 5.0, volL: 2.0 },
+      { hCm: 7.5, volL: 3.0 },
+      { hCm: 10.0, volL: 4.0 },
+      { hCm: 12.5, volL: 5.0 },
+      { hCm: 16.0, volL: 6.4 },
     ];
   }
 
@@ -38,7 +39,7 @@ export class TankGeometry {
   }
 
   public setHref(h: number): void {
-    this.hrefCm = Math.max(30.0, Math.min(300.0, h));
+    this.hrefCm = Math.max(3.0, Math.min(450.0, h));
   }
 
   /**

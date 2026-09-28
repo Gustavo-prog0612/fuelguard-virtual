@@ -10,16 +10,18 @@ describe('CAD & Circuit JSON Pipeline (tscircuit Integration)', () => {
     expect(esp32).toBeDefined();
     expect(esp32.partNumber).toBe('ESP32-S3-DevKitC-1-N8R8');
     expect(esp32.dimensionsMm).toEqual({ width: 25.5, height: 68.0, depth: 12.0 });
-    expect(esp32.validationStatus).toBe('exact_verified');
+    expect(esp32.validationStatus).toBe('documented_reference');
     expect(esp32.license).toBe('CC-BY-SA-4.0');
 
-    // Módulos aproximados didáticos
-    const jsn = FUELGUARD_CAD_LIBRARY['jsn_sr04t'];
-    expect(jsn.validationStatus).toBe('didactic_approximate');
-    expect(jsn.disclaimerNote).toBeDefined();
+    const level = FUELGUARD_CAD_LIBRARY['a02yyuw_sen0311'];
+    expect(level.validationStatus).toBe('vendor_lot_specific');
+    expect(level.partNumber).toBe('SEN0311');
+    expect(level.pins.map((pin) => pin.label)).toEqual(['VCC (3V3)', 'GND', 'RX (MODE)', 'TX (UART)']);
 
     const pn532 = FUELGUARD_CAD_LIBRARY['pn532_breakout'];
-    expect(pn532.validationStatus).toBe('didactic_approximate');
+    expect(pn532.validationStatus).toBe('documented_reference');
+    expect(pn532.partNumber).toBe('NFC-PN532_V4');
+    expect(pn532.pins).toHaveLength(8);
   });
 
   it('deve gerar pacote Circuit JSON nominal válido com todos os componentes da bancada', () => {
@@ -30,28 +32,28 @@ describe('CAD & Circuit JSON Pipeline (tscircuit Integration)', () => {
     expect(pkg.cad_engine).toBe('tscircuit');
     expect(pkg.circuit_elements.length).toBeGreaterThan(20);
 
-    // Deve conter pcb_board
-    const board = pkg.circuit_elements.find((el) => el.type === 'pcb_board');
-    expect(board).toBeDefined();
-    expect((board as any).width).toBe(180);
-    expect((board as any).height).toBe(120);
+    // A referência de engenharia ainda não tem PCB liberada: não criar PCB sintética.
+    expect(pkg.scope).toBe('engineering-reference');
+    expect(pkg.pcbReadiness).toBe('not-designed');
+    expect(pkg.circuit_elements.some((el) => el.type === 'pcb_board')).toBe(false);
+    expect(pkg.circuit_elements.some((el) => el.type === 'pcb_trace')).toBe(false);
 
-    // Deve conter source_components de todos os módulos
+    // Deve conter source_components de todos os módulos reais da baseline.
     const sourceComps = pkg.circuit_elements.filter((el) => el.type === 'source_component');
-    expect(sourceComps.length).toBe(7); // ESP32, Buffer, Divider, JSN, PN532, Reed, LED
+    expect(sourceComps.length).toBe(6); // ESP32, SEN0311, PN532, MC-38, LED, buzzer
 
-    // Deve conter pinos (source_port) e ilhós perfurados (pcb_plated_hole)
+    // Deve conter pinos lógicos; furos só existirão após projeto de PCB real.
     const ports = pkg.circuit_elements.filter((el) => el.type === 'source_port');
     expect(ports.length).toBeGreaterThan(25);
 
     const holes = pkg.circuit_elements.filter((el) => el.type === 'pcb_plated_hole');
-    expect(holes.length).toBeGreaterThan(25);
+    expect(holes.length).toBe(0);
 
     // Deve conter redes (source_net) para terras e sinais
     const nets = pkg.circuit_elements.filter((el) => el.type === 'source_net');
     expect(nets.some((n: any) => n.name === 'GND')).toBe(true);
-    expect(nets.some((n: any) => n.name === '+5V')).toBe(true);
-    expect(nets.some((n: any) => n.name === 'ECHO_3V0_SAFE')).toBe(true);
+    expect(nets.some((n: any) => n.name === '+3V3')).toBe(true);
+    expect(nets.some((n: any) => n.name === 'LEVEL_UART_RX')).toBe(true);
   });
 
   it('deve aprovar circuito nominal no validador DRC sem erros fatais', () => {
@@ -65,7 +67,7 @@ describe('CAD & Circuit JSON Pipeline (tscircuit Integration)', () => {
     expect(violations.some((v) => v.ruleCode === 'DRC-05')).toBe(true); // Aviso didático
   });
 
-  it('deve detectar violação fatal de sobretensão 5V no pino GPIO6 em circuito falho', () => {
+  it('deve detectar violação fatal de sobretensão 5V no pino GPIO16 em circuito falho', () => {
     const builder = new CircuitJsonBuilder();
     const faultyPkg = builder.buildFaultyBenchCircuit();
 
@@ -85,25 +87,31 @@ describe('CAD & Circuit JSON Pipeline (tscircuit Integration)', () => {
     expect(esp32.inferredDimensions.length).toBe(0);
     expect(esp32.sourceUrl).toContain('espressif/kicad-libraries');
 
-    // Classe B: Modelo de biblioteca confiável (JEDEC / KiCad Packages3D)
-    const buffer = FUELGUARD_CAD_LIBRARY['sn74ahct125n'];
-    expect(buffer.confidenceLevel).toBe('B');
-    expect(buffer.sourceUrl).toContain('kicad-packages3D');
+    // Classe B: buzzer ativo com MPN e datasheet do fabricante
+    const buzzer = FUELGUARD_CAD_LIBRARY['buzzer_active'];
+    expect(buzzer.confidenceLevel).toBe('B');
+    expect(buzzer.partNumber).toBe('CMI-1295IC-0385T');
 
-    // Classe C: Aproximação paramétrica com dimensões inferidas a confirmar
-    const jsn = FUELGUARD_CAD_LIBRARY['jsn_sr04t'];
-    expect(jsn.confidenceLevel).toBe('C');
-    expect(jsn.inferredDimensions.length).toBeGreaterThan(0);
-    expect(jsn.replacementInstructions).toBeDefined();
+    const level = FUELGUARD_CAD_LIBRARY['a02yyuw_sen0311'];
+    expect(level.confidenceLevel).toBe('C');
+    expect(level.inferredDimensions.length).toBeGreaterThan(0);
+    expect(level.replacementInstructions).toBeDefined();
 
     const pn532 = FUELGUARD_CAD_LIBRARY['pn532_breakout'];
     expect(pn532.confidenceLevel).toBe('C');
-    expect(pn532.inferredDimensions.length).toBeGreaterThan(0);
+    expect(pn532.validationStatus).toBe('documented_reference');
+    expect(pn532.pins.map((pin) => pin.pinNumber)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
 
-    // Classe D: Placeholder visual representativo
+    // MC-38: família comercial sem variante única
+    const reed = FUELGUARD_CAD_LIBRARY['reed_switch'];
+    expect(reed.confidenceLevel).toBe('D');
+    expect(reed.validationStatus).toBe('vendor_lot_specific');
+
+    // Tanque: baseline paramétrica, ainda não peça fisicamente confirmada
     const tank = FUELGUARD_CAD_LIBRARY['tank_cylinder'];
-    expect(tank.confidenceLevel).toBe('D');
-    expect(tank.disclaimerNote).toContain('água');
+    expect(tank.confidenceLevel).toBe('C');
+    expect(tank.dimensionsMm).toEqual({ width: 206, height: 168, depth: 206 });
+    expect(tank.disclaimerNote).toContain('paramétrica');
   });
 
   it('deve conter cadastro físico de fiação com waypoints, bitolas AWG e coordenadas reais', () => {

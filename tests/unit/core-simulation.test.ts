@@ -33,7 +33,7 @@ describe('Marco M2: Núcleo de Simulação Determinístico (Física e Firmware)'
     });
   });
 
-  describe('2. Modelagem Acústica JSN-SR04T & Termodinâmica', () => {
+  describe('2. Modelagem acústica do A02YYUW/SEN0311 & termodinâmica', () => {
     let acoustic: AcousticModel;
 
     beforeEach(() => {
@@ -59,13 +59,13 @@ describe('Marco M2: Núcleo de Simulação Determinístico (Física e Firmware)'
       expect(echoTimeUs).toBeCloseTo(2914, -1);
     });
 
-    it('identifica violação da Zona Cega do sensor (< 20 cm)', () => {
-      const pingBlind = acoustic.simulatePing(15.0, 24.8, 0, 0.1);
+    it('identifica violação da Zona Cega do sensor (< 3 cm)', () => {
+      const pingBlind = acoustic.simulatePing(2.0, 24.8, 0, 0.1);
       expect(pingBlind.inBlindZone).toBe(true);
       expect(pingBlind.echoValid).toBe(false);
     });
 
-    it('produz eco válido quando a distância está acima de 20 cm', () => {
+    it('produz eco válido quando a distância está acima de 3 cm', () => {
       const pingValid = acoustic.simulatePing(45.0, 24.8, 0, 0.1);
       expect(pingValid.inBlindZone).toBe(false);
       expect(pingValid.echoValid).toBe(true);
@@ -198,7 +198,7 @@ describe('Marco M2: Núcleo de Simulação Determinístico (Física e Firmware)'
       const engine = new SimulationEngine();
       engine.loadScenario('blind_zone');
 
-      // Executa alguns ticks para o ping ultrassônico processar a distância < 20 cm
+      // Executa alguns ticks para o ping do SEN0311 processar a distância < 3 cm
       for (let i = 0; i < 15; i++) {
         engine.step(20);
       }

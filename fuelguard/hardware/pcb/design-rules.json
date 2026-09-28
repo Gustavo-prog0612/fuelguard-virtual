@@ -1,69 +1,18 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "rulesetName": "FuelGuard Dual-Layer Standard PCB Rules (JLCPCB 2-Layer Class 2)",
-  "standard": "IPC-2221A / IPC-A-600 Class 2",
-  "units": "mm",
-  "boardOutline": {
-    "width": 120.0,
-    "height": 90.0,
-    "thickness": 1.6,
-    "edgeClearance": 0.5,
-    "cornerChamferRadius": 3.0
-  },
-  "stackup": {
-    "layers": 2,
-    "topCopperThicknessUm": 35,
-    "bottomCopperThicknessUm": 35,
-    "coreThicknessMm": 1.5,
-    "dielectricConstant": 4.5
-  },
-  "clearances": {
-    "traceToTrace": 0.20,
-    "traceToPad": 0.20,
-    "padToPad": 0.20,
-    "traceToVia": 0.20,
-    "copperToEdge": 0.40,
-    "silkscreenToPad": 0.15
-  },
-  "traces": {
-    "minSignalWidth": 0.254,
-    "nominalSignalWidth": 0.35,
-    "powerTraceWidth5V": 0.80,
-    "powerTraceWidth3V3": 0.60,
-    "groundPolygonClearance": 0.30
-  },
-  "vias": {
-    "minDiameter": 0.60,
-    "minDrill": 0.30,
-    "nominalDiameter": 0.80,
-    "nominalDrill": 0.40,
-    "annularRingMin": 0.15
-  },
-  "drill": {
-    "minDrill": 0.30,
-    "maxSlotLength": 6.0,
-    "mountingHoleDiameter": 3.20
-  },
-  "drcChecks": [
-    {
-      "id": "DRC-01",
-      "name": "Overvoltage Net Clearance Check",
-      "description": "Verifica se nets de 5V possuem isolamento galvânico ou condicionamento adequado antes de entrar em pinos de 3.3V do ESP32."
-    },
-    {
-      "id": "DRC-02",
-      "name": "Unconnected Pins / Netlist Discontinuity Check",
-      "description": "Identifica pinos flutuantes ou sem terminação no esquemático."
-    },
-    {
-      "id": "DRC-03",
-      "name": "Minimum Trace Clearance Violation",
-      "description": "Garante espaçamento mínimo de 0.20mm entre condutores de cobre."
-    },
-    {
-      "id": "DRC-04",
-      "name": "Unrouted Net / Incomplete Routing Check",
-      "description": "Declara explicitamente nets que ainda não foram roteadas em cobre físico, justificando o motivo técnico."
-    }
-  ]
+  "status": "DEPRECATED_UNVALIDATED",
+  "purpose": "Registro de que um ruleset conceitual anterior não é uma regra de fabricação do FuelGuard.",
+  "replacedBy": [
+    "docs/adr/0002-adapter-pcb-input-freeze.md",
+    "hardware/pcb/fuelguard-adapter/design-inputs.json",
+    "hardware/measurements/measurement-register.json"
+  ],
+  "prohibitedUse": [
+    "contorno de PCB",
+    "largura/folga de cobre",
+    "furação",
+    "seleção de fabricante",
+    "geração de Gerber"
+  ],
+  "reason": "O tamanho da placa, conectores, stackup e regras dependem de peças físicas e fabricante ainda não congelados."
 }

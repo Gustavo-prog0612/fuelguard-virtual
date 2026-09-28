@@ -63,7 +63,7 @@ export const RealtimeSignalChart: React.FC<RealtimeSignalChartProps> = ({
       ctx.fillText(`${val}cm`, paddingLeft - 6, y + 3);
     });
 
-    // Zona Cega (0 a 20 cm) no gráfico
+    // Zona Cega (0 a 3 cm) no gráfico
     const blindY = paddingTop + chartHeight - (20 / hrefCm) * chartHeight;
     ctx.fillStyle = 'rgba(239, 68, 68, 0.08)';
     ctx.fillRect(paddingLeft, blindY, chartWidth, paddingTop + chartHeight - blindY);

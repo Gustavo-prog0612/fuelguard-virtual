@@ -13,7 +13,7 @@ import { AcousticTankCanvas } from './AcousticTankCanvas';
 import { RealtimeSignalChart, SignalSample } from './RealtimeSignalChart';
 
 export const SignalsView: React.FC = () => {
-  const href = 100.0;
+  const href = 16.0;
   const sim = useSimulation();
 
   const [samples, setSamples] = useState<SignalSample[]>([]);
@@ -56,13 +56,13 @@ export const SignalsView: React.FC = () => {
             <HonestyBadge level="simulado" />
           </div>
           <p className="text-xs text-inst-secondary mt-1 max-w-3xl">
-            Sensoriamento ultrassônico JSN-SR04T v2.0 (40 kHz) com modelagem termodinâmica da velocidade do som c(T), geometria do galão com água, ondas de slosh e filtro mediano de 5 amostras.
+            Sensoriamento ultrassônico DFRobot A02YYUW/SEN0311 via UART TTL 9600 8N1, geometria do FG-TANK-6L-R1, ondas de slosh e filtro mediano de 5 amostras.
           </p>
         </div>
 
         <div className="flex items-center gap-3 text-xs font-mono text-inst-secondary">
           <span>Líquido: <strong className="text-inst-primary">Água Aberta</strong></span>
-          <span>Transdutor: <strong className="text-inst-primary">JSN-SR04T v2.0</strong></span>
+          <span>Sensor: <strong className="text-inst-primary">A02YYUW / SEN0311</strong></span>
         </div>
       </div>
 
@@ -100,7 +100,7 @@ export const SignalsView: React.FC = () => {
             <div className="text-xs text-inst-secondary">t_echo = {echoTimeUs} μs</div>
           </div>
           <div className="text-[10px] font-mono text-inst-muted truncate">
-            Zona Cega: 20 cm • Timeout: 30 ms
+            Zona Cega: 3 cm • Faixa: 30–450 cm • UART: 9600 8N1
           </div>
         </div>
 

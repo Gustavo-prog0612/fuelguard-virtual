@@ -26,13 +26,13 @@ export const OverviewView: React.FC = () => {
               <HonestyBadge level="simulado" />
             </h2>
             <p className="text-xs text-slate-400 mt-1 max-w-3xl leading-relaxed">
-              Esta visão consolida o estado do tanque geométrico de bancada, a telemetria do sensor JSN-SR04T v2.0 com velocidade sonora calibrada por temperatura, e os eventos da máquina de estados do ESP32-S3.
+              Esta visão consolida o estado do FG-TANK-6L-R1, a telemetria UART do DFRobot A02YYUW/SEN0311 e os eventos da máquina de estados do ESP32-S3.
             </p>
           </div>
         </div>
         <div className="hidden md:flex flex-col items-end gap-1 text-[11px] font-mono text-slate-400">
           <span>Álvo Acústico: <strong className="text-slate-200">Água Aberta</strong></span>
-          <span>Transdutor: <strong className="text-slate-200">JSN-SR04T v2.0</strong></span>
+          <span>Sensor: <strong className="text-slate-200">A02YYUW / SEN0311</strong></span>
         </div>
       </div>
 
@@ -47,12 +47,12 @@ export const OverviewView: React.FC = () => {
             <HonestyBadge level="simulado" size="sm" />
           </div>
           <div className="flex items-baseline justify-between">
-            <div className="text-3xl font-bold font-mono text-sky-400">57.7%</div>
-            <div className="text-xs font-mono text-slate-400">h = 57.7 cm</div>
+            <div className="text-3xl font-bold font-mono text-sky-400">50.0%</div>
+            <div className="text-xs font-mono text-slate-400">h = 8.0 cm</div>
           </div>
           {/* Barra de Progresso do Nível */}
           <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
-            <div className="bg-gradient-to-r from-sky-600 to-sky-400 h-2 rounded-full" style={{ width: '57.7%' }} />
+            <div className="bg-gradient-to-r from-sky-600 to-sky-400 h-2 rounded-full" style={{ width: '50%' }} />
           </div>
         </div>
 
@@ -71,7 +71,7 @@ export const OverviewView: React.FC = () => {
             <div className="text-xs font-mono text-slate-400">t_echo ≈ 2.45 ms</div>
           </div>
           <div className="text-[11px] text-slate-400 truncate">
-            Href: 100.0 cm • Zona Cega: 20 cm
+            Href: 16.0 cm • Zona Cega: 3 cm • Operação: 1–5 L
           </div>
         </div>
 
@@ -86,8 +86,8 @@ export const OverviewView: React.FC = () => {
             </span>
           </div>
           <div className="flex items-baseline justify-between">
-            <div className="text-3xl font-bold font-mono text-purple-400">577 <span className="text-sm font-normal text-slate-400">L</span></div>
-            <div className="text-xs font-mono text-slate-400">de 1.000 L</div>
+            <div className="text-3xl font-bold font-mono text-purple-400">3.2 <span className="text-sm font-normal text-slate-400">L</span></div>
+            <div className="text-xs font-mono text-slate-400">de 6.4 L geométricos</div>
           </div>
           <div className="text-[11px] text-slate-400">
             Base: 1.0 m × 1.0 m • Erro: ±0.5 L
@@ -129,13 +129,13 @@ export const OverviewView: React.FC = () => {
             <div className="w-24 h-7 rounded bg-slate-800 border border-slate-700 flex flex-col items-center justify-center text-[10px] font-mono text-slate-300 shadow-md z-10">
               <div className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <span>JSN-SR04T</span>
+                <span>SEN0311 UART</span>
               </div>
             </div>
 
-            {/* Zona Cega Visual (0 a 20 cm) */}
+            {/* Zona Cega Visual (0 a 3 cm) */}
             <div className="absolute top-11 w-44 h-8 border-b border-dashed border-rose-500/60 bg-rose-950/20 flex items-center justify-center text-[9px] font-mono text-rose-400">
-              Zona Cega (20 cm)
+              Zona Cega (3 cm)
             </div>
 
             {/* Pulso e Feixe Cônico */}
@@ -145,11 +145,11 @@ export const OverviewView: React.FC = () => {
               <div className="w-36 h-10 border-b-2 border-sky-400/20 rounded-full animate-pulse delay-150" />
             </div>
 
-            {/* Água (Nível Atual: 57.7%) */}
-            <div className="w-full absolute bottom-0 left-0 right-0 bg-gradient-to-t from-sky-900/90 to-sky-600/70 border-t-2 border-sky-300/80 flex flex-col justify-start p-2 transition-all duration-300" style={{ height: '57.7%' }}>
+            {/* Água (Nível Atual: 50%) */}
+            <div className="w-full absolute bottom-0 left-0 right-0 bg-gradient-to-t from-sky-900/90 to-sky-600/70 border-t-2 border-sky-300/80 flex flex-col justify-start p-2 transition-all duration-300" style={{ height: '50%' }}>
               <div className="flex justify-between text-[10px] font-mono text-sky-100 font-bold">
-                <span>Água: 57.7 cm</span>
-                <span>V = 577 L</span>
+                <span>Água: 8.0 cm</span>
+                <span>V = 3.2 L</span>
               </div>
               <div className="text-[9px] font-mono text-sky-200/70 mt-1">
                 Superfície Calma • Ruído: ±0.3 cm
@@ -159,9 +159,9 @@ export const OverviewView: React.FC = () => {
             {/* Régua de Cotas */}
             <div className="absolute right-2 top-11 bottom-2 w-4 flex flex-col justify-between text-[9px] font-mono text-slate-500 pointer-events-none border-l border-slate-800 pl-1">
               <span>0 cm</span>
-              <span>20 cm</span>
-              <span>50 cm</span>
-              <span>100 cm</span>
+              <span>3 cm</span>
+              <span>8 cm</span>
+              <span>16 cm</span>
             </div>
           </div>
 
@@ -178,7 +178,7 @@ export const OverviewView: React.FC = () => {
                 <Activity className="w-4 h-4 text-emerald-400" /> Séries Temporais (Nível & Distância Acústica)
               </h3>
               <p className="text-[11px] text-slate-400 mt-0.5">
-                Comparação entre leitura bruta do pulso JSN e sinal estabilizado pós-filtro mediano de 5 amostras.
+                Comparação entre distância UART bruta do SEN0311 e sinal estabilizado pós-filtro mediano de 5 amostras.
               </p>
             </div>
             <div className="flex items-center space-x-2">
@@ -263,15 +263,15 @@ export const OverviewView: React.FC = () => {
               </div>
             </div>
 
-            {/* JSN-SR04T v2.0 */}
+            {/* A02YYUW / SEN0311 */}
             <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800 space-y-1">
               <div className="flex justify-between items-center">
                 <span className="font-bold text-slate-200 flex items-center gap-1">
-                  <Gauge className="w-3.5 h-3.5 text-emerald-400" /> JSN-SR04T v2.0
+                  <Gauge className="w-3.5 h-3.5 text-emerald-400" /> A02YYUW / SEN0311
                 </span>
                 <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">ECO OK</span>
               </div>
-              <p className="text-[11px] text-slate-400">TRIG: AHCT125 (5V) • ECHO: 10k/15k (3V)</p>
+              <p className="text-[11px] text-slate-400">UART TTL: 9600 8N1 • TX → GPIO16 • RX/MODE: HIGH</p>
               <div className="flex justify-between text-[10px] font-mono text-slate-500 pt-1">
                 <span>Cone: ~55°</span>
                 <span>Freq: 40 kHz</span>
@@ -306,8 +306,8 @@ export const OverviewView: React.FC = () => {
 
           <div className="space-y-2 h-48 overflow-y-auto pr-1 text-xs font-mono">
             {[
-              { id: 42, time: '14:27:18', kind: 'tank.stable', desc: 'Leitura estável: 57.7% (42.3 cm, 577 L)', type: 'tank' },
-              { id: 41, time: '14:26:58', kind: 'tank.sample', desc: 'Amostra acústica: 42.1 cm (t=2440us)', type: 'raw' },
+              { id: 42, time: '14:27:18', kind: 'tank.stable', desc: 'Leitura estável: 50.0% (8.0 cm, 3.2 L)', type: 'tank' },
+              { id: 41, time: '14:26:58', kind: 'tank.sample', desc: 'Amostra UART: 80 mm (frame SEN0311)', type: 'raw' },
               { id: 40, time: '14:26:41', kind: 'session.started', desc: 'NFC Tag Autorizada (04:3A:7F:2C:5D)', type: 'nfc' },
               { id: 39, time: '14:26:20', kind: 'lid.changed', desc: 'Tampa Fechada (após debounce 50ms)', type: 'lid' },
               { id: 38, time: '14:25:01', kind: 'transport.state', desc: 'Wi-Fi Conectado • Fila Descarregada', type: 'net' },

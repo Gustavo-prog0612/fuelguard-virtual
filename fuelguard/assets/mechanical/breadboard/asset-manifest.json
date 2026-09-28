@@ -1,26 +1,27 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "reference": "BB1",
-  "name": "Protoboard Solderless 830 Pontos (BB-830)",
-  "manufacturer": "BusBoard Prototype Systems / Standard",
-  "model": "BB-830-STANDARD",
-  "revision": "Revisão Standard com Linhas de Polaridade Coloridas",
-  "sourceUrl": "https://github.com/FreeCAD/FreeCAD-library",
-  "license": "Especificação Mecânica Pública",
-  "format": "Modelo CAD Real Integrado (Classe B / FreeCAD Standard Library)",
+  "name": "Protoboard MB-102 830 Pontos",
+  "manufacturer": "Vendor-lot-specific",
+  "model": "MB-102-830",
+  "revision": "Variante comercial a confirmar na unidade recebida",
+  "sourceUrl": "https://handsontec.com/dataspecs/m102-830-bread-board.pdf",
+  "license": "vendor-reference",
+  "format": "Referência paramétrica de bancada (Classe C)",
   "sourceUnit": "mm",
   "dimensionsMm": {
     "width": 165.0,
-    "height": 55.0,
-    "depth": 8.5
+    "height": 8.5,
+    "depth": 55.0
   },
   "scale": [1.0, 1.0, 1.0],
   "transforms": {
     "positionOffsetMm": [-30.0, 4.25, 0.0],
     "rotationDeg": [0, 0, 0]
   },
-  "fidelityClass": "B",
-  "confidenceRationale": "Dimensões nominais rigorosamente padronizadas pelo passo de 2.54mm (0.1\") entre os 830 pontos de inserção. Inclui canaleta central de 0.3\" e 4 trilhos de barramento (+/-).",
+  "fidelityClass": "C",
+  "confidenceRationale": "MB-102 é uma família comercial; dimensões, trilhos, furos, pés e altura do exemplar devem ser confirmados antes de congelar o suporte.",
+  "disclaimerNote": "Dimensões de referência não liberam fabricação; medir largura, comprimento, altura, trilhos e pontos de fixação da unidade recebida.",
   "verificationDate": "2026-09-28",
   "support": {
     "type": "RESTING_ON_BENCH_SURFACE",

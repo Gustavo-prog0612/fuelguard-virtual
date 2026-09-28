@@ -1,13 +1,12 @@
 /**
  * FuelGuard Virtual Test Bench — Cena 3D de Montagem da Bancada Física (Assembly View)
- * Renderiza o arranjo tridimensional completo da bancada didática real com peças em escala 1:1:
- * - Tapete ESD e Protoboard BB-830 com furação e barramentos
+ * Renderiza o arranjo tridimensional da referência de engenharia, com proveniência explícita:
+ * - Tapete ESD e Protoboard MB-102 com furação e barramentos
  * - ESP32-S3 DevKitC-1 v1.1 com WROOM-1, pinagem 2x22, portas USB-C e botões (Classe A)
- * - Buffer SN74AHCT125N DIP-14 e Divisor 10k/15k com código de cores (Classe B)
- * - Módulo JSN-SR04T com placa controladora e sonda estanque M20 (Classe C)
+ * - A02YYUW / SEN0311 com probe centralizado na tampa (função documentada, envelope pendente)
  * - Módulo PN532 na tampa com suporte acrílico e antena espiral plana (Classe C)
  * - Reed Switch em ampola de vidro e ímã de neodímio na tampa (Classe C)
- * - Recipiente didático translúcido 5L com água e escala graduada (Classe D)
+ * - Tanque paramétrico FG-TANK-6L-R1 com tampa 4x M3 (baseline ainda não fabricada)
  * - Chicote tubular físico com terminais DuPont e rotas respeitando conectores
  * - Auditoria Automática Mecânica & Elétrica integrada (Assembly Auditor)
  * - Linhas de guia axiais na vista explodida, réguas e sincronização com telemetria
@@ -94,23 +93,6 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
   const [lowPowerMode, setLowPowerMode] = useState<boolean>(false);
   const [showGrid, setShowGrid] = useState<boolean>(false); // Grade de piso discreta desligada por padrão
   const [enableRipples, setEnableRipples] = useState<boolean>(true);
-
-  // Parâmetros físicos do caminho acústico (Modo Sensores)
-  const acousticDistanceMm = useMemo(() => {
-    if (waterLevelPct <= 0) return 144 - 2.5; // Distância máxima até o fundo interno do galão (141.5mm)
-    const curWaterHeight = (150 - 24) * (waterLevelPct / 100);
-    return Math.max(10, 144 - (curWaterHeight + 2.5));
-  }, [waterLevelPct]);
-
-  // Tempo de trânsito ultrassônico t = 2d / v_som (v_som = 343 m/s = 0.343 mm/μs)
-  const transitTimeMs = useMemo(() => {
-    return (2 * acousticDistanceMm) / 343;
-  }, [acousticDistanceMm]);
-
-  // Volume da água do recipiente em litros (nominal 5.0L)
-  const waterVolumeL = useMemo(() => {
-    return (waterLevelPct / 100) * 5.0;
-  }, [waterLevelPct]);
 
   // Executa auditoria automática mecatrônica & elétrica
   const auditReport: AssemblyAuditReport = useMemo(() => AssemblyAuditor.runAudit(), []);
@@ -376,7 +358,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     benchGroup.add(esdStud);
 
     // =========================================================================
-    // 5. PROTOBOARD SOLDERLESS BB-830 (-80, 7.5, 20) — CLASSE B
+    // 5. PROTOBOARD SOLDERLESS MB-102 830 PONTOS (-80, 7.5, 20) — CLASSE B
     // =========================================================================
     const bbGroup = new THREE.Group();
     bbGroup.position.set(-80, 7.5, 20);
@@ -422,7 +404,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       bbGroup.add(h1, h2);
     }
 
-    // Travas laterais em cauda de andorinha (interlocking dovetail tabs para montagem modular BB-830)
+    // Travas laterais em cauda de andorinha (referência visual; confirmar no MB-102 recebido)
     const dovetailMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.35 });
     [-50, 0, 50].forEach((dx) => {
       const mTab = new THREE.Mesh(new THREE.BoxGeometry(6.0, 6.0, 2.5), dovetailMat);
@@ -524,67 +506,12 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     pickableObjects.push({ mesh: usbPlug, compKey: 'usb_cable_assembly' });
 
     // =========================================================================
-    // 7. BUFFER SN74AHCT125N DIP-14 & DIVISOR 10k/15k — CLASSE B
+    // 7. INDICADORES NA PROTOBOARD: LED STATUS D1 & BUZZER ATIVO BZ1
     // =========================================================================
-    const dipGroup = new THREE.Group();
-    dipGroup.position.set(-55, 14, 20);
-
-    const dipBody = new THREE.Mesh(
-      new THREE.BoxGeometry(7.62, 3.8, 19.3),
-      new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.4 })
-    );
-    dipBody.castShadow = enableShadows;
-    dipGroup.add(dipBody);
-
-    const dipNotch = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.2, 1.2, 1.0, 16, 1, false, 0, Math.PI),
-      new THREE.MeshStandardMaterial({ color: 0x09090b })
-    );
-    dipNotch.rotation.x = Math.PI / 2;
-    dipNotch.position.set(0, 1.9, -9.6);
-    dipGroup.add(dipNotch);
-
-    const dipPins = new THREE.Mesh(
-      new THREE.BoxGeometry(7.62, 4.5, 17.5),
-      new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.9, roughness: 0.2 })
-    );
-    dipPins.position.set(0, -2.5, 0);
-    dipGroup.add(dipPins);
-
-    benchGroup.add(dipGroup);
-    pickableObjects.push({ mesh: dipBody, compKey: 'sn74ahct125n' });
-
-    // Divisor Resistivo 10kΩ / 15kΩ
-    const resGroup = new THREE.Group();
-    resGroup.position.set(-35, 12, 20);
-
-    const rBodyMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.6 });
-    const rLeadMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.9, roughness: 0.2 });
-
-    const r1 = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 6.5, 16), rBodyMat);
-    r1.position.set(-4, 2, 0);
-    r1.rotation.x = Math.PI / 2;
-    const r1Lead = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 12, 8), rLeadMat);
-    r1Lead.position.set(-4, 0, 0);
-    resGroup.add(r1, r1Lead);
-
-    const r2 = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 6.5, 16), rBodyMat);
-    r2.position.set(4, 2, 0);
-    r2.rotation.x = Math.PI / 2;
-    const r2Lead = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 12, 8), rLeadMat);
-    r2Lead.position.set(4, 0, 0);
-    resGroup.add(r2, r2Lead);
-
-    benchGroup.add(resGroup);
-    pickableObjects.push({ mesh: r1, compKey: 'voltage_divider' });
-    pickableObjects.push({ mesh: r2, compKey: 'voltage_divider' });
-
-    // =========================================================================
-    // 7.1 INDICADORES NA PROTOBOARD: LED STATUS D1 & BUZZER BZ1 — CLASSE B
-    // =========================================================================
-    // LED Verde 5mm + Resistor 1kΩ no GPIO4 (-20, 11.5, 22)
+    // LED Verde 5mm + Resistor 220Ω no GPIO4 (-20, 11.5, 22)
     const ledIndicatorGroup = new THREE.Group();
     ledIndicatorGroup.position.set(-20, 11.5, 22);
+    const rLeadMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.9, roughness: 0.2 });
 
     const rLed = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 5.5, 12), new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.6 }));
     rLed.rotation.x = Math.PI / 2;
@@ -618,7 +545,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     pickableObjects.push({ mesh: ledBody, compKey: 'led_indicator' });
     pickableObjects.push({ mesh: ledDome, compKey: 'led_indicator' });
 
-    // Buzzer Piezoelétrico THT 12mm (-5, 11.5, 20)
+    // Buzzer ativo Same Sky CMI-1295IC-0385T THT 12mm (-5, 11.5, 20)
     const buzzerGroup = new THREE.Group();
     buzzerGroup.position.set(-5, 11.5, 20);
 
@@ -647,126 +574,42 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     buzzerGroup.add(bzBody, bzHole, bzPlus, bzPin1, bzPin2);
 
     benchGroup.add(buzzerGroup);
-    pickableObjects.push({ mesh: bzBody, compKey: 'buzzer_piezo' });
+    pickableObjects.push({ mesh: bzBody, compKey: 'buzzer_active' });
 
     // =========================================================================
-    // 8. MÓDULO CONTROLADOR JSN-SR04T (-75, 5, -50) — CLASSE C
+    // 8. PROBE A02YYUW / SEN0311 — geometria externa pendente de medição
     // =========================================================================
-    const jsnGroup = new THREE.Group();
-    jsnGroup.position.set(-75, 5, -50);
+    const levelProbeGroup = new THREE.Group();
+    levelProbeGroup.position.set(85, 165, -10);
+    const levelProbe = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 20, 24), new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.75, roughness: 0.25 }));
+    levelProbe.rotation.x = Math.PI / 2;
+    levelProbe.castShadow = enableShadows;
+    levelProbeGroup.add(levelProbe);
+    benchGroup.add(levelProbeGroup);
+    pickableObjects.push({ mesh: levelProbe, compKey: 'a02yyuw_sen0311' });
 
-    const jsnPcb = new THREE.Mesh(
-      new THREE.BoxGeometry(42.0, 1.6, 29.0),
-      new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.35 })
-    );
-    jsnPcb.castShadow = enableShadows;
-    jsnGroup.add(jsnPcb);
-
-    // 2 Furos de fixação M3 com anéis metalizados ENIG dourados (37.5mm entre centros)
-    const jsnEnigMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.95, roughness: 0.2 });
-    [-18.75, 18.75].forEach((hx) => {
-      const ring = new THREE.Mesh(new THREE.RingGeometry(1.6, 2.8, 16), jsnEnigMat);
-      ring.rotation.x = -Math.PI / 2;
-      ring.position.set(hx, 0.82, 0);
-      jsnPcb.add(ring);
-    });
-
-    // CI Amplificador LM324 SOIC-14 de recepção de eco
-    const lm324 = new THREE.Mesh(
-      new THREE.BoxGeometry(8.65, 1.4, 3.9),
-      new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.3 })
-    );
-    lm324.position.set(6, 1.5, 4);
-    jsnGroup.add(lm324);
-    const pinGullMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9 });
-    for (let px = -3.8; px <= 3.8; px += 1.27) {
-      const pTop = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.9), pinGullMat);
-      pTop.position.set(6 + px, 0.9, 4 - 2.3);
-      const pBot = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.9), pinGullMat);
-      pBot.position.set(6 + px, 0.9, 4 + 2.3);
-      jsnGroup.add(pTop, pBot);
-    }
-
-    // Transformador de pulso com ferrite e presilha metálica de aterramento
-    const xformer = new THREE.Mesh(
-      new THREE.BoxGeometry(10, 8, 10),
-      new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.6 })
-    );
-    xformer.position.set(-8, 4.8, 0);
-    xformer.castShadow = enableShadows;
-    const xformerClamp = new THREE.Mesh(
-      new THREE.BoxGeometry(10.4, 1.2, 10.4),
-      new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.9 })
-    );
-    xformerClamp.position.set(-8, 6.0, 0);
-    jsnGroup.add(xformer, xformerClamp);
-
-    // Cristal oscilador HC-49/S metálico
-    const crystal = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.8, 1.8, 6.5, 12),
-      new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.9 })
-    );
-    crystal.rotation.z = Math.PI / 2;
-    crystal.position.set(8, 2.0, -5);
-    jsnGroup.add(crystal);
-
-    // Barra de 4 pinos angulados com corpo em PBT preto e pinos dourados
-    const jsnHeader = new THREE.Mesh(
-      new THREE.BoxGeometry(11, 4.0, 3.0),
-      new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5 })
-    );
-    jsnHeader.position.set(0, 2.5, 12);
-    jsnGroup.add(jsnHeader);
-    for (let hx = -3.81; hx <= 3.81; hx += 2.54) {
-      const pinGold = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.32, 0.32, 5.0, 8),
-        jsnEnigMat
-      );
-      pinGold.rotation.x = Math.PI / 2;
-      pinGold.position.set(hx, 2.5, 14.5);
-      jsnGroup.add(pinGold);
-    }
-
-    // Conector RCA coaxial fêmea dourado com anel isolador em polímero e pino central
-    const rcaSocket = new THREE.Mesh(
-      new THREE.CylinderGeometry(4.0, 4.0, 8.0, 16),
-      new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9, roughness: 0.2 })
-    );
-    rcaSocket.rotation.x = Math.PI / 2;
-    rcaSocket.position.set(14, 3.0, -12);
-    const rcaInsulator = new THREE.Mesh(
-      new THREE.CylinderGeometry(3.0, 3.0, 8.2, 16),
-      new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4 })
-    );
-    rcaInsulator.rotation.x = Math.PI / 2;
-    rcaInsulator.position.set(14, 3.0, -12);
-    const rcaCenterPin = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.8, 0.8, 8.6, 12),
-      jsnEnigMat
-    );
-    rcaCenterPin.rotation.x = Math.PI / 2;
-    rcaCenterPin.position.set(14, 3.0, -12);
-    jsnGroup.add(rcaSocket, rcaInsulator, rcaCenterPin);
-
-    benchGroup.add(jsnGroup);
-    pickableObjects.push({ mesh: jsnPcb, compKey: 'jsn_sr04t' });
-
+    const TANK_GEOMETRY_RELEASED = true;
     // =========================================================================
-    // 9. RECIPIENTE DIDÁTICO TRANSLÚCIDO COM ÁGUA FÍSICA (85, 3.5, -10) — CLASSE D
+    // 9. TANQUE E TAMPA REAIS (somente após gate de geometria)
     // =========================================================================
     const tankGroup = new THREE.Group();
     tankGroup.position.set(85, 3.5, -10);
 
-    const tankRadius = 55; // Raio externo Ø110mm didático
-    const tankWallThickness = 3.2; // Espessura de parede em acrílico PMMA
-    const innerRadius = tankRadius - tankWallThickness; // 51.8mm (sem vazamento externo)
-    const tankHeight = 150; // altura nominal 150mm
+    const tankWidth = 206;
+    const tankDepth = 206;
+    const tankWallThickness = 3;
+    const innerWidth = 200;
+    const innerDepth = 200;
+    const innerHeight = 160;
+    const tankHeight = 168;
+    const tankBottomThickness = 3;
 
-    // Geometrias dos cilindros externo e interno
-    const outerTankGeo = new THREE.CylinderGeometry(tankRadius, tankRadius, tankHeight, 44, 1, true);
-    const innerTankGeo = new THREE.CylinderGeometry(innerRadius, innerRadius, tankHeight - 2.5, 44, 1, true);
+    // Paredes retangulares do envelope FG-TANK-6L-R1 (206 x 206 x 168 mm).
+    // A capacidade é geométrica; a calibração da peça fabricada permanece pendente.
+    const outerWallGeo = new THREE.BoxGeometry(tankWidth, innerHeight, tankWallThickness);
+    const sideWallGeo = new THREE.BoxGeometry(tankWallThickness, innerHeight, innerDepth);
 
-    // Materiais PBR ópticos com transmissão e refração física (PMMA η=1.491)
+    // Materiais ópticos de referência para acrílico transparente.
     const outerPmmaMatBack = new THREE.MeshPhysicalMaterial({
       color: 0xf8fafc,
       transmission: tankOpacityRef.current,
@@ -808,30 +651,26 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       depthWrite: false,
     });
 
-    // 1. Parede externa posterior (renderOrder: 1)
-    const outerBackMesh = new THREE.Mesh(outerTankGeo, outerPmmaMatBack);
-    outerBackMesh.position.y = tankHeight / 2;
+    // 1. Parede traseira
+    const outerBackMesh = new THREE.Mesh(outerWallGeo, outerPmmaMatBack);
+    outerBackMesh.position.set(0, tankBottomThickness + innerHeight / 2, -tankDepth / 2 + tankWallThickness / 2);
     outerBackMesh.renderOrder = 1;
     tankGroup.add(outerBackMesh);
 
     // Fundo espesso do tanque em acrílico (renderOrder: 1)
-    const bottomMesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(tankRadius, tankRadius, 2.5, 44),
-      outerPmmaMatFront
-    );
-    bottomMesh.position.y = 1.25;
+    const bottomMesh = new THREE.Mesh(new THREE.BoxGeometry(tankWidth, tankBottomThickness, tankDepth), outerPmmaMatFront);
+    bottomMesh.position.y = tankBottomThickness / 2;
     bottomMesh.renderOrder = 1;
     tankGroup.add(bottomMesh);
 
-    // 2. Parede interna posterior (renderOrder: 2)
-    const innerBackMesh = new THREE.Mesh(innerTankGeo, innerPmmaMatBack);
-    innerBackMesh.position.y = (tankHeight - 2.5) / 2 + 2.5;
+    // 2. Parede frontal
+    const innerBackMesh = new THREE.Mesh(outerWallGeo, innerPmmaMatBack);
+    innerBackMesh.position.set(0, tankBottomThickness + innerHeight / 2, tankDepth / 2 - tankWallThickness / 2);
     innerBackMesh.renderOrder = 2;
     tankGroup.add(innerBackMesh);
 
-    // 3. Coluna d'água didática interna (confinada estritamente no diâmetro interno, renderOrder: 3)
-    const waterRadius = innerRadius - 0.2; // 51.6mm
-    const waterGeo = new THREE.CylinderGeometry(waterRadius, waterRadius, 1, 40);
+    // 3. Coluna de água retangular da baseline (volume nominal, não calibração)
+    const waterGeo = new THREE.BoxGeometry(innerWidth, 1, innerDepth);
     const waterMat = new THREE.MeshPhysicalMaterial({
       color: 0x0284c7, // Azul ciano de absorção espectral natural
       transmission: 0.86,
@@ -852,7 +691,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
 
     // 4. Menisco superior da água e anel de tensão superficial (renderOrder: 4)
     const waterSurface = new THREE.Mesh(
-      new THREE.CircleGeometry(waterRadius, 40),
+      new THREE.PlaneGeometry(innerWidth, innerDepth),
       new THREE.MeshStandardMaterial({
         color: 0x38bdf8,
         roughness: 0.06,
@@ -864,7 +703,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     tankGroup.add(waterSurface);
 
     const meniscusRing = new THREE.Mesh(
-      new THREE.RingGeometry(waterRadius - 1.5, waterRadius, 40),
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(innerWidth, 0.2, innerDepth)),
       new THREE.MeshStandardMaterial({
         color: 0x0369a1,
         roughness: 0.08,
@@ -876,46 +715,46 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     meniscusRing.renderOrder = 4;
     tankGroup.add(meniscusRing);
 
-    // 5. Parede interna anterior (renderOrder: 5)
-    const innerFrontMesh = new THREE.Mesh(innerTankGeo, innerPmmaMatFront);
-    innerFrontMesh.position.y = (tankHeight - 2.5) / 2 + 2.5;
+    // 5. Paredes laterais
+    const innerFrontMesh = new THREE.Mesh(sideWallGeo, innerPmmaMatFront);
+    innerFrontMesh.position.set(-tankWidth / 2 + tankWallThickness / 2, tankBottomThickness + innerHeight / 2, 0);
     innerFrontMesh.renderOrder = 5;
     tankGroup.add(innerFrontMesh);
 
-    // Escala graduada em litros (1L a 5L) gravada na lateral frontal (renderOrder: 5)
+    // Escala do tanque real (a graduação não é assumida)
     const gradGroup = new THREE.Group();
     for (let l = 1; l <= 5; l++) {
       const gradLine = new THREE.Mesh(
         new THREE.PlaneGeometry(14, 1.0),
         new THREE.MeshBasicMaterial({ color: 0x94a3b8, side: THREE.DoubleSide })
       );
-      gradLine.position.set(0, (tankHeight / 6) * l, tankRadius + 0.3);
+        gradLine.position.set(0, tankBottomThickness + (innerHeight / 6) * l, tankDepth / 2 + 0.3);
       gradGroup.add(gradLine);
     }
     tankGroup.add(gradGroup);
 
-    // 6. Parede externa anterior (renderOrder: 6)
-    const outerFrontMesh = new THREE.Mesh(outerTankGeo, outerPmmaMatFront);
-    outerFrontMesh.position.y = tankHeight / 2;
+    // 6. Parede lateral direita
+    const outerFrontMesh = new THREE.Mesh(sideWallGeo, outerPmmaMatFront);
+    outerFrontMesh.position.set(tankWidth / 2 - tankWallThickness / 2, tankBottomThickness + innerHeight / 2, 0);
     outerFrontMesh.renderOrder = 6;
     tankGroup.add(outerFrontMesh);
 
     // =========================================================================
-    // 10. TAMPA MÓVEL, SUPORTE, PN532 E SONDA JSN — MONTAGEM EXPLODIDA
+    // 10. TAMPA FG-TANK-6L-R1, SUPORTE, PN532 E PROBE SEN0311 — MONTAGEM EXPLODIDA
     // =========================================================================
     const lidAssemblyGroup = new THREE.Group();
     lidAssemblyGroup.position.y = tankHeight;
 
     const lidMesh = new THREE.Mesh(
-      new THREE.CylinderGeometry(tankRadius + 4, tankRadius + 4, 6, 40),
+      new THREE.BoxGeometry(tankWidth, 5, tankDepth),
       new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.55 })
     );
-    lidMesh.position.y = 3;
+    lidMesh.position.y = 2.5;
     lidMesh.castShadow = enableShadows;
     lidAssemblyGroup.add(lidMesh);
 
-    // Sonda Ultrassônica Estanque M20 apontando perpendicular à água (Classe C)
-    const probeGeo = new THREE.CylinderGeometry(10, 10, 20, 28);
+    // Probe A02YYUW/SEN0311 apontando perpendicular à água. Envelope externo aguarda medição.
+    const probeGeo = new THREE.CylinderGeometry(5, 5, 20, 24);
     const probeMat = new THREE.MeshStandardMaterial({
       color: 0x94a3b8,
       metalness: 0.85,
@@ -926,9 +765,9 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     probeMesh.castShadow = enableShadows;
     lidAssemblyGroup.add(probeMesh);
 
-    // Flange usinado superior M20 (latão niquelado / alumínio)
+    // Disco de suporte paramétrico do probe (não assumir rosca M20).
     const probeFlange = new THREE.Mesh(
-      new THREE.CylinderGeometry(12.5, 12.5, 3.0, 28),
+      new THREE.CylinderGeometry(7.0, 7.0, 3.0, 24),
       new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.9, roughness: 0.15 })
     );
     probeFlange.position.set(0, 8.5, 0);
@@ -936,17 +775,17 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
 
     // Anel O-Ring de vedação estanque em borracha nitrílica (preto)
     const oRing = new THREE.Mesh(
-      new THREE.TorusGeometry(10.2, 1.2, 12, 32),
+      new THREE.TorusGeometry(5.2, 0.6, 10, 24),
       new THREE.MeshStandardMaterial({ color: 0x09090b, roughness: 0.85 })
     );
     oRing.rotation.x = Math.PI / 2;
     oRing.position.set(0, 6.8, 0);
     probeMesh.add(oRing);
 
-    // Roscas M20x1.5 usinadas no corpo
+    // Anéis visuais do suporte; não representam rosca comercial.
     for (let rz = -4; rz <= 4; rz += 2.5) {
       const threadRidge = new THREE.Mesh(
-        new THREE.TorusGeometry(10.2, 0.45, 8, 32),
+        new THREE.TorusGeometry(5.2, 0.25, 8, 24),
         new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.8, roughness: 0.3 })
       );
       threadRidge.rotation.x = Math.PI / 2;
@@ -956,11 +795,11 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
 
     // Face acústica piezoelétrica rebaixada (alumínio escovado) voltada para o líquido
     const piezoFace = new THREE.Mesh(
-      new THREE.CircleGeometry(8.5, 28),
+      new THREE.CircleGeometry(4.0, 24),
       new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.92, roughness: 0.1, side: THREE.DoubleSide })
     );
     piezoFace.rotation.x = Math.PI / 2;
-    piezoFace.position.set(0, -10.05, 0);
+      piezoFace.position.set(0, -10.05, 0);
     probeMesh.add(piezoFace);
 
     // Prensa-cabo traseiro no topo e alívio de tensão do cabo coaxial
@@ -1078,17 +917,17 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       new THREE.CylinderGeometry(5, 5, 1.25, 20),
       new THREE.MeshStandardMaterial({ color: 0xef4444, metalness: 0.6, roughness: 0.3 })
     );
-    magnetNorth.position.set(tankRadius - 5, 5.125, 0);
+    magnetNorth.position.set(tankWidth / 2 - 5, 5.125, 0);
     const magnetSouth = new THREE.Mesh(
       new THREE.CylinderGeometry(5, 5, 1.25, 20),
       new THREE.MeshStandardMaterial({ color: 0x3b82f6, metalness: 0.6, roughness: 0.3 })
     );
-    magnetSouth.position.set(tankRadius - 5, 3.875, 0);
+    magnetSouth.position.set(tankWidth / 2 - 5, 3.875, 0);
     lidAssemblyGroup.add(magnetNorth, magnetSouth);
 
     // Reed Switch na lateral superior do recipiente (Classe C)
     const reedGroup = new THREE.Group();
-    reedGroup.position.set(tankRadius - 5, tankHeight - 10, 0);
+    reedGroup.position.set(tankWidth / 2 - 5, tankHeight - 10, 0);
 
     const reedGlass = new THREE.Mesh(
       new THREE.CylinderGeometry(1.6, 1.6, 12, 16),
@@ -1126,7 +965,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     const acousticGroup = new THREE.Group();
     tankGroup.add(acousticGroup);
 
-    // Cone acústico translúcido (abertura 55° do transdutor JSN-SR04T)
+    // Cone acústico de referência (abertura nominal SEN0311; geometria acústica deve ser ensaiada)
     const acousticConeGeo = new THREE.CylinderGeometry(9.5, 46, 1, 32, 1, true);
     const acousticConeMat = new THREE.MeshBasicMaterial({
       color: 0x38bdf8,
@@ -1166,10 +1005,11 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     acousticGroup.visible = false;
 
     tankGroup.add(lidAssemblyGroup);
+    tankGroup.visible = TANK_GEOMETRY_RELEASED;
     benchGroup.add(tankGroup);
 
     pickableObjects.push({ mesh: outerFrontMesh, compKey: 'tank_cylinder' });
-    pickableObjects.push({ mesh: probeMesh, compKey: 'jsn_sr04t' });
+    pickableObjects.push({ mesh: probeMesh, compKey: 'a02yyuw_sen0311' });
     pickableObjects.push({ mesh: nfcPcb, compKey: 'pn532_breakout' });
     pickableObjects.push({ mesh: reedGlass, compKey: 'reed_switch' });
 
@@ -1210,9 +1050,6 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     // Guias das barras de pinos do ESP32 para a protoboard
     explodeGuidesGroup.add(createDashedGuide([-110 - 11.43, 11, 22], [-110 - 11.43, 14 + 25, 22]));
     explodeGuidesGroup.add(createDashedGuide([-110 + 11.43, 11, 22], [-110 + 11.43, 14 + 25, 22]));
-
-    // Guia do buffer DIP-14
-    explodeGuidesGroup.add(createDashedGuide([-55, 11, 20], [-55, 14 + 16, 20]));
 
     // =========================================================================
     // 12. CABOS COM ROTA FÍSICA E TERMINAIS DUPONT (TUBEGEOMETRY)
@@ -1442,12 +1279,10 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       const lidExplodeY = curExplode * 65;
       const probeExplodeY = curExplode * 30;
       const espExplodeY = curExplode * 25;
-      const dipExplodeY = curExplode * 16;
 
       lidAssemblyGroup.position.y = tankHeight + lidExplodeY;
       probeMesh.position.y = -6 + probeExplodeY;
       espGroup.position.y = 14 + espExplodeY;
-      dipGroup.position.y = 14 + dipExplodeY;
 
       // Linhas de guia visíveis apenas quando explodido
       explodeGuidesGroup.visible = curExplode > 0.04;
@@ -1464,7 +1299,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
         waterMesh.visible = true;
         waterSurface.visible = true;
         meniscusRing.visible = true;
-        const curWaterHeight = (tankHeight - 24) * (currentPct / 100);
+        const curWaterHeight = innerHeight * (currentPct / 100);
         waterMesh.scale.set(1, Math.max(0.001, curWaterHeight), 1);
         waterMesh.position.y = curWaterHeight / 2 + 2.5;
 
@@ -1479,7 +1314,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       acousticGroup.visible = isSensorsMode;
       if (isSensorsMode) {
         const probeY = tankHeight + lidExplodeY - 6;
-        const waterTopY = currentPct <= 0 ? 2.5 : ((tankHeight - 24) * (currentPct / 100) + 2.5);
+        const waterTopY = currentPct <= 0 ? tankBottomThickness : (innerHeight * (currentPct / 100) + tankBottomThickness);
         const beamSpan = Math.max(3, probeY - waterTopY);
 
         acousticCone.scale.set(1, beamSpan, 1);
@@ -1552,8 +1387,8 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       }
 
       renderer.dispose();
-      outerTankGeo.dispose();
-      innerTankGeo.dispose();
+      outerWallGeo.dispose();
+      sideWallGeo.dispose();
       waterGeo.dispose();
       matGeo.dispose();
       bbBody.geometry.dispose();
@@ -1660,7 +1495,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
                 ? 'bg-fuelguard-green text-white shadow-xs'
                 : 'text-inst-secondary hover:text-inst-primary hover:bg-inst-subtle'
             }`}
-            title="Modo Montagem: Vista física 1:1 nominal completa"
+            title="Modo Montagem: Vista física nominal da bancada; validar dimensões no hardware"
           >
             <Layers className="w-3.5 h-3.5" />
             <span>Montagem</span>
@@ -1789,53 +1624,38 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
                 Caminho Acústico (40 kHz)
               </span>
               <span className="px-1.5 py-0.5 rounded-xs bg-sky-950 text-sky-300 font-mono text-[9px] border border-sky-800">
-                JSN-SR04T v2.0
+                A02YYUW / SEN0311
               </span>
             </div>
 
             <div className="space-y-1 font-mono text-[10px]">
               <div className="flex justify-between">
-                <span className="text-inst-muted font-ui">Transdutor:</span>
-                <span className="text-inst-primary">Sonda M20 [MEDIDO]</span>
+                <span className="text-inst-muted font-ui">Sensor:</span>
+                <span className="text-inst-primary">Probe central [ENVELOPE PENDENTE]</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-inst-muted font-ui">Distância à Água (d):</span>
-                <strong className="text-sky-300">{acousticDistanceMm.toFixed(1)} mm <span className="text-[8px] text-sky-400/80">[SIMULADO]</span></strong>
+                <strong className="text-amber-300">Pendente <span className="text-[8px] text-amber-400/80">[MEDIÇÃO]</span></strong>
               </div>
               <div className="flex justify-between">
-                <span className="text-inst-muted font-ui">Tempo de Eco (t_eco):</span>
-                <strong className="text-amber-300">{transitTimeMs.toFixed(3)} ms <span className="text-[8px] text-amber-400/80">[CALCULADO]</span></strong>
+                <span className="text-inst-muted font-ui">UART:</span>
+                <strong className="text-sky-300">9600 8N1 · TX GPIO16</strong>
               </div>
               <div className="flex justify-between">
-                <span className="text-inst-muted font-ui">Volume Estimado:</span>
-                <strong className="text-emerald-400">{waterVolumeL.toFixed(2)} L ({waterLevelPct}%) <span className="text-[8px] text-emerald-400/80">[CALCULADO]</span></strong>
+                <span className="text-inst-muted font-ui">Tanque:</span>
+                <strong className="text-amber-300">FG-TANK-6L-R1 <span className="text-[8px] text-amber-400/80">[BASELINE]</span></strong>
               </div>
             </div>
 
             {/* Alerta / Conformidade de Zona Cega */}
-            {waterLevelPct > 88 ? (
-              <div className="p-1.5 rounded-xs bg-rose-950/70 border border-rose-600 text-rose-200 text-[10px] flex items-start gap-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
-                <div>
-                  <strong>Atenção: Zona Cega do Sensor!</strong>
-                  <span className="block mt-0.5 opacity-90 text-[9px]">Distância inferior a 20 cm do datasheet. O pulso de disparo pode mascarar o eco.</span>
-                </div>
-              </div>
-            ) : waterLevelPct === 0 ? (
-              <div className="p-1.5 rounded-xs bg-amber-950/40 border border-amber-700/60 text-amber-300 text-[10px] flex items-center gap-1.5">
-                <Info className="w-3 h-3 text-amber-400 shrink-0" />
-                <span className="text-[10px]">Tanque 100% Vazio (Distância ao fundo: 141.5mm)</span>
-              </div>
-            ) : (
-              <div className="p-1.5 rounded-xs bg-emerald-950/40 border border-emerald-700/60 text-emerald-300 text-[10px] flex items-center gap-1.5">
-                <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
-                <span className="text-[10px]">Visada acústica livre (d &gt; 20 cm)</span>
-              </div>
-            )}
+            <div className="p-1.5 rounded-xs bg-amber-950/40 border border-amber-700/60 text-amber-300 text-[10px] flex items-start gap-1.5">
+              <Info className="w-3 h-3 text-amber-400 shrink-0 mt-0.5" />
+              <span className="text-[10px]">Zona cega nominal de 30 mm; a visada, o suporte e a calibração dependem da peça fabricada e do ensaio com água.</span>
+            </div>
 
             {/* Presets Rápidos do Tanque (5 Níveis Oficiais de Teste) */}
             <div className="pt-1.5 border-t border-inst-border">
-              <span className="text-[10px] text-inst-muted block mb-1">5 Níveis Oficiais de Ensaio:</span>
+              <span className="text-[10px] text-inst-muted block mb-1">Perfil de teste nominal (não calibração):</span>
               <div className="grid grid-cols-5 gap-1">
                 {[
                   { lvl: 0, label: '0%' },
@@ -1870,7 +1690,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
           <div className="flex items-center justify-between text-[11px]">
             <span className="flex items-center gap-1 text-sky-400 font-bold">
               <Droplets className="w-3 h-3" />
-              Nível d'Água (5L)
+              Perfil de nível (FG-TANK-6L-R1)
             </span>
             <span className="text-inst-primary font-bold">
               {waterLevelPct === 0 ? '0% (Vazio)' : waterLevelPct === 100 ? '100% (Cheio)' : `${waterLevelPct}%`}
@@ -1914,10 +1734,10 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
           </div>
         </div>
 
-        {/* Transparência do Cilindro de Acrílico */}
+        {/* Controle paramétrico do CAD da bancada; não representa calibração física */}
         <div className="bg-[#0e141c]/95 backdrop-blur-xs border border-inst-border p-2 rounded-sm shadow-xs text-[10px] text-inst-primary space-y-1">
           <div className="flex justify-between text-inst-muted">
-            <span>Transparência Galão:</span>
+            <span>Transparência do tanque (bloqueada):</span>
             <span className="font-bold text-inst-primary">{Math.round(tankOpacity * 100)}%</span>
           </div>
           <input
@@ -2021,11 +1841,11 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       <div className="absolute bottom-3 left-3 z-10 flex flex-wrap gap-2 text-[10px]">
         <div className="px-2.5 py-1 rounded-xs bg-[#0e141c]/90 border border-emerald-800 text-emerald-300 flex items-center gap-1.5 shadow-xs">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-          <span>ESP32-S3 DevKitC-1 v1.1 (Classe A) em Protoboard 830</span>
+          <span>ESP32-S3 DevKitC-1 v1.1 (documentado) em Protoboard 830</span>
         </div>
         <div className="px-2.5 py-1 rounded-xs bg-[#0e141c]/90 border border-sky-800 text-sky-300 flex items-center gap-1.5 shadow-xs">
           <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
-          <span>Recipiente Água Ø150mm • Sonda M20 Estanque na Tampa</span>
+          <span>Tanque/tampa: geometria real bloqueada até identificação e medição</span>
         </div>
         <div className="px-2.5 py-1 rounded-xs bg-[#0e141c]/90 border border-purple-800 text-purple-300 flex items-center gap-1.5 shadow-xs">
           <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />

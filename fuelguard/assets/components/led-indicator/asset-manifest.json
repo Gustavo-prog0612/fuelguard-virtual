@@ -7,7 +7,7 @@
   "revision": "THT Radial 5mm (Chanfro Cátodo)",
   "sourceUrl": "https://gitlab.com/kicad/libraries/kicad-packages3D",
   "license": "CC-BY-SA 4.0",
-  "format": "Modelo CAD Real Integrado (Classe A / KiCad LED_THT)",
+  "format": "Referência paramétrica documentada (Classe A)",
   "sourceUnit": "mm",
   "dimensionsMm": {
     "width": 5.0,
@@ -20,7 +20,7 @@
     "rotationDeg": [0, 0, 0]
   },
   "fidelityClass": "A",
-  "confidenceRationale": "Modelo CAD oficial conferido contra a biblioteca KiCad Packages3D (LED_THT.3dshapes) e datasheet Kingbright WP7113GD: cúpula em resina epóxi óptica translúcida com transmissão PBR, chanfro na flange do cátodo, taça refletora leadframe interna e terminais estanhados.",
+  "confidenceRationale": "Envelope e família T-1 3/4 são documentados pelo datasheet Kingbright WP7113GD. O modelo 3D e a altura final dependem do componente comprado.",
   "verificationDate": "2026-09-28",
   "mounting": {
     "type": "THT_INSERTION",

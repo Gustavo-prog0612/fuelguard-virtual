@@ -65,25 +65,8 @@ export const Esp32Node: React.FC<{ data: any }> = () => {
             <span className="font-bold text-inst-primary">GPIO4 (LED)</span>
           </div>
 
-          <div className="relative flex items-center justify-start h-6 pl-3 pr-1 bg-inst-canvas rounded-xs border border-inst-border">
-            <Handle
-              type="source"
-              position={Position.Left}
-              id="esp_gpio5"
-              className="!w-2.5 !h-2.5 !bg-[#7c3aed] !-left-1.5 border border-white"
-            />
-            <span className="font-bold text-inst-primary">GPIO5 (TRIG)</span>
-          </div>
-
-          <div className="relative flex items-center justify-start h-6 pl-3 pr-1 bg-inst-canvas rounded-xs border border-inst-border">
-            <Handle
-              type="target"
-              position={Position.Left}
-              id="esp_gpio6"
-              className="!w-2.5 !h-2.5 !bg-[#0284c7] !-left-1.5 border border-white"
-            />
-            <span className="font-bold text-inst-primary">GPIO6 (ECHO)</span>
-          </div>
+          <div className="relative flex items-center justify-start h-6 pl-3 pr-1 bg-inst-canvas rounded-xs border border-inst-border"><Handle type="source" position={Position.Left} id="esp_gpio14" className="!w-2.5 !h-2.5 !bg-amber-500 !-left-1.5 border border-white" /><span className="font-bold text-inst-primary">GPIO14 (BUZZER)</span></div>
+          <div className="relative flex items-center justify-start h-6 pl-3 pr-1 bg-inst-canvas rounded-xs border border-inst-border"><Handle type="target" position={Position.Left} id="esp_gpio16" className="!w-2.5 !h-2.5 !bg-sky-500 !-left-1.5 border border-white" /><span className="font-bold text-inst-primary">GPIO16 (UART RX)</span></div>
         </div>
 
         {/* Coluna Direita: Tampa e Barramento SPI */}
@@ -137,6 +120,7 @@ export const Esp32Node: React.FC<{ data: any }> = () => {
               className="!w-2.5 !h-2.5 !bg-[#0284c7] !-right-1.5 border border-white"
             />
           </div>
+          <div className="relative flex items-center justify-end h-6 pr-3 pl-1 bg-inst-canvas rounded-xs border border-inst-border"><span className="font-bold text-inst-primary">GPIO17 (UART TX)</span><Handle type="source" position={Position.Right} id="esp_gpio17" className="!w-2.5 !h-2.5 !bg-sky-500 !-right-1.5 border border-white" /></div>
         </div>
       </div>
 

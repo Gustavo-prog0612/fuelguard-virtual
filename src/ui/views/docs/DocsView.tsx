@@ -35,7 +35,7 @@ export const DocsView: React.FC = () => {
             }`}
           >
             <BookOpenCheck className="w-3.5 h-3.5" />
-            <span>Guia Físico & Emulação Wokwi</span>
+            <span>Guia Físico & Validação de Bancada</span>
           </button>
         </div>
 

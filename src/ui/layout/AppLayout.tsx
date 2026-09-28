@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { lazy, Suspense, useState, useEffect } from 'react';
 import { AppRoute } from '@/types/navigation';
 import { TopNavBar } from '@/ui/components/header/TopNavBar';
 import { BenchView } from '@/ui/views/bench/BenchView';
@@ -6,7 +6,7 @@ import { SignalsView } from '@/ui/views/signals/SignalsView';
 import { EventsView } from '@/ui/views/events/EventsView';
 import { TestsView } from '@/ui/views/tests/TestsView';
 import { DocsView } from '@/ui/views/docs/DocsView';
-import { CadView } from '@/ui/views/cad/CadView';
+const CadView = lazy(() => import('@/ui/views/cad/CadView').then((module) => ({ default: module.CadView })));
 import { HonestyBadge } from '@/ui/components/badges/HonestyBadge';
 import { X, BookOpen } from 'lucide-react';
 import { DesignSystemProvider } from '@/design-system/DesignSystemContext';
@@ -42,8 +42,10 @@ export const AppLayoutContent: React.FC = () => {
         setCurrentRoute('events');
       } else if (e.key === '4') {
         setCurrentRoute('tests');
-      } else if (e.key === '5' || e.key === '6') {
+      } else if (e.key === '5') {
         setCurrentRoute('cad');
+      } else if (e.key === '6') {
+        setCurrentRoute('docs');
       }
     };
 
@@ -64,7 +66,11 @@ export const AppLayoutContent: React.FC = () => {
       case 'docs':
         return <DocsView />;
       case 'cad':
-        return <CadView />;
+        return (
+          <Suspense fallback={<div className="h-full flex items-center justify-center bg-inst-canvas text-inst-secondary font-mono text-xs">Carregando estação CAD…</div>}>
+            <CadView />
+          </Suspense>
+        );
       default:
         return <BenchView />;
     }
@@ -114,7 +120,7 @@ export const AppLayoutContent: React.FC = () => {
                   FuelGuard Virtual Test Bench — Manual do Instrumento
                 </h3>
                 <p className="text-xs text-inst-secondary">
-                  Simulação Didática de Bancada Física (ESP32-S3 + JSN-SR04T + Água)
+                  Bancada de Engenharia (ESP32-S3 + PN532 V4 + SEN0311 + Água)
                 </p>
               </div>
             </div>
@@ -139,9 +145,9 @@ export const AppLayoutContent: React.FC = () => {
                 <strong>Regras Críticas de Bancada Física:</strong>
               </p>
               <ul className="list-disc pl-4 space-y-1">
-                <li>Nunca conecte o pino ECHO do JSN-SR04T (5V) direto no ESP32-S3 sem o divisor resistivo 10k/15k.</li>
-                <li>Utilize o buffer SN74AHCT125N para garantir nível lógico de 5V estável no disparo TRIG.</li>
-                <li>A bancada virtual calcula aproximações com base na termodinâmica acústica e ruído gaussiano. O ensaio físico exige calibração com trena e proveta graduada.</li>
+                <li>Alimente o A02YYUW/SEN0311 em 3,3 V; TX deve ir ao GPIO16/UART1_RX e RX/MODE deve ficar em nível alto.</li>
+                <li>Mantenha a eletrônica fora dos respingos, use laço de gotejamento e confira o PN532 V4 em SPI antes de energizar.</li>
+                <li>A referência paramétrica não libera fabricação: tanque, tampa, sensor, MC-38, MB-102 e conectores exigem conferência física.</li>
               </ul>
             </div>
 

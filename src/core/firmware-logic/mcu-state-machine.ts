@@ -62,11 +62,11 @@ export class McuStateMachine {
     this.latestSnapshot = {
       state: 'BOOT',
       simTimeMs: 0,
-      rawDistanceCm: 42.3,
-      filteredDistanceCm: 42.3,
-      waterHeightCm: 57.7,
-      volumeL: 577,
-      percentage: 57.7,
+      rawDistanceCm: 8.0,
+      filteredDistanceCm: 8.0,
+      waterHeightCm: 8.0,
+      volumeL: 3.2,
+      percentage: 50.0,
       isLidClosed: true,
       isNfcSessionActive: false,
       ledActive: true,
@@ -88,7 +88,7 @@ export class McuStateMachine {
     this.eventBus.emit('uart.tx', currentTimeMs, 'firmware', {
       channel: 'UART0',
       baud: 115200,
-      message: '[FW] Periféricos inicializados: SPI (PN532 @ 4MHz), GPIO5 (TRIG), GPIO6 (ECHO), GPIO7 (Reed).',
+      message: '[FW] Periféricos inicializados: SPI (PN532 @ 4MHz), UART1 SEN0311 (GPIO16 RX), GPIO7 (reed), GPIO14 (buzzer).',
       level: 'INFO',
     });
   }
@@ -132,7 +132,7 @@ export class McuStateMachine {
       }
     }
 
-    // 2. Disparo periódico do Sensor Ultrassônico JSN-SR04T a 5 Hz (200 ms)
+    // 2. Leitura periódica do SEN0311 a 5 Hz (200 ms)
     const timeSinceLastPing = currentTimeMs - this.lastPingTimeMs;
     if (timeSinceLastPing >= this.pingIntervalMs) {
       this.lastPingTimeMs = currentTimeMs;
@@ -154,13 +154,13 @@ export class McuStateMachine {
         attenuation_db: pingResult.attenuationDb,
       });
 
-      // Se o transdutor entrou em zona cega (< 20 cm)
+      // Se a distância entrou na zona cega documentada (< 3 cm)
       if (pingResult.inBlindZone) {
         if (this.state !== 'ALERT_SENSOR' && this.state !== 'ALERT_TAMPER') {
-          this.transitionTo('ALERT_SENSOR', currentTimeMs, 'Sensor na Zona Cega (< 20 cm). Eco saturado!');
+          this.transitionTo('ALERT_SENSOR', currentTimeMs, 'SEN0311 na Zona Cega (< 3 cm). Leitura inválida!');
         }
       } else if (this.state === 'ALERT_SENSOR' && !pingResult.inBlindZone) {
-        this.transitionTo('MEASURING', currentTimeMs, 'Distância restabelecida acima de 20 cm.');
+        this.transitionTo('MEASURING', currentTimeMs, 'Distância restabelecida acima de 3 cm.');
       }
 
       // Aplica o Filtro Mediano de 5 Amostras no firmware
@@ -192,7 +192,7 @@ export class McuStateMachine {
       this.eventBus.emit('uart.tx', currentTimeMs, 'firmware', {
         channel: 'UART0',
         baud: 115200,
-        message: `[FW] JSN ping: echo=${pingResult.echoTimeUs}us dist=${pingResult.measuredDistanceCm}cm quality=${statusTag} -> Median=${measuredDist}cm h=${calculatedHeight.toFixed(1)}cm vol=${volumeL}L`,
+        message: `[FW] SEN0311 leitura: echo=${pingResult.echoTimeUs}us dist=${pingResult.measuredDistanceCm}cm quality=${statusTag} -> Median=${measuredDist}cm h=${calculatedHeight.toFixed(1)}cm vol=${volumeL}L`,
         level: pingResult.echoValid ? 'INFO' : 'WARN',
       });
 

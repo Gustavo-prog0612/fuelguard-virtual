@@ -12,9 +12,9 @@ export const TelemetryView: React.FC = () => {
   const [autoScroll, setAutoScroll] = useState<boolean>(true);
 
   const mockSerialLogs = [
-    { time: '14:27:18.420', level: 'INFO', msg: '[FW] JSN ping: echo=2450us dist=42.3cm quality=VALID' },
-    { time: '14:27:18.421', level: 'INFO', msg: '[BUS] Event dispatched: kind=tank.stable seq=42 h=57.7cm vol=577L' },
-    { time: '14:27:18.220', level: 'DEBUG', msg: '[FILTER] Window [42.1, 42.3, 42.0, 42.5, 42.3] -> Median=42.3cm sigma=0.18' },
+    { time: '14:27:18.420', level: 'INFO', msg: '[FW] SEN0311 UART: dist=80mm quality=VALID' },
+    { time: '14:27:18.421', level: 'INFO', msg: '[BUS] Event dispatched: kind=tank.stable seq=42 h=8.0cm vol=3.2L' },
+    { time: '14:27:18.220', level: 'DEBUG', msg: '[FILTER] Window [80, 81, 79, 80, 80] -> Median=80mm sigma=0.8' },
     { time: '14:27:16.105', level: 'INFO', msg: '[PN532] Passive Target detected: UID=04:3A:7F:2C:5D (Authorized Demo Operator)' },
     { time: '14:27:16.106', level: 'INFO', msg: '[BUS] Event dispatched: kind=session.started seq=41' },
     { time: '14:27:12.050', level: 'WARN', msg: '[REED] State changed to CLOSED after 50ms software debounce (12 raw bounces)' },

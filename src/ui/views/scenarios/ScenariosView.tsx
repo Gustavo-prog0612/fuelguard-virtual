@@ -35,7 +35,7 @@ const PRESETS: ScenarioPreset[] = [
     description: 'Nível intermediário estável, sem agitação, sensor alinhado, tag NFC autorizada cadastrada e conexão online.',
     category: 'nominal',
     badge: 'Padrão',
-    params: { noise_sigma_cm: 0.2, initial_volume_l: 577, water_flow_rate_l_min: 0, nfc_authorized: true, lid_open: false, offline: false },
+    params: { noise_sigma_cm: 0.2, initial_volume_l: 3.2, water_flow_rate_l_min: 0, nfc_authorized: true, lid_open: false, offline: false },
   },
   {
     id: 'slosh',
@@ -47,8 +47,8 @@ const PRESETS: ScenarioPreset[] = [
   },
   {
     id: 'blind_zone',
-    title: 'Cenário C: Obstrução & Zona Cega (< 20 cm)',
-    description: 'Nível da água se aproxima a menos de 20 cm do sensor JSN, gerando eco múltiplo dentro da zona de anelamento piezoelétrico.',
+    title: 'Cenário C: Obstrução & Zona Cega (< 3 cm)',
+    description: 'A água se aproxima a menos de 3 cm do sensor A02YYUW/SEN0311, fora da zona operacional documentada.',
     category: 'sensor_fault',
     badge: 'Falha Acústica',
     params: { noise_sigma_cm: 4.5, initial_volume_l: 920, water_flow_rate_l_min: 10, nfc_authorized: true, lid_open: false, offline: false },
@@ -59,7 +59,7 @@ const PRESETS: ScenarioPreset[] = [
     description: 'Apresentação de cartão com UID desconhecido (04:9B:11:3E:8A). Emissão de evento nfc.denied sem iniciar sessão.',
     category: 'nfc',
     badge: 'Segurança Didática',
-    params: { noise_sigma_cm: 0.2, initial_volume_l: 577, water_flow_rate_l_min: 0, nfc_authorized: false, lid_open: false, offline: false },
+    params: { noise_sigma_cm: 0.2, initial_volume_l: 3.2, water_flow_rate_l_min: 0, nfc_authorized: false, lid_open: false, offline: false },
   },
   {
     id: 'lid_bounce',
@@ -67,7 +67,7 @@ const PRESETS: ScenarioPreset[] = [
     description: 'Abertura do reed switch gerando rajada mecânica de 10 pulsos em 15 ms, testando a estabilização do debounce de 50 ms.',
     category: 'mechanical',
     badge: 'Debounce 50ms',
-    params: { noise_sigma_cm: 0.2, initial_volume_l: 577, water_flow_rate_l_min: 0, nfc_authorized: true, lid_open: true, offline: false },
+    params: { noise_sigma_cm: 0.2, initial_volume_l: 3.2, water_flow_rate_l_min: 0, nfc_authorized: true, lid_open: true, offline: false },
   },
   {
     id: 'offline_queue',

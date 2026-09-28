@@ -1,6 +1,7 @@
 /**
  * FuelGuard Virtual Test Bench — Modelagem Acústica e Termodinâmica
- * Implementa a velocidade do som no ar c(T), tempo de eco e limitações do transdutor piezelétrico.
+ * Implementa a velocidade do som no ar c(T), tempo de eco e as limitações
+ * do sensor de distância DFRobot A02YYUW/SEN0311.
  */
 
 import { Mulberry32 } from './prng';
@@ -17,7 +18,7 @@ export interface AcousticEchoResult {
 }
 
 export class AcousticModel {
-  public static readonly BLIND_ZONE_CM = 20.0;
+  public static readonly BLIND_ZONE_CM = 3.0;
   public static readonly MAX_RANGE_CM = 450.0;
   public static readonly TIMEOUT_US = 30000; // 30 ms
 
@@ -62,7 +63,8 @@ export class AcousticModel {
   }
 
   /**
-   * Simula um disparo de pulso ultrassônico JSN-SR04T com ruído e comportamento piezoelétrico.
+   * Simula uma leitura ultrassônica do SEN0311 com ruído e comportamento
+   * equivalente ao envelope documentado do A02YYUW.
    * @param trueDistanceCm Distância física real até a superfície d'água.
    * @param temperatureC Temperatura ambiente.
    * @param surfaceDisturbanceCm Amplitude da perturbação superficial (slosh/ondas).
@@ -80,10 +82,9 @@ export class AcousticModel {
     const effectiveDistance = Math.max(0, trueDistanceCm + surfaceDisturbanceCm);
 
     // 1. Verificação da Zona Cega (Ring-down Piezoelétrico)
-    // O JSN-SR04T possui transdutor único blindado. O anelamento pós-transmissão
-    // satura o receptor nas distâncias menores que 20 cm, gerando leituras caóticas ou timeout.
+    // O SEN0311 possui zona cega documentada de aproximadamente 3 cm.
     if (effectiveDistance < AcousticModel.BLIND_ZONE_CM) {
-      // 30% das vezes retorna ruído de anelamento na faixa de 18-24cm, 70% perde o eco (timeout)
+      // 30% das vezes retorna ruído residual perto do limite, 70% perde o eco (timeout).
       const ringDownLoss = this.prng.next() > 0.3;
       if (ringDownLoss) {
         return {
@@ -98,7 +99,7 @@ export class AcousticModel {
         };
       }
       
-      const chaoticDist = 18.0 + this.prng.next() * 6.0;
+      const chaoticDist = 3.0 + this.prng.next() * 2.0;
       return {
         trueDistanceCm,
         measuredDistanceCm: chaoticDist,

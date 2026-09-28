@@ -129,7 +129,7 @@ Mantidos no diretório `tools/analytics/` para suporte analítico e validação 
 - **PY-02 (Estudo Comparativo: Filtro Mediano vs Filtro de Kalman / FilterPy):**
   - Gerar série temporal com ruído gaussiano ($\sigma = 0.5\text{ cm}$) e 5% de outliers impulsivos ($+50\text{ cm}$).
   - Comparar a saída do Filtro Mediano de 5 amostras com um Filtro de Kalman 1D calibrado.
-  - Asserção: O Filtro Mediano apresenta rejeição superior a 98% dos outliers sem complexidade de sintonia de matrizes $Q$ e $R$, comprovando a escolha de engenharia para o MVP leve no browser.
+  - Asserção: O Filtro Mediano apresenta rejeição superior a 98% dos outliers sem complexidade de sintonia de matrizes $Q$ e $R$, comprovando a escolha de engenharia leve no browser.
 - **PY-03 (Ajuste de Curva Volumétrica com NumPy/SciPy):**
   - Dada tabela empírica com ruído de medição humana, ajustar polinômio cúbico e spline PCHIP monotônica.
   - Asserção: O modelo PCHIP garante não-negatividade e monotonicidade estrita de volume em relação à altura.

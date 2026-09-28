@@ -14,16 +14,13 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import { Esp32Node } from './nodes/Esp32Node';
-import { JsnNode } from './nodes/JsnNode';
-import { BufferNode } from './nodes/BufferNode';
-import { DividerNode } from './nodes/DividerNode';
+import { Sen0311Node as LevelSensorNode } from './nodes/Sen0311Node';
+import { BuzzerNode } from './nodes/BuzzerNode';
 import { Pn532Node } from './nodes/Pn532Node';
 import { ReedNode } from './nodes/ReedNode';
 import { LedNode } from './nodes/LedNode';
-import { Cpu } from 'lucide-react';
 import { WIRE_COLORS } from '@/electrical/pin-definitions';
 import { CircuitConnection, SAFE_CANONICAL_WIRING, FAULT_5V_DIRECT_WIRING } from '@/electrical/circuit-validator';
-import { downloadWokwiDiagramJson } from '@/wokwi/wokwi-generator';
 
 interface InteractiveBenchCanvasProps {
   onConnectionsChange: (connections: CircuitConnection[]) => void;
@@ -40,48 +37,35 @@ const INITIAL_NODES: Node[] = [
     position: { x: 40, y: 80 },
     data: {},
   },
-  // 2. Buffer SN74AHCT125N (Centro Superior)
+  // 2. Sensor de nível A02YYUW / SEN0311 (Centro Superior)
   {
-    id: 'node_buffer',
-    type: 'buffer',
+    id: 'node_level',
+    type: 'level',
     position: { x: 380, y: 40 },
     data: {},
   },
-  // 3. Divisor Resistivo 10k/15k (Centro Inferior)
-  {
-    id: 'node_divider',
-    type: 'divider',
-    position: { x: 380, y: 320 },
-    data: {},
-  },
-  // 4. JSN-SR04T Sensor Ultrassônico (Direita Superior)
-  {
-    id: 'node_jsn',
-    type: 'jsn',
-    position: { x: 700, y: 40 },
-    data: {},
-  },
-  // 5. PN532 Breakout NFC (Direita Meio)
+  // 3. PN532 Breakout NFC (Direita Meio)
   {
     id: 'node_pn532',
     type: 'pn532',
     position: { x: 700, y: 320 },
     data: {},
   },
-  // 6. Reed Switch da Tampa (Extrema Direita)
+  // 4. Reed Switch da Tampa (Extrema Direita)
   {
     id: 'node_reed',
     type: 'reed',
     position: { x: 1020, y: 40 },
     data: {},
   },
-  // 7. LED Verde + 1k (Extrema Direita Inferior)
+  // 5. LED Verde + 220R (Extrema Direita Inferior)
   {
     id: 'node_led',
     type: 'led',
     position: { x: 1020, y: 320 },
     data: {},
   },
+  { id: 'node_buzzer', type: 'buzzer', position: { x: 1020, y: 470 }, data: {} },
 ];
 
 function convertWiringToEdges(wiring: CircuitConnection[]): Edge[] {
@@ -113,9 +97,8 @@ function convertWiringToEdges(wiring: CircuitConnection[]): Edge[] {
 
 function getNodeByPin(pinId: string): string {
   if (pinId.startsWith('esp_')) return 'node_esp32';
-  if (pinId.startsWith('jsn_')) return 'node_jsn';
-  if (pinId.startsWith('ahct_')) return 'node_buffer';
-  if (pinId.startsWith('div_')) return 'node_divider';
+  if (pinId.startsWith('level_')) return 'node_level';
+  if (pinId.startsWith('buzzer_')) return 'node_buzzer';
   if (pinId.startsWith('nfc_')) return 'node_pn532';
   if (pinId.startsWith('reed_')) return 'node_reed';
   if (pinId.startsWith('led_')) return 'node_led';
@@ -144,9 +127,8 @@ export const InteractiveBenchCanvas: React.FC<InteractiveBenchCanvasProps> = ({
   const nodeTypes = useMemo(
     () => ({
       esp32: Esp32Node,
-      jsn: JsnNode,
-      buffer: BufferNode,
-      divider: DividerNode,
+      level: LevelSensorNode,
+      buzzer: BuzzerNode,
       pn532: Pn532Node,
       reed: ReedNode,
       led: LedNode,
@@ -223,7 +205,7 @@ export const InteractiveBenchCanvas: React.FC<InteractiveBenchCanvasProps> = ({
               : 'text-inst-secondary hover:text-[#b91c1c] hover:bg-rose-50 dark:hover:bg-rose-950/40'
           }`}
         >
-          {isSimulatedFault ? 'Falha Ativa: ECHO 5V Direto' : 'Injetar Falha 5V Direto'}
+          {isSimulatedFault ? 'Falha Ativa: UART 5V no GPIO16' : 'Injetar Falha UART 5V'}
         </button>
 
         <button
@@ -237,16 +219,6 @@ export const InteractiveBenchCanvas: React.FC<InteractiveBenchCanvasProps> = ({
           Limpar Fiação
         </button>
 
-        <div className="h-4 w-px bg-inst-border" />
-
-        <button
-          onClick={() => downloadWokwiDiagramJson('diagram.json')}
-          className="px-2.5 py-1 rounded-xs bg-inst-surface border border-inst-border hover:bg-inst-subtle text-inst-primary transition flex items-center gap-1.5"
-          title="Baixar arquivo diagram.json para simular no Wokwi online"
-        >
-          <Cpu className="w-3.5 h-3.5 text-sky-500" />
-          <span>Exportar Wokwi</span>
-        </button>
       </div>
     </div>
   );

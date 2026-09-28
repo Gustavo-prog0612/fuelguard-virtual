@@ -21,5 +21,16 @@ export default defineConfig({
   build: {
     target: 'es2022',
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/three') || id.includes('node_modules/@react-three') || id.includes('node_modules/three-mesh-bvh')) return 'three-vendor';
+          if (id.includes('node_modules/chart.js') || id.includes('node_modules/react-chartjs-2')) return 'charts-vendor';
+          if (id.includes('node_modules/@xyflow')) return 'flow-vendor';
+          if (id.includes('node_modules/')) return 'vendor';
+          return undefined;
+        },
+      },
+    },
   },
 });

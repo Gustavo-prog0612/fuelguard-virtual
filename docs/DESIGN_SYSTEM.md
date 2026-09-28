@@ -27,7 +27,7 @@
 
 | Princípio | Aplicação Prática na Interface |
 | :--- | :--- |
-| **1. A Bancada é o Altar (Foco Primário)** | O canvas de montagem, os componentes (ESP32-S3, JSN-SR04T, PN532) e as conexões elétricas têm prioridade visual máxima. Painéis de controle são compactos e orbitam a bancada. |
+| **1. A Bancada é o Altar (Foco Primário)** | O canvas de montagem, os componentes (ESP32-S3, SEN0311, PN532 V4, tanque FG-TANK-6L-R1) e as conexões elétricas têm prioridade visual máxima. Painéis de controle são compactos e orbitam a bancada. |
 | **2. Densidade Serena** | Informações técnicas (GPIOs, tensões DC, microsegundos de eco, taxa de baud) são apresentadas de forma compacta e legível, sem sensação de aperto ou poluição. |
 | **3. Contenção Cromática** | O fundo é um cinza muito claro e quente (`#f8f9fa` / `#f1f3f5`). Superfícies são brancas puras com divisores neutros. Cores saturadas são reservadas exclusivamente para estados elétricos e de segurança. |
 | **4. Tipografia Funcional** | Famílias tipográficas com desenho sóbrio, excelente suporte a diacríticos do português, numerais tabulares que alinham com perfeição e fonte monoespaçada dedicada para nós, portas e telemetria. |
@@ -53,8 +53,8 @@
 | `color.fgBrand.deep`| `#0f5132` | Verde Floresta| **8.6:1 (AAA)** | Ação principal FuelGuard, estado operacional validado, relógio ativo. |
 | `color.fgBrand.surface`|`#f0fdf4` | Verde Suave | Fundo | Tonalidade de fundo para alertas de validação nominal bem-sucedida. |
 | `color.fgBrand.border` |`#86efac` | Verde Claro | Contorno | Borda indicadora de conector corretamente associado. |
-| `color.status.warning`|`#b45309` | Âmbar | **5.8:1 (AA)** | Alerta de nível marginal (ex: TRIG 3,3V sem buffer AHCT125), bounce. |
-| `color.status.danger` |`#b91c1c` | Vermelho Carmim| **6.5:1 (AA)** | Sobretensão (ECHO 5V em GPIO 3,3V), curto-circuito, terra flutuante. |
+| `color.status.warning`|`#b45309` | Âmbar | **5.8:1 (AA)** | Zona cega de 3 cm, gap do MC-38 pendente ou medição incompleta. |
+| `color.status.danger` |`#b91c1c` | Vermelho Carmim| **6.5:1 (AA)** | UART 5V em GPIO16, curto-circuito, terra flutuante ou vazamento. |
 | `color.status.info` |`#0369a1` | Azul Técnico | **6.1:1 (AA)** | Informações acústicas $c(T)$, protocolo SPI e conexões de barramento. |
 
 ### 3.2. Espaçamento e Grade (Base 4px / 8px)
@@ -111,14 +111,14 @@ A navegação foi reestruturada de forma enxuta em 5 tarefas essenciais de engen
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│ [FG] FuelGuard  Bancada Didática  •  ESP32-S3 / JSN-SR04T / PN532       [Estado: PRONTO]│
+│ [FG] FuelGuard  Bancada Real de Engenharia  •  ESP32-S3 / SEN0311 / PN532 V4 [GATE]    │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ [ 1. BANCADA ]   [ 2. SINAIS ]   [ 3. EVENTOS ]   [ 4. TESTES ]   [ 5. GUIA & DESIGN ] │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 1. **1. BANCADA (Foco Central):**
-   - Canvas de instrumentação interativo com protoboard, chips em invólucros realistas (ESP32-S3, breakout PN532, buffer AHCT125, divisor 10k/15k e transdutor JSN-SR04T).
+   - Canvas de instrumentação interativo com protoboard, ESP32-S3, PN532 V4, probe SEN0311, MC-38, LED e buzzer ativo.
    - Fiação com roteamento limpo, identificação funcional de nós e validador elétrico em tempo real.
 2. **2. SINAIS (Telemetria & Acústica):**
    - Instrumento de corte do galão d'água com feixe ultrassônico e cota $H_{ref}$.
@@ -173,5 +173,5 @@ Todos os componentes interativos do sistema seguem uma máquina de 5 estados exp
 | **Tipografia monoespaçada** exclusiva para valores, registradores e pinos. | **NÃO** usar monoespaçada para textos longos ou parágrafos didáticos. |
 | **Fundo cinza claro calmo e neutro** (`#f8f9fa`) simulando bancada técnica. | **NÃO** usar temas escuros gamers com neons roxos ou azuis saturados. |
 | **Verde Floresta FuelGuard** aplicado em pontos focais de decisão e estado ativo. | **NÃO** pintar todos os botões, ícones e bordas de verde. |
-| **Rótulos com unidades explícitas** (ex: `42.3 cm`, `577 L`, `24.8 °C`). | **NÃO** mostrar números isolados sem contexto físico. |
+| **Rótulos com unidades explícitas** (ex: `80 mm`, `3.2 L`, `24.8 °C`). | **NÃO** mostrar números isolados sem contexto físico. |
 | **Indicação explícita de limitação física** em alertas e transições. | **NÃO** prometer que a simulação geométrica substitui prova acústica. |

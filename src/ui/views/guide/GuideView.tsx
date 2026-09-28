@@ -5,29 +5,28 @@ import {
   AlertTriangle, 
   Cpu,
   FileCode,
-  ExternalLink,
   ShieldAlert
 } from 'lucide-react';
 import { HonestyBadge } from '@/ui/components/badges/HonestyBadge';
-import { downloadWokwiDiagramJson } from '@/wokwi/wokwi-generator';
 
 export const GuideView: React.FC = () => {
   const handleDownloadFirmwareIno = () => {
     // Busca o código do firmware ou gera dinamicamente para download
     const firmwareCode = `/**
- * FuelGuard — Firmware Didático ESP32-S3 (Bancada Didática com Água)
+ * FuelGuard — Firmware de Bancada ESP32-S3 (FG-TANK-6L-R1 com água)
  * Microcontrolador: ESP32-S3 DevKitC-1 (Xtensa Dual-Core 240 MHz, 3.3V CMOS)
  */
 #include <Arduino.h>
 
 #define PIN_LED_READY   4
-#define PIN_JSN_TRIG    5
-#define PIN_JSN_ECHO    6
+#define PIN_LEVEL_RX    16
+#define PIN_LEVEL_MODE  17
+#define PIN_BUZZER      14
 #define PIN_REED_LID    7
 
-static const float TANK_HREF_CM = 100.0f;
-static const float SENSOR_BLIND_CM = 20.0f;
-static const float AMBIENT_TEMP_C = 24.8f;
+static const float TANK_HREF_CM = 16.0f;
+static const float TANK_BASE_M2 = 0.04f;
+static const float SENSOR_BLIND_CM = 3.0f;
 
 float calculateSpeedOfSound(float tempC) {
   return 331.3f * sqrtf(1.0f + (tempC / 273.15f));
@@ -36,25 +35,27 @@ float calculateSpeedOfSound(float tempC) {
 void setup() {
   Serial.begin(115200);
   pinMode(PIN_LED_READY, OUTPUT);
-  pinMode(PIN_JSN_TRIG, OUTPUT);
-  pinMode(PIN_JSN_ECHO, INPUT);
+  Serial1.begin(9600, SERIAL_8N1, PIN_LEVEL_RX, -1);
+  pinMode(PIN_LEVEL_MODE, OUTPUT);
+  digitalWrite(PIN_LEVEL_MODE, HIGH); // saída processada do SEN0311
   pinMode(PIN_REED_LID, INPUT_PULLUP);
+  pinMode(PIN_BUZZER, OUTPUT);
   digitalWrite(PIN_LED_READY, HIGH);
   Serial.println("[SYSTEM] ESP32-S3 FuelGuard inicializado.");
 }
 
 void loop() {
-  digitalWrite(PIN_JSN_TRIG, LOW);
-  delayMicroseconds(4);
-  digitalWrite(PIN_JSN_TRIG, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(PIN_JSN_TRIG, LOW);
-
-  unsigned long echoUs = pulseIn(PIN_JSN_ECHO, HIGH, 30000);
-  float c = calculateSpeedOfSound(AMBIENT_TEMP_C);
-  float distCm = (echoUs * 0.000001f * c * 100.0f) / 2.0f;
-
-  Serial.printf("[FW] JSN ping: echo=%luus dist=%.2fcm\\r\\n", echoUs, distCm);
+  if (Serial1.available() >= 4 && Serial1.read() == 0xFF) {
+    const uint8_t high = Serial1.read();
+    const uint8_t low = Serial1.read();
+    const uint8_t checksum = Serial1.read();
+    if ((uint8_t)(0xFF + high + low) == checksum) {
+      const float distCm = ((high << 8) | low) / 10.0f;
+      const float waterHeightCm = constrain(TANK_HREF_CM - distCm / 10.0f, 0.0f, TANK_HREF_CM);
+      const float volumeL = TANK_BASE_M2 * (waterHeightCm / 100.0f) * 1000.0f;
+      Serial.printf("[FW] SEN0311 UART dist=%.1fmm h=%.1fcm vol=%.2fL\\r\\n", distCm * 10.0f, waterHeightCm, volumeL);
+    }
+  }
   delay(200);
 }
 `;
@@ -82,20 +83,11 @@ void loop() {
             <HonestyBadge level="requer_hardware" />
           </div>
           <p className="text-xs text-inst-secondary mt-1 max-w-3xl">
-            Orientações de montagem mecatrônica real, medições elétricas prévias obrigatórias e arquivos para emulação no Wokwi ou gravação no ESP32-S3 físico.
+            Orientações de montagem mecatrônica real, medições prévias obrigatórias e firmware para o ESP32-S3 físico. A emulação é apenas auxiliar.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => downloadWokwiDiagramJson('diagram.json')}
-            className="px-3 py-1.5 rounded-xs bg-inst-surface border border-inst-border text-inst-primary text-xs font-mono font-medium hover:bg-inst-subtle flex items-center gap-1.5 transition shadow-xs"
-            title="Baixar diagram.json para emulação no Wokwi"
-          >
-            <Cpu className="w-3.5 h-3.5 text-sky-500" />
-            <span>diagram.json (Wokwi)</span>
-          </button>
-
           <button
             onClick={handleDownloadFirmwareIno}
             className="px-3 py-1.5 rounded-xs bg-inst-surface border border-inst-border text-inst-primary text-xs font-mono font-medium hover:bg-inst-subtle flex items-center gap-1.5 transition shadow-xs"
@@ -122,9 +114,9 @@ void loop() {
               <label className="flex items-start gap-2.5 cursor-pointer">
                 <input type="checkbox" defaultChecked className="mt-0.5 rounded-xs accent-fuelguard-green" />
                 <div>
-                  <span className="font-bold text-inst-primary">1. Medição Prévia com Multímetro no Nó ECHO (GPIO6)</span>
+                <span className="font-bold text-inst-primary">1. Verificação da UART do SEN0311 antes de ligar</span>
                   <p className="text-[11px] text-inst-secondary mt-0.5">
-                    Com o JSN alimentado em 5V e desconectado do ESP32, meça a saída do divisor 10k/15k. A tensão DC em nível alto não pode ultrapassar 3,3 V (o nominal calculado é 3,00 V).
+                    Alimente o SEN0311 em 3,3 V, confirme 9600 8N1, RX/MODE em nível alto e TX conectado somente ao GPIO16. Não use TRIG/ECHO, divisor ou buffer legado.
                   </p>
                 </div>
               </label>
@@ -170,28 +162,22 @@ void loop() {
             </div>
           </div>
 
-          {/* Emulação no Wokwi Didático */}
+          {/* Limites da validação virtual */}
           <div className="p-4 rounded-xs bg-sky-950/20 border border-sky-800/40 space-y-2 mt-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-mono font-bold text-sky-400 flex items-center gap-1.5">
                 <Cpu className="w-4 h-4" />
-                Instruções de Emulação no Wokwi ESP32-S3
+                Limites da validação virtual
               </h3>
-              <a
-                href="https://wokwi.com"
-                target="_blank"
-                rel="noreferrer"
-                className="text-[10px] font-mono text-sky-400 hover:underline flex items-center gap-1"
-              >
-                <span>Acessar Wokwi</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
+              <span className="text-[10px] font-mono text-sky-400 flex items-center gap-1">
+                <span>Priorizar ensaio físico</span>
+              </span>
             </div>
             <ol className="list-decimal list-inside text-xs text-inst-secondary space-y-1">
-              <li>Clique em <strong>diagram.json (Wokwi)</strong> acima para baixar a topologia da bancada.</li>
-              <li>Acesse <code className="text-sky-300">wokwi.com</code> e inicie um projeto vazio com <strong>ESP32-S3</strong>.</li>
-              <li>Substitua o arquivo <code className="text-sky-300">diagram.json</code> pelo arquivo gerado.</li>
-              <li>Cole o conteúdo de <code className="text-sky-300">fuelguard_esp32_firmware.ino</code> no editor e clique em Play.</li>
+              <li>O viewer e os testes verificam contratos de software, não o comportamento elétrico da unidade comprada.</li>
+              <li>Não usar um modelo genérico de ultrassom como substituto do A02YYUW/SEN0311 real.</li>
+              <li>Grave <code className="text-sky-300">firmware/fuelguard_esp32_firmware.ino</code> apenas depois do checklist elétrico.</li>
+              <li>Registre fotos, medições e resultados no repositório antes de liberar a PCB.</li>
             </ol>
           </div>
         </div>
@@ -211,7 +197,7 @@ void loop() {
             <li className="p-2.5 rounded-xs bg-rose-950/20 border border-rose-900/40 space-y-0.5">
               <strong className="text-rose-400 block font-mono">Reflexão em Paredes Laterais:</strong>
               <p className="text-inst-secondary">
-                O feixe acústico do JSN (~55°) pode atingir as nervuras plásticas do galão antes da água se o transdutor for instalado próximo à borda.
+                O cone de detecção documentado do SEN0311 e a posição central devem ser validados no tanque de 200 × 200 mm; não liberar o suporte apenas pelo render.
               </p>
             </li>
 

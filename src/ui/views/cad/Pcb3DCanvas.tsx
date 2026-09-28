@@ -1,9 +1,8 @@
 /**
  * FuelGuard Virtual Test Bench — Visualizador 3D da Placa (tscircuit 3D Viewer)
- * Renderiza o gêmeo tridimensional da Carrier Board de engenharia (FR-4 1.6mm)
- * em escala 1:1, com componentes soldados no plano Z=0, filetes de solda (fillets),
- * conector USB-C de borda, conectores JST-XH de periféricos, trilhas chanfradas a 45°,
- * serigrafia técnica em branco nítido e ViewCube interativo.
+ * Renderiza uma PCB importada com evidência de fonte (atualmente a referência
+ * RP2040). O FuelGuard permanece em referência de engenharia e não recebe
+ * uma Carrier Board procedural neste viewer.
  *
  * Referências de projeto: imrishabh18/rp2040-motor-controller e tscircuit/3d-viewer.
  */
@@ -22,10 +21,9 @@ import {
   Camera,
 } from 'lucide-react';
 import { ViewCube } from './ViewCube';
-import { FUELGUARD_CAD_LIBRARY, CadComponentMetadata } from '@/circuit-cad/component-library';
+import { CadComponentMetadata } from '@/circuit-cad/component-library';
 import { RP2040_COMPONENT_LIBRARY } from '@/circuit-cad/rp2040-circuit-provider';
 import { buildRp2040Board } from './rp2040-3d-builder';
-import { buildCarrierBoard } from './carrier-board-3d-builder';
 
 interface Pcb3DCanvasProps {
   activeBoard?: 'fuelguard-carrier' | 'rp2040-motor-controller';
@@ -108,11 +106,11 @@ export const Pcb3DCanvas: React.FC<Pcb3DCanvasProps> = ({ activeBoard = 'fuelgua
   };
 
   // =========================================================================
-  // MONTAGEM THREE.JS DA CARRIER BOARD PROFISSIONAL
+  // MONTAGEM THREE.JS DA PCB IMPORTADA COM FONTE DECLARADA
   // =========================================================================
   useEffect(() => {
     const mount = mountRef.current;
-    if (!mount) return;
+    if (!mount || !isRp2040) return;
 
     const width = mount.clientWidth;
     const height = mount.clientHeight;
@@ -211,21 +209,12 @@ export const Pcb3DCanvas: React.FC<Pcb3DCanvasProps> = ({ activeBoard = 'fuelgua
 
     let pulsingLed: THREE.Mesh | null = null;
 
-    if (isRp2040) {
-      buildRp2040Board(
-        boardGroup,
-        pickableObjects,
-        { pcbMat, enigGoldMat, tinSolderMat, whiteSilkscreenMat, edgeMat },
-        (mesh) => { pulsingLed = mesh; }
-      );
-    } else {
-      buildCarrierBoard(
-        boardGroup,
-        pickableObjects,
-        { pcbMat, enigGoldMat, tinSolderMat, whiteSilkscreenMat, edgeMat },
-        (mesh) => { pulsingLed = mesh; }
-      );
-    }
+    buildRp2040Board(
+      boardGroup,
+      pickableObjects,
+      { pcbMat, enigGoldMat, tinSolderMat, whiteSilkscreenMat, edgeMat },
+      (mesh) => { pulsingLed = mesh; }
+    );
 
     // =========================================================================
     // 13. INTERAÇÃO ORBITAL POR MOUSE E RAYCASTING
@@ -288,9 +277,7 @@ export const Pcb3DCanvas: React.FC<Pcb3DCanvasProps> = ({ activeBoard = 'fuelgua
             (p) => p.mesh === hit.object || isDescendant(p.mesh, hit.object)
           );
           if (found) {
-            const comp = isRp2040
-              ? RP2040_COMPONENT_LIBRARY[found.compKey]
-              : FUELGUARD_CAD_LIBRARY[found.compKey];
+            const comp = RP2040_COMPONENT_LIBRARY[found.compKey];
             if (comp) {
               setSelectedComp(comp);
             }
@@ -379,6 +366,26 @@ export const Pcb3DCanvas: React.FC<Pcb3DCanvasProps> = ({ activeBoard = 'fuelgua
       edgeMat.dispose();
     };
   }, [activeBoard, isRp2040, updateRotation]);
+
+  if (!isRp2040) {
+    return (
+      <div className="h-full w-full rounded-md border border-amber-700/70 bg-amber-950/20 p-6 flex items-center justify-center font-mono">
+        <div className="max-w-2xl text-center space-y-4">
+          <div className="text-amber-300 text-sm font-bold uppercase tracking-wider">3D de PCB bloqueado: não existe PCB FuelGuard revisada</div>
+          <p className="text-xs text-amber-100/80 leading-relaxed">
+            A bancada FuelGuard usa protoboard e módulos comerciais. O viewer não cria uma Carrier Board
+            procedural para não transformar uma referência visual em geometria de fabricação.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-left text-[10px] text-inst-secondary">
+            <div className="bg-inst-canvas/70 border border-inst-border rounded-sm p-3"><strong className="text-inst-primary block">Detalhado agora</strong>Bancada Física 3D, cabos, sonda, tanque e componentes comerciais.</div>
+            <div className="bg-inst-canvas/70 border border-inst-border rounded-sm p-3"><strong className="text-inst-primary block">Futuro</strong>STEP/DXF do suporte, frasco e placa adaptadora.</div>
+            <div className="bg-inst-canvas/70 border border-inst-border rounded-sm p-3"><strong className="text-inst-primary block">Fonte da placa</strong>Esquemático, contorno, footprints, roteamento e revisão DRC.</div>
+          </div>
+          <button onClick={() => onSelectTab?.('assembly')} className="px-3 py-1.5 rounded-xs bg-fuelguard-green text-white text-xs font-bold">Abrir Bancada Física 3D</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -508,7 +515,7 @@ export const Pcb3DCanvas: React.FC<Pcb3DCanvasProps> = ({ activeBoard = 'fuelgua
           <>
             <div className="px-2 py-1 rounded-xs bg-[#0e141c]/90 border border-emerald-800 text-emerald-300 flex items-center gap-1.5 shadow-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span>Carrier FR-4: 140×100×1.6mm • Acabamento ENIG</span>
+              <span>FuelGuard: PCB adaptadora não projetada • sem geometria fabricável</span>
             </div>
             <div className="px-2 py-1 rounded-xs bg-[#0e141c]/90 border border-sky-800 text-sky-300 flex items-center gap-1.5 shadow-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
@@ -556,7 +563,11 @@ export const Pcb3DCanvas: React.FC<Pcb3DCanvasProps> = ({ activeBoard = 'fuelgua
                   : 'bg-amber-950 text-amber-400 border-amber-800'
               }`}
             >
-              {selectedComp.validationStatus === 'exact_verified' ? 'Nível 2 (Verificado)' : 'Nível 4 (Aproximação Paramétrica)'}
+              {selectedComp.validationStatus === 'exact_verified'
+                ? 'Nível 2 (CAD verificado)'
+                : selectedComp.validationStatus === 'documented_reference'
+                ? 'Nível 3 (Fonte documentada)'
+                : 'Nível 4 (Geometria pendente)'}
             </span>
             <span className="text-inst-muted truncate max-w-[130px]">{selectedComp.sourceReference}</span>
           </div>
@@ -571,7 +582,7 @@ export const Pcb3DCanvas: React.FC<Pcb3DCanvasProps> = ({ activeBoard = 'fuelgua
               <div className="flex items-center gap-2">
                 <Camera className="w-4 h-4 text-sky-400" />
                 <span className="text-sm font-bold text-inst-primary">
-                  {isRp2040 ? 'Render Fotorealista 3D Oficial — RP2040 Motor Controller' : 'Gêmeo Digital 3D — Carrier Board FuelGuard'}
+                  'Render Fotorealista 3D Oficial — RP2040 Motor Controller'
                 </span>
               </div>
               <button
@@ -583,13 +594,13 @@ export const Pcb3DCanvas: React.FC<Pcb3DCanvasProps> = ({ activeBoard = 'fuelgua
             </div>
             <div className="bg-[#06090d] rounded-md border border-inst-border p-3 flex items-center justify-center min-h-[360px]">
               <img
-                src={isRp2040 ? '/data/rp2040/3d.png' : '/screenshot_cad_3d.png'}
+                src="/data/rp2040/3d.png"
                 alt="Render 3D da Placa"
                 className="max-h-[460px] object-contain rounded-xs shadow-md"
               />
             </div>
             <div className="flex justify-between items-center text-xs text-inst-secondary pt-1">
-              <span>{isRp2040 ? 'Origem Oficial: tscircuit / imrishabh18 (dist/index/3d.png)' : 'Origem: Three.js PBR Engine'}</span>
+              <span>Origem declarada: tscircuit / imrishabh18 (dist/index/3d.png)</span>
               <button
                 onClick={() => setShowOfficialRenderModal(false)}
                 className="px-3 py-1 bg-inst-surface border border-inst-border hover:border-inst-border-strong rounded-xs text-inst-primary"

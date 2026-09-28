@@ -1,20 +1,20 @@
-# FuelGuard Virtual Test Bench
+# FuelGuard — Real Hardware Engineering Reference
 
-> **Bancada Didática Virtual & Estação de Projeto CAD/EDA de Alta Fidelidade**  
-> Gêmeo digital verificável do FuelGuard MVP com modelos CAD 1:1, simulação física de nível e telemetria acústica.
+> **Referência de engenharia de hardware real & estação de verificação CAD/EDA**  
+> Gêmeo digital auditável do FuelGuard, com peças comerciais identificadas, evidência de medidas e gates explícitos para a PCB adaptadora.
 
-[![Vitest Tests](https://img.shields.io/badge/Vitest-78%20Passed%20(13%20Suites)-brightgreen.svg)](#su%C3%ADte-de-testes-automatizados)
+[![Vitest Tests](https://img.shields.io/badge/Vitest-79%20Passed%20(15%20Suites)-brightgreen.svg)](#su%C3%ADte-de-testes-automatizados)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict%20Checked-blue.svg)](#tecnologias-e-stack)
-[![Three.js](https://img.shields.io/badge/3D%20Graphics-Three.js%20PBR%201%3A1-orange.svg)](#g%C3%AAmeos-digitais-cad-3d-em-escala-11)
+[![Three.js](https://img.shields.io/badge/3D%20Graphics-Three.js%20engineering%20reference-orange.svg)](#tanque-tampa-e-metrologia)
 [![tscircuit](https://img.shields.io/badge/EDA-tscircuit%20Core-purple.svg)](#pipeline-de-engenharia-eletr%C3%B4nica--circuit-json)
 
 ---
 
 ## 🌟 Visão Geral
 
-O **FuelGuard Virtual Test Bench** é um ambiente profissional de engenharia eletrônica, mecatrônica e computação gráfica voltado à modelagem, validação e auditoria do MVP de bancada do FuelGuard.
+O **FuelGuard** é um ambiente profissional de engenharia eletrônica, mecatrônica e computação gráfica voltado à modelagem, validação e auditoria de uma referência de hardware real. A aplicação web continua sendo um modelo digital e um instrumento de revisão; ela não substitui ensaio elétrico, metrologia, KiCad/ERC/DRC ou homologação automotiva.
 
-A aplicação unifica o esquemático elétrico real, cadastro físico de fiação com bitolas e terminações, catálogo de componentes com modelos CAD 1:1 oficiais, simulação óptica PBR de fluidos com refração/menisco e um motor de auditoria DRC/ERC em tempo real.
+A aplicação unifica a topologia elétrica de nível-fonte, o cadastro físico de fiação com bitolas e terminações, catálogo de componentes com proveniência A/B/C/D, simulação de sinais e auditorias DRC/ERC de referência. Ela não promove dados nominais ou uma montagem de bancada a uma PCB fabricável.
 
 ---
 
@@ -22,23 +22,21 @@ A aplicação unifica o esquemático elétrico real, cadastro físico de fiaçã
 
 Para garantir integridade de engenharia e transparência técnica, o projeto adota uma fronteira estrita entre os três níveis de maturidade:
 
-1. **Nível A — Bancada MVP Física (Prototipada em Protoboard BB-830):**
+1. **Nível A — Referência física de engenharia (protótipo em protoboard MB-102):**
    - Microcontrolador **ESP32-S3 DevKitC-1 v1.1** (Espressif).
-   - Conversor de nível lógico rápido **SN74AHCT125N DIP-14** (Texas Instruments).
-   - Divisor resistivo de precisão **10 kΩ / 15 kΩ DO-41** (Yageo, IEC 60062).
-   - Sensor ultrassônico estanque **JSN-SR04T v2.0** (placa azul + transdutor M20 com rosca e O-Ring).
-   - Módulo Leitor NFC/RFID **PN532 v4.0** em barramento de alta velocidade SPI.
-   - Sensor de abertura de tampa **Reed Switch 14 mm** + ímã de neodímio N35 com polos identificados.
-   - Sinalização com **LED radial 5 mm verde óptico** e **Buzzer piezoelétrico 12 mm**.
+   - Sensor de nível **DFRobot A02YYUW / SEN0311**, UART TTL 9600 8N1, alimentado em 3,3 V.
+   - Módulo leitor NFC/RFID **Elechouse PN532 V4** em SPI, instalado em suporte frontal.
+   - Sensor de abertura de tampa **MC-38 com ímã**; variante, gap e estado NO/NC dependem do lote comprado.
+   - Sinalização com **LED verde de 5 mm + resistor de 220 Ω** e buzzer ativo **Same Sky CMI-1295IC-0385T**.
    - Chicote com fiação flexível AWG 20/22/24/26 e conectores DuPont / JST-XH.
-   - Recipiente didático PBR de dupla parede acrílica (Ø110 mm, 5L) com água potável.
+   - Tanque de bancada **FG-TANK-6L-R1**, acrílico de 3 mm, interno 200 × 200 × 160 mm, tampa de 5 mm e quatro fixações M3.
 
-2. **Nível B — Placa Adaptadora Futura (Carrier Board Dedicada):**
-   - Mantida explicitamente em fase de especificação e esquemático elétrico.
-   - A visualização **PCB 2D** exibe disclaimer formal de engenharia: *Bancada MVP Prototipada em Protoboard BB-830 • PCB Adaptadora em Especificação / Não Roteada em Cobre Físico*.
+2. **Nível B — Placa adaptadora de engenharia:**
+   - Mantida explicitamente em fase de especificação; ainda sem PCB fabricável.
+   - A visualização **PCB 2D** exibe o estado real: *referência de engenharia • PCB adaptadora não roteada em cobre físico*.
 
-3. **Nível C — Produto Final Automotivo:**
-   - Tanques veiculares reais de combustível (diesel/gasolina) e chassis automotivos são explicitamente demarcados como fora de escopo para esta bancada de laboratório didática.
+3. **Nível C — Integração veicular:**
+   - Exige veículo, tanque, conectores, ambiente elétrico, EMC, vibração, vedação e compatibilidade química identificados. Não é considerada homologada por este repositório.
 
 ---
 
@@ -49,59 +47,49 @@ A suíte de projeto CAD & Eletrônica conta com 10 estações integradas de enge
 | Estação | Finalidade Técnica |
 | :--- | :--- |
 | **1. Visão Geral** | Matriz de escopo (A/B/C), especificações nominais da bancada e atalhos rápidos. |
-| **2. Bancada Física** | Gêmeo digital 3D PBR com protoboard BB-830, dentes em cauda de andorinha, módulos detalhados, fiação spline e tanque óptico. |
+| **2. Bancada Física** | Montagem 3D de referência com protoboard MB-102, módulos identificados, fiação auditável e tanque bloqueado até evidência física. |
 | **3. Esquemático** | Esquemático elétrico vetorial com pinagens reais, redes de sinal e nós de alimentação. |
-| **4. PCB 2D** | Visualização do layout da placa adaptadora com disclaimer técnico de engenharia (sem trilhas cosméticas falsas). |
-| **5. PCB 3D** | Inspeção 3D multicamadas da placa adaptadora e do controlador RP2040 Dual Stepper. |
+| **4. PCB 2D** | Estado honesto da placa adaptadora; só desenha cobre/footprints quando há dados reais. |
+| **5. PCB 3D** | Viewer da PCB RP2040 importada; FuelGuard fica bloqueado até existir geometria revisada. |
 | **6. Conexões** | Tabela completa de fiação (*Wiring Schedule*), waypoints 3D, calibres AWG, cores normalizadas e terminações mecânicas. |
-| **7. Sensor & Água** | Estação de telemetria ultrassônica, ângulo de abertura acústica (15° cônico), cálculo de ToF e pipeline óptico de 6 camadas. |
+| **7. Sensor & Água** | Estação de metrologia do SEN0311; distância UART, volume, abertura e CAD do recipiente ficam pendentes até lote e medição. |
 | **8. BOM & Assets** | Lista oficial de materiais (BOM), part numbers reais de distribuidores (Mouser, Digi-Key, LCSC), tolerâncias e catálogo CAD. |
-| **9. Testes** | Painel de validação ao vivo com execução de 78 testes de contrato e mecânica. |
+| **9. Testes** | Painel de verificações com evidência, PASS/PENDING/FAIL e bloqueios de fabricação. |
 | **10. Auditoria DRC** | Verificador de regras de projeto elétricas e mecânicas (DRC/ERC) com detecção de falhas e avisos didáticos. |
 
 ---
 
-## 💎 Gêmeos Digitais CAD 3D em Escala 1:1
+## 💎 Geometria CAD e evidência de componentes
 
-Todos os modelos utilizam geometria baseada em especificações públicas, datasheets oficiais e medições calibradas com paquímetro digital (0,02 mm):
+Os modelos são classificados por proveniência. A/B/C/D indicam a força da evidência, não uma autorização de fabricação. A geometria renderizada sem arquivo CAD ou medição aprovada é apenas referência:
 
-- **ESP32-S3 DevKitC-1 v1.1 (Classe A):** Blindagem WROOM-1 em alumínio gravada a laser, antena MIFA serpentina em ouro ENIG, duas portas USB-C em aço inox, botões táteis e duas barras de 22 pinos headers.
-- **SN74AHCT125N DIP-14 (Classe B):** Encapsulamento preto JEDEC MS-001 BA, chanfro longitudinal, chanfro do pino 1, ponto dimple e 14 pernas estanhadas com filetes de solda SAC305.
-- **Divisor Resistivo DO-41 (Classe A):** Código cromático oficial IEC 60062 (10k: Marrom-Preto-Laranja-Ouro; 15k: Marrom-Verde-Laranja-Ouro) e terminais axiais estanhados conformados em 90°.
-- **JSN-SR04T v2.0 (Classe C):** Placa FR-4 azul marinho com 2 furos de fixação M3 e anéis ENIG dourados (37.5 mm entre centros), CI LM324 SOIC-14 com 14 pernas *gull-wing*, transformador com braçadeira metálica aterrada, cristal HC-49/S, conector RCA fêmea dourado com dielétrico e barra de 4 pinos angulados em 90°.
-- **Sonda Estanque M20:** Flange usinado Ø25 mm, anel O-Ring de vedação estanque em borracha nitrílica, 4 nervuras de rosca métrica M20x1.5 usinadas no corpo, cavidade piezoelétrica frontal rebaixada e prensa-cabo traseiro com cabo coaxial flexível.
-- **PN532 v4.0 (Classe B):** PCB FR-4 roxa Adafruit Open Hardware, 4 furos M3 com ilhós metalizados ENIG nos vértices (36x34 mm), antena planar impressa de 4 espiras concêntricas em ouro ENIG, chip NXP PN532 QFN-40 central com indicador de pino 1, chave seletora DIP vermelha com cursores brancos para modo SPI (SEL0=0, SEL1=1), regulador LDO SOT-223 com aba de solda metálica e cristal cerâmico 27.12 MHz.
-- **Reed Switch 14 mm (Classe B):** Ampola de vidro borossilicato selada termicamente com extremidades hemisféricas, duas lâminas ferromagnéticas (Fe-Ni) sobrepostas com gap de 0.2 mm, terminais axiais estanhados em 90° e ímã de neodímio N35 bipartido com indicação polar (Norte vermelho, Sul azul).
-- **Protoboard BB-830 (Classe B):** Carcaça em ABS marfim com dentes de encaixe em cauda de andorinha (*dovetail interlocking tabs*) para montagem modular, canaleta central de 7.62 mm (300 mil), 4 barramentos com serigrafia vermelha (+) e azul (-) e matriz de pontos de conexão passo 2.54 mm.
-- **Recipiente Didático de Água 5L (Classe D):** Dupla parede cilíndrica em PMMA óptico com espessura de 3.2 mm, graduação serigrafada frontal 1L a 5L, tampa de encaixe com bocal central roscado M20 e suporte elevado para antena NFC.
+- **ESP32-S3 DevKitC-1 v1.1 (Classe A):** módulo comercial de referência com dimensões nominais e fonte Espressif declarada.
+- **SEN0311 (Classe C):** função elétrica e protocolo documentados; envelope do probe, cabo, terminal e prensa-cabo devem ser medidos.
+- **PN532 V4 (Classe C):** módulo comercial parametrizado; header, furos, altura e keepout da antena devem ser confirmados.
+- **MC-38 (Classe D):** família comercial sem MPN único; corpo, ímã, gap, NO/NC e fixação dependem do lote.
+- **MB-102 (Classe C):** envelope de referência; fabricante, trilhos, pés e altura da unidade recebida devem ser confirmados.
+- **Buzzer CMI-1295IC-0385T (Classe B):** MPN e envelope documentados; passo, polaridade e corrente real ainda precisam ser medidos.
+- **Tanque/tampa FG-TANK-6L-R1 (Classe C/site-specific):** geometria paramétrica aprovada, ainda pendente de fabricação, medição e calibração com água.
 
 ---
 
-## 🌊 Pipeline Óptico PBR de 6 Camadas (Água & Tanque)
+## 🌊 Tanque, tampa e metrologia
 
-Para eliminar artefatos visuais de *depth-fighting*, cintilação de transparência e vazamento de polígonos, a renderização do tanque e fluido emprega uma passagem ordenada estrita em WebGL (`renderOrder` 1 a 6):
+A geometria do recipiente, da tampa, do suporte do transdutor e do caminho acústico está bloqueada. O repositório não assume tanque cilíndrico, volume de 5 L, acrílico, altura, fundo ou curva de calibração. Esses dados só entram após identificação do veículo/recipiente, desenho ou CAD do fornecedor e protocolo de medição física.
 
-1. **Camada 1 (`renderOrder: 1`):** Parede posterior do cilindro externo em acrílico cristal PMMA ($\eta = 1.491$).
-2. **Camada 2 (`renderOrder: 2`):** Parede posterior do cilindro interno em acrílico cristal PMMA.
-3. **Camada 3 (`renderOrder: 3`):** Volume de água física com absorção ciano, transmissão óptica (88%) e índice de refração ($\eta = 1.333$).
-4. **Camada 4 (`renderOrder: 4`):** Superfície líquida superior com disco elíptico e anel de tensão superficial (menisco acrílico/água).
-5. **Camada 5 (`renderOrder: 5`):** Parede anterior do cilindro interno em PMMA + escala serigrafada graduada (1L a 5L).
-6. **Camada 6 (`renderOrder: 6`):** Parede anterior do cilindro externo em PMMA com brilho especular e reflexão ambiental.
-
-O controle de nível conta com 5 níveis oficiais calibrados: `[0% (Vazio), 25%, 50%, 75%, 100% (Cheio)]`. No nível 0%, a malha de água é ocultada e a distância acústica é calculada diretamente contra o fundo do tanque ($d = 141.5\text{ mm}$, $t_{eco} = 0.825\text{ ms}$).
+Os controles de nível são apenas perfis de ensaio sem unidade física; eles não produzem volume, distância, tempo de eco ou aprovação de zona cega. Consulte [`docs/REAL_HARDWARE_COMPONENT_RESEARCH.md`](docs/REAL_HARDWARE_COMPONENT_RESEARCH.md) e [`hardware/measurements/measurement-register.json`](hardware/measurements/measurement-register.json).
 
 ---
 
 ## ⚡ Pipeline de Engenharia Eletrônica & Circuit JSON
 
 - **Integração com tscircuit Core:** Geração e manipulação canônica de circuitos via `CircuitJsonBuilder`.
-- **Exportação KiCad:** Exportação direta para esquemático KiCad (`.kicad_sch`) e placa de circuito impresso (`.kicad_pcb`).
+- **Exportação KiCad:** Circuit JSON de referência disponível; esquemático e `.kicad_pcb` permanecem bloqueados até existirem medições, footprints e roteamento reais.
 - **Validador DRC/ERC em Tempo Real:**
   - `DRC-01`: Detecção fatal de sobretensão no GPIO (teto de 3.60V do ESP32-S3).
-  - `DRC-02`: Presença e aterramento do pino de habilitação `/1OE` do buffer TTL.
-  - `DRC-03`: Integridade do plano e nó de terra unificado (*common ground*).
-  - `DRC-04`: Barramento de alimentação de 5.0V regulada para sensores industriais.
-  - `DRC-05`: Aviso didático de uso de protoboard antes de fabricação física.
+  - `DRC-02`: Integridade do retorno GND comum entre ESP32-S3, SEN0311 e periféricos.
+  - `DRC-03`: Ausência de condicionamento legado no UART do SEN0311.
+  - `DRC-05`: Aviso de referência paramétrica antes de fabricação física.
 
 ---
 
@@ -129,7 +117,7 @@ npx tsc --noEmit
 ```
 
 ### Suíte de Testes Automatizados
-Executa a bateria de 78 testes de contrato e mecânica via Vitest:
+Executa a bateria de testes de contrato e mecânica via Vitest:
 ```bash
 npm test
 ```
@@ -141,9 +129,9 @@ npm run build
 
 ---
 
-## 🧪 Suíte de Testes Automatizados (78/78 Aprovados)
+## 🧪 Suíte de Testes Automatizados (79 testes)
 
-O projeto conta com 13 suítes de testes unitários, mecânicos e elétricos:
+O projeto conta com 15 suítes de testes unitários, mecânicos e elétricos. A interface de CAD não transforma pendências de fabricação em PASS:
 
 - `tests/unit/circuit-validator.test.ts` (5 testes) — Proteção contra sobretensão e casamento de impedâncias.
 - `tests/unit/persistence.test.ts` (5 testes) — Persistência e exportação de dados em IndexedDB.
@@ -155,9 +143,10 @@ O projeto conta com 13 suítes de testes unitários, mecânicos e elétricos:
 - `tests/assets/asset-manifests.test.ts` (4 testes) — Auditoria de rastreabilidade e integridade dos manifestos CAD 3D.
 - `tests/unit/m4-integration.test.ts` (3 testes) — Integração mecatrônica.
 - `tests/unit/core-simulation.test.ts` (16 testes) — Motor acústico, física do líquido, filtro de mediana e máquina de estados.
-- `tests/unit/wokwi.test.ts` (3 testes) — Integração com simulação de firmware Wokwi.
-- `tests/fluid/water-sensor-consistency.test.ts` (4 testes) — Consistência física entre nível de água e leitura ultrassônica.
-- `tests/unit/shell-navigation.test.tsx` (8 testes) — Roteamento das 5 abas principais e das 10 estações CAD.
+- `tests/fluid/water-sensor-consistency.test.ts` (2 testes) — Consistência física entre nível de água, distância e volume.
+- `tests/unit/shell-navigation.test.tsx` (8 testes) — Roteamento das abas principais e das estações CAD.
+- `tests/unit/mesh-collision.test.ts` (2 testes) — Consultas de interseção com `three-mesh-bvh`.
+- `tests/unit/engineering-verification.test.ts` (2 testes) — Estados PASS/PENDING e rastreabilidade do painel de engenharia.
 
 ---
 
@@ -165,11 +154,12 @@ O projeto conta com 13 suítes de testes unitários, mecânicos e elétricos:
 
 ```text
 bancada_dev/
+├── hardware/                      # Contratos canônicos de peças, nets, montagem, BOM e status da PCB
 ├── fuelguard/                     # Especificações canônicas de engenharia mecânica e elétrica
 │   ├── assembly/                  # bench-layout.json, cable-routes.json, collision-rules.json
 │   └── assets/                    # Manifestos de assets CAD 3D com proveniência e tolerâncias
-│       ├── components/            # ESP32-S3, PN532, JSN-SR04T, SN74AHCT125N, Divisor, etc.
-│       └── mechanical/            # Protoboard BB-830, Tanque Didático 5L PBR
+│       ├── components/            # ESP32-S3, PN532 V4, SEN0311, MC-38, LED e buzzer
+│       └── mechanical/            # Protoboard MB-102 e tanque/tampa paramétricos
 ├── public/data/                   # Assets públicos e diagramas SVG/GLB
 ├── rp2040-motor-controller/       # Módulo tscircuit RP2040 Dual Stepper Motor Controller
 ├── scripts/                       # Scripts utilitários de captura de evidências e auditoria
@@ -187,7 +177,7 @@ bancada_dev/
 │           ├── events/            # Estação 3: Linha do Tempo de Eventos de Firmware
 │           ├── tests/             # Estação 4: Painel de Testes do Sistema
 │           └── cad/               # Estação 5: Projeto CAD, 10 Workspaces e Montagem 3D
-├── tests/                         # 78 testes automatizados em 13 suítes (Vitest)
+├── tests/                         # Testes automatizados e verificações de evidência (Vitest)
 └── tools/                         # Utilitários de calibração acústica e analytics (Python)
 ```
 

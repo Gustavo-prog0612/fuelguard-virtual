@@ -84,7 +84,7 @@ Para atender ao requisito estrito de ser **um projeto leve, responsivo e sem tra
    - Em vez de enviar cada leitura de pulso ultrassônico individualmente para a UI via `postMessage` (o que causaria sobrecarga de serialização e saturação de mensagens), o Web Worker agrupa os dados e despacha snapshots consolidados no ritmo de atualização da tela (30 a 60 Hz).
    - Eventos de mudança de estado (`lid.changed`, `session.started`, `sensor.fault`) são emitidos imediatamente com prioridade alta.
 3. **Canvas 2D Baseado em SVG Vetorial Leve:**
-   - No MVP, o canvas de bancada utiliza `@xyflow/react` com nós desenhados em SVG puro estilizados via Tailwind. Isso consome uma fração mínima de memória RAM se comparado a motores de física 3D em WebAssembly (como Rapier) ou instâncias pesadas de Three.js.
+   - Na referência de engenharia, o canvas de bancada utiliza `@xyflow/react` com nós desenhados em SVG puro estilizados via Tailwind. Isso mantém o painel leve sem transformar a visualização em um solver físico.
    - O corte do tanque didático é desenhado em HTML5 Canvas 2D nativo com interpolação suave de superfície d'água via equação harmônica amortecida, garantindo 60 FPS estáveis mesmo em laptops ou computadores escolares com gráficos integrados.
 4. **Decimação de Dados nos Gráficos:**
    - O Chart.js é configurado com decimação automática (*LTTB - Largest-Triangle-Three-Buckets*), mantendo no máximo 200 pontos visíveis no viewport do gráfico, evitando vazamento de memória ou perda de fluidez após horas de simulação contínua.
@@ -385,7 +385,7 @@ A interface é estruturada em torno de 6 módulos navegáveis com visão coerent
    - Canvas interativo baseado em `@xyflow/react` representando a protoboard e os módulos físicos com pinagem visível.
    - Conexão e desconexão de fios por clique e arraste com código de cores industrial.
    - Painel lateral de "Diagnóstico Elétrico em Tempo Real": lista violações de tensão, pinos desconectados e alertas didáticos de perigo de sobretensão.
-   - Botão para carregar "Montagem de Referência Oficial do MVP".
+   - Botão para carregar a "Montagem de Referência de Engenharia".
 3. **Rota 3: Tanque & Calibração Acústica (`/tank`)**
    - Modelador de recipiente: seleção entre galão cilíndrico, prisma retangular ou curva personalizada.
    - Tabela interativa de calibração $[h_i, V_i]$ com gráfico de regressão visual e estimador de erro.

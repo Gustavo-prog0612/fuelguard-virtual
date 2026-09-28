@@ -112,20 +112,20 @@ export const StyleGuideView: React.FC = () => {
 
                   {/* Nome do Componente e Especificações */}
                   <div style={{ fontFamily: p.uiFont }} className="text-xs text-inst-secondary">
-                    ESP32-S3 DevKitC-1 • Microcontrolador Dual-Core Xtensa LX7 com sensor acústico JSN-SR04T v2.0
+                    ESP32-S3 DevKitC-1 v1.1 • SEN0311 UART • PN532 V4 em SPI
                   </div>
 
                   {/* Telemetria e Medições Numéricas Monoespaçadas */}
                   <div style={{ fontFamily: p.monoFont }} className="text-xs font-medium p-2 bg-inst-surface rounded-xs border border-inst-border text-inst-primary flex justify-between">
                     <span>d = 42.3 cm</span>
-                    <span>h = 57.7 cm</span>
-                    <span className="text-fuelguard-green font-bold">V = 577 L</span>
+                    <span>h = 8.0 cm</span>
+                    <span className="text-fuelguard-green font-bold">V = 3.2 L</span>
                     <span className="text-inst-muted">t_echo = 2450 μs</span>
                   </div>
 
                   {/* Pinagem e Níveis Lógicos */}
                   <div style={{ fontFamily: p.monoFont }} className="text-[11px] text-inst-secondary space-y-0.5">
-                    <div>GPIO5: TRIG (AHCT125 5V) • GPIO6: ECHO (Divisor 10k/15k → 3.0V)</div>
+                    <div>GPIO16: UART1_RX (SEN0311 TX) • GPIO10–13: SPI (PN532 V4) • GPIO7: MC-38</div>
                     <div>SPI PN532: CS:10, MOSI:11, SCK:12, MISO:13 • Reed Switch: GPIO7 (3V3)</div>
                   </div>
 
@@ -288,7 +288,7 @@ export const StyleGuideView: React.FC = () => {
               <div className="space-y-1">
                 <label className="text-inst-secondary font-medium flex justify-between">
                   <span>Distância Href:</span>
-                  <span className="font-mono text-inst-primary font-bold">100.0 cm</span>
+                  <span className="font-mono text-inst-primary font-bold">16.0 cm</span>
                 </label>
                 <input
                   type="range"
@@ -313,7 +313,7 @@ export const StyleGuideView: React.FC = () => {
 
               <div className="p-2.5 rounded-sm bg-fuelguard-green-light border border-fuelguard-green-border text-[11px] text-fuelguard-green flex items-start gap-1.5">
                 <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                <span>Nó elétrico verificado: Tensão segura de 3,00 V no pino GPIO6.</span>
+                <span>Nó elétrico verificado: UART do SEN0311 em 3,3 V no GPIO16/UART1_RX.</span>
               </div>
             </div>
           </div>

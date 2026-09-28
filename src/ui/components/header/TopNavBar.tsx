@@ -34,6 +34,7 @@ const NAV_TABS: { id: AppRoute; label: string; shortcut: string }[] = [
   { id: 'events', label: '3. Eventos', shortcut: '3' },
   { id: 'tests', label: '4. Testes', shortcut: '4' },
   { id: 'cad', label: '5. Projeto CAD', shortcut: '5' },
+  { id: 'docs', label: '6. Docs & Limites', shortcut: '6' },
 ];
 
 export const TopNavBar: React.FC<TopNavBarProps> = ({
@@ -62,7 +63,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
         <div>
           <div className="flex items-center space-x-2">
             <span className="text-sm font-display font-bold tracking-tight text-inst-primary">
-              FuelGuard <span className="text-inst-secondary font-normal text-xs">Virtual Test Bench</span>
+              FuelGuard <span className="text-inst-secondary font-normal text-xs">Real Hardware Reference</span>
             </span>
             <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-xs bg-inst-subtle text-inst-secondary border border-inst-border">
               v1.0
@@ -70,7 +71,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           </div>
           <div className="text-[10px] font-mono text-inst-muted flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-[#166534]" />
-            ESP32-S3 • JSN-SR04T • PN532 • Recipiente com Água
+            ESP32-S3 v1.1 • PN532 V4 • SEN0311 UART • PCB sob gate
           </div>
         </div>
       </div>

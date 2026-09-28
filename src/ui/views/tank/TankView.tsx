@@ -12,7 +12,7 @@ import {
 import { HonestyBadge } from '@/ui/components/badges/HonestyBadge';
 
 export const TankView: React.FC = () => {
-  const [href, setHref] = useState(100.0);
+  const [href, setHref] = useState(16.0);
   const [temp, setTemp] = useState(24.8);
   const [tankShape, setTankShape] = useState<'prism' | 'empirical'>('empirical');
   
@@ -21,9 +21,10 @@ export const TankView: React.FC = () => {
     { h: 0.0, v: 0.0 },
     { h: 20.0, v: 180.0 },
     { h: 40.0, v: 390.0 },
-    { h: 60.0, v: 610.0 },
-    { h: 80.0, v: 820.0 },
-    { h: 100.0, v: 1000.0 },
+    { h: 7.5, v: 3.0 },
+    { h: 10.0, v: 4.0 },
+    { h: 12.5, v: 5.0 },
+    { h: 16.0, v: 6.4 },
   ]);
 
   const soundSpeed = (331.3 * Math.sqrt(1 + temp / 273.15)).toFixed(2);
@@ -76,7 +77,7 @@ export const TankView: React.FC = () => {
                 className="w-full accent-sky-500"
               />
               <p className="text-[10px] text-slate-500">
-                Distância vertical exata entre a face do transdutor JSN e o fundo do galão vazio.
+                Distância vertical entre a face do SEN0311 na tampa e o fundo interno do tanque FG-TANK-6L-R1.
               </p>
             </div>
 

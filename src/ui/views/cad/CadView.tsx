@@ -2,14 +2,14 @@
  * FuelGuard Virtual Test Bench — Estação CAD & EDA (tscircuit Core)
  * 10 Áreas Técnicas Especializadas de Engenharia Mecatrônica & Eletrônica:
  * 1. Visão Geral (Overview do Gêmeo Digital, Limites A/B/C, Taxonomia de Proveniência)
- * 2. Bancada Física (Montagem 3D em escala 1:1, protoboard BB-830, fiação tubular)
+ * 2. Bancada Física (Montagem 3D de referência, protoboard MB-102, fiação tubular)
  * 3. Esquemático (Esquema elétrico tscircuit/KiCad, isolamento 3.3V/5V)
  * 4. PCB 2D (Layout 2D com banner de especificação da Carrier / 4 camadas na RP2040)
- * 5. PCB 3D (Renderização 3D CAD com modelos fidedignos e ViewCube)
+ * 5. PCB 3D (Renderização bloqueada até existir PCB FuelGuard revisada e modelos aprovados)
  * 6. Conexões (Programação de chicote DuPont/JST, AWG e waypoints)
- * 7. Sensor & Água (Modelo PBR óptico de 6 camadas, hidrostática e ToF ultrassônico)
- * 8. BOM & Assets (BOM com 12 itens industriais e catálogo de tolerâncias)
- * 9. Testes (Runner dos 78 testes automatizados 100% aprovados)
+ * 7. Sensor & Água (Metrologia bloqueada até lote, recipiente e tampa reais)
+ * 8. BOM & Assets (BOM rastreável, estados de evidência e gates de fabricação)
+ * 9. Testes (Runner automatizado e relatório de evidências)
  * 10. Auditoria (Auditoria DRC e conformidade mecânica de contato/suporte)
  */
 
@@ -109,23 +109,21 @@ export const CadView: React.FC = () => {
   };
 
   const handleDownloadKiCadSch = () => {
-    const content = KiCadExporter.generateKiCadSchematic(circuitPkg);
-    KiCadExporter.triggerDownload(
-      `fuelguard_schematic_${Date.now()}.kicad_sch`,
-      content,
-      'text/plain'
-    );
-    showToast('Esquemático KiCad 8 (.kicad_sch) demonstrativo gerado!');
+    showToast('Bloqueado: o esquemático KiCad real será criado após medições, MPNs, conectores e footprints aprovados.');
   };
 
   const handleDownloadKiCadPcb = () => {
+    if (circuitPkg.pcbReadiness !== 'manufacturing-ready') {
+      showToast('Exportação bloqueada: este pacote ainda não está liberado para fabricação.');
+      return;
+    }
     const content = KiCadExporter.generateKiCadPcb(circuitPkg);
     KiCadExporter.triggerDownload(
       `fuelguard_pcb_${Date.now()}.kicad_pcb`,
       content,
       'text/plain'
     );
-    showToast('Layout PCB KiCad 8 (.kicad_pcb) demonstrativo gerado!');
+    showToast('Layout PCB KiCad 8 (.kicad_pcb) exportado para revisão.');
   };
 
   const handleNavigateTab = (tabId: string) => {
@@ -166,7 +164,7 @@ export const CadView: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <span className="w-2.5 h-2.5 rounded-xs bg-[#22c55e]" />
                 <h1 className="text-sm font-display font-bold uppercase tracking-wider text-inst-primary flex items-center gap-2">
-                  Estação de Projeto CAD & Eletrônica (tscircuit Core)
+                  Estação de Projeto CAD & Eletrônica
                 </h1>
                 <HonestyBadge level="simulado" />
               </div>
@@ -177,7 +175,7 @@ export const CadView: React.FC = () => {
                   </span>
                 ) : (
                   <span>
-                    Gêmeo Digital Verificável: Protoboard BB-830, Sensores M20/PN532 e Fiação DuPont Ponto a Ponto.
+                    Gêmeo digital verificável: peças comerciais, evidência de medidas e fiação de referência.
                   </span>
                 )}
               </p>
@@ -195,7 +193,7 @@ export const CadView: React.FC = () => {
                 title="Bancada Didática FuelGuard ESP32-S3 com Sensores"
               >
                 <Cpu className="w-3.5 h-3.5" />
-                <span>FuelGuard ESP32 MVP</span>
+                <span>FuelGuard Engineering Reference</span>
               </button>
               <button
                 onClick={() => setActiveBoard('rp2040-motor-controller')}
@@ -225,15 +223,16 @@ export const CadView: React.FC = () => {
             <button
               onClick={handleDownloadKiCadSch}
               className="px-2.5 py-1 rounded-xs bg-inst-canvas border border-inst-border hover:border-sky-500 text-inst-primary hover:text-sky-400 transition flex items-center gap-1.5 shadow-xs"
-              title="Baixar esquemático KiCad 8/9 (.kicad_sch)"
+              title="Bloqueado até existir fonte KiCad real revisada"
             >
               <Download className="w-3.5 h-3.5" />
               <span>KiCad Sch</span>
             </button>
             <button
               onClick={handleDownloadKiCadPcb}
-              className="px-2.5 py-1 rounded-xs bg-inst-canvas border border-inst-border hover:border-purple-500 text-inst-primary hover:text-purple-400 transition flex items-center gap-1.5 shadow-xs"
-              title="Baixar layout PCB KiCad 8/9 (.kicad_pcb)"
+              disabled={circuitPkg.pcbReadiness !== 'manufacturing-ready'}
+              className="px-2.5 py-1 rounded-xs bg-inst-canvas border border-inst-border hover:border-purple-500 text-inst-primary hover:text-purple-400 transition flex items-center gap-1.5 shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
+              title={circuitPkg.pcbReadiness !== 'manufacturing-ready' ? 'Bloqueado até revisão de fabricação e DRC' : 'Baixar layout PCB KiCad 8/9 (.kicad_pcb)'}
             >
               <Download className="w-3.5 h-3.5" />
               <span>KiCad PCB</span>
@@ -276,7 +275,7 @@ export const CadView: React.FC = () => {
           </div>
 
           <div className="text-[10px] text-inst-muted hidden md:block">
-            Modelo: <strong className="text-inst-primary">{activeBoard === 'rp2040-motor-controller' ? 'RP2040 Motor Controller (4L)' : 'FuelGuard ESP32 Lab Rig'}</strong>
+            Modelo: <strong className="text-inst-primary">{activeBoard === 'rp2040-motor-controller' ? 'RP2040 Motor Controller (4L)' : 'FuelGuard Engineering Reference'}</strong>
           </div>
         </div>
 
@@ -308,7 +307,7 @@ export const CadView: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
                     <span>
-                      <strong>BANCADA MVP: Prototipada em Protoboard BB-830</strong> • PCB Adaptadora: Em Especificação / Não Roteada em Cobre Físico.
+                      <strong>REFERÊNCIA DE ENGENHARIA: protótipo em Protoboard MB-102</strong> • PCB Adaptadora: em especificação / não roteada em cobre físico.
                     </span>
                   </div>
                   <span className="text-[10px] bg-amber-900/60 px-2 py-0.5 rounded-2xs border border-amber-500/50 text-amber-300">
@@ -332,7 +331,7 @@ export const CadView: React.FC = () => {
             <CadConnectionsTab onSelectTab={handleNavigateTab} />
           )}
 
-          {/* Estação 7: Sensor Ultrassônico & Água PBR */}
+          {/* Estação 7: Sensor Ultrassônico & Água — dados bloqueados */}
           {activeTab === 'sensors' && (
             <CadSensorsWaterTab onSelectTab={handleNavigateTab} />
           )}

@@ -11,7 +11,7 @@ export const LedNode: React.FC<{ data: any }> = () => {
             <Lightbulb className="w-3.5 h-3.5" />
           </div>
           <div>
-            <h3 className="text-xs font-display font-bold text-inst-primary">LED Verde + 1kΩ</h3>
+            <h3 className="text-xs font-display font-bold text-inst-primary">LED Verde + 220Ω</h3>
             <span className="text-[10px] font-mono text-inst-secondary">Sinalizador de Nível</span>
           </div>
         </div>
@@ -28,7 +28,7 @@ export const LedNode: React.FC<{ data: any }> = () => {
             id="led_anode"
             className="!w-2.5 !h-2.5 !bg-[#166534] !-left-1.5 border border-white"
           />
-          <span className="text-inst-primary">Anodo (via 1 kΩ)</span>
+          <span className="text-inst-primary">Anodo (via 220 Ω)</span>
           <span className="font-bold text-[#166534]">IO4</span>
         </div>
 
@@ -45,7 +45,7 @@ export const LedNode: React.FC<{ data: any }> = () => {
       </div>
 
       <div className="mt-3 pt-2 border-t border-inst-border text-[9px] font-mono text-inst-muted">
-        Resistor 1kΩ limita corrente do GPIO4
+        Resistor 220 Ω limita corrente do GPIO4
       </div>
     </div>
   );

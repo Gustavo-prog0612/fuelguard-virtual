@@ -401,6 +401,27 @@ export const PcbCanvas: React.FC<PcbCanvasProps> = ({ circuitPkg }) => {
     pcbTraces,
   ]);
 
+  if (!pcbBoard) {
+    return (
+      <div className="h-full w-full rounded-md border border-amber-700/70 bg-amber-950/20 p-6 flex items-center justify-center font-mono">
+        <div className="max-w-2xl space-y-4 text-center">
+          <div className="text-amber-300 text-sm font-bold uppercase tracking-wider">PCB adaptadora ainda não projetada</div>
+          <p className="text-xs text-amber-100/80 leading-relaxed">
+            O circuito FuelGuard exibido nesta estação é a topologia elétrica da bancada em protoboard.
+            Como ainda não existem contorno, footprints, furos, regras de fabricação e trilhas revisadas,
+            nenhum retângulo, pad ou cobre sintético é desenhado aqui.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-left text-[10px] text-inst-secondary">
+            <div className="bg-inst-canvas/70 border border-inst-border rounded-sm p-3"><strong className="text-inst-primary block">Disponível</strong>Netlist, portas, redes e esquemático documental.</div>
+            <div className="bg-inst-canvas/70 border border-inst-border rounded-sm p-3"><strong className="text-inst-primary block">Pendente</strong>Esquemático KiCad revisado e footprints dos módulos.</div>
+            <div className="bg-inst-canvas/70 border border-inst-border rounded-sm p-3"><strong className="text-inst-primary block">Bloqueado</strong>Gerbers, DRC de PCB e liberação para fabricação.</div>
+          </div>
+          <div className="text-[10px] text-inst-muted">Status do pacote: {circuitPkg.pcbReadiness ?? 'not-designed'} • Fonte: {circuitPkg.sourceOfTruth?.[0] ?? 'hardware/board-status.ts'}</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={containerRef}

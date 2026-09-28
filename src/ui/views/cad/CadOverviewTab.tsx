@@ -1,9 +1,9 @@
 /**
  * FuelGuard Virtual Test Bench — Estação 1: Visão Geral do Gêmeo Digital
  * Define com precisão matemática os limites de escopo entre:
- * A) Bancada Didática MVP (Protoboard BB-830 + Módulos Comerciais)
- * B) Placa Adaptadora Futura (Em especificação / Não roteada / Não fabricada)
- * C) Produto Final Automotivo (Fora do escopo da bancada)
+ * A) Referência física de engenharia (Protoboard MB-102 + Módulos Comerciais)
+ * B) Placa Adaptadora (Em especificação / Não roteada / Não fabricada)
+ * C) Integração veicular (exige requisitos adicionais e homologação)
  * e o índice de proveniência de dados [MEDIDO], [CALCULADO], [SIMULADO], [PENDENTE], [VALIDADO].
  */
 
@@ -22,6 +22,7 @@ import {
   FileCheck2,
 } from 'lucide-react';
 import { HARDWARE_REQUIREMENTS } from '@/../fuelguard/hardware/circuit/requirements';
+import { FUELGUARD_BOARD_STATUS } from '@/../hardware/board-status';
 
 interface CadOverviewTabProps {
   onSelectTab: (tabId: string) => void;
@@ -40,23 +41,23 @@ export const CadOverviewTab: React.FC<CadOverviewTabProps> = ({
             <div className="flex items-center space-x-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
               <h2 className="text-base font-display font-bold uppercase tracking-wider text-inst-primary">
-                Gêmeo Digital Verificável — FuelGuard Virtual Test Bench
+                Gêmeo Digital Verificável — FuelGuard Real Hardware Reference
               </h2>
               <span className="px-2 py-0.5 rounded-xs text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
-                MVP BANCADA v1.2
+                ENGINEERING REFERENCE v1.0
               </span>
             </div>
             <p className="text-xs text-inst-secondary mt-1 max-w-4xl leading-relaxed">
               Ambiente de engenharia mecatrônica, eletrônica e acústica para validação do protótipo físico FuelGuard.
-              Todos os modelos 3D, conexões ponto a ponto e equações hidrostáticas seguem tolerâncias reais de bancada
-              sem aproximações genéricas ou componentes imaginários.
+              A topologia elétrica, o layout da bancada e as rotas do chicote são contratos auditáveis. Modelos Classe C/D,
+              água e tolerâncias mecânicas continuam explicitamente condicionados à medição e revisão física.
             </p>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
             <span className="px-2.5 py-1 rounded-xs bg-inst-canvas border border-inst-border text-[11px] font-mono text-inst-secondary flex items-center gap-1.5">
               <FileCheck2 className="w-3.5 h-3.5 text-fuelguard-green" />
-              <span>78 / 78 Testes Aprovados</span>
+              <span>{FUELGUARD_BOARD_STATUS.pcbReadiness} • {FUELGUARD_BOARD_STATUS.blockingItems.length} bloqueios de fabricação</span>
             </span>
           </div>
         </div>
@@ -80,7 +81,7 @@ export const CadOverviewTab: React.FC<CadOverviewTabProps> = ({
                 <span>[CALCULADO]</span>
               </div>
               <p className="text-[10px] text-inst-muted mt-0.5">
-                Deduzido por formulação analítica (ToF acústico, divisor resistivo).
+                Calculado pela geometria do tanque e pela distância UART do SEN0311.
               </p>
             </div>
             <div className="bg-inst-canvas p-2 rounded-xs border border-sky-900/60">
@@ -101,10 +102,10 @@ export const CadOverviewTab: React.FC<CadOverviewTabProps> = ({
             </div>
             <div className="bg-inst-canvas p-2 rounded-xs border border-emerald-900/60">
               <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-[11px]">
-                <span>[VALIDADO]</span>
+                <span>[TESTADO NO CÓDIGO]</span>
               </div>
               <p className="text-[10px] text-inst-muted mt-0.5">
-                Regra formal de DRC ou asserção de teste unitário 100% satisfeita.
+                Regra formal de DRC ou asserção de teste unitário satisfeita no snapshot.
               </p>
             </div>
           </div>
@@ -126,21 +127,21 @@ export const CadOverviewTab: React.FC<CadOverviewTabProps> = ({
           <div className="bg-inst-canvas p-3 rounded-sm border border-emerald-800/80 space-y-2">
             <div className="flex items-center justify-between">
               <span className="px-2 py-0.5 rounded-xs bg-emerald-950 text-emerald-300 font-bold text-[10px] border border-emerald-700 uppercase">
-                Nível A: Bancada MVP Física
+                Nível A: Referência Física de Engenharia
               </span>
-              <span className="text-emerald-400 text-[10px] font-bold">100% OPERACIONAL</span>
+              <span className="text-emerald-400 text-[10px] font-bold">ESCOPO DE ENGENHARIA</span>
             </div>
             <h4 className="text-xs font-bold text-inst-primary">Hardware Físico de Bancada</h4>
             <ul className="text-[11px] text-inst-secondary space-y-1 list-disc list-inside">
-              <li>Protoboard BB-830 sobre tapete ESD antiestático</li>
+              <li>Protoboard MB-102 830 pontos sobre tapete ESD antiestático</li>
               <li>ESP32-S3 DevKitC-1 v1.1 comercial oficial</li>
-              <li>Módulo JSN-SR04T v2.0 com sonda estanque M20</li>
-              <li>Módulo PN532 v4 com suporte de acrílico na tampa</li>
+              <li>DFRobot A02YYUW/SEN0311 centralizado na tampa, via UART</li>
+              <li>Módulo ELECHOUSE PN532 V4 com suporte frontal dedicado</li>
               <li>Chicote tubular com terminais DuPont Macho/Fêmea e JST</li>
-              <li>Recipiente didático 5L de parede dupla com água potável</li>
+              <li>Tanque FG-TANK-6L-R1: 200 × 200 × 160 mm internos, fabricação e medição pendentes</li>
             </ul>
             <div className="pt-2 border-t border-inst-border text-[10px] text-emerald-400">
-              ✓ Base para todos os 78 testes de regressão
+              ✓ Base para verificação elétrica e mecânica da bancada
             </div>
           </div>
 
@@ -148,7 +149,7 @@ export const CadOverviewTab: React.FC<CadOverviewTabProps> = ({
           <div className="bg-inst-canvas p-3 rounded-sm border border-amber-800/80 space-y-2">
             <div className="flex items-center justify-between">
               <span className="px-2 py-0.5 rounded-xs bg-amber-950 text-amber-300 font-bold text-[10px] border border-amber-700 uppercase">
-                Nível B: Placa Adaptadora Futura
+                Nível B: Placa Adaptadora de Engenharia
               </span>
               <span className="text-amber-400 text-[10px] font-bold">EM ESPECIFICAÇÃO</span>
             </div>
@@ -157,7 +158,7 @@ export const CadOverviewTab: React.FC<CadOverviewTabProps> = ({
               <li>Esquemático elétrico formal em Circuit JSON e KiCad 8</li>
               <li>Regras de projeto IPC-2221A / JLCPCB 2-Layer</li>
               <li>BOM fechado com 12 componentes industriais</li>
-              <li>Sem fabricação física no MVP atual</li>
+              <li>Sem fabricação física até ERC/DRC e evidência mecânica</li>
               <li><strong>Não roteada em cobre físico final</strong></li>
             </ul>
             <div className="pt-2 border-t border-inst-border text-[10px] text-amber-400">
@@ -236,14 +237,14 @@ export const CadOverviewTab: React.FC<CadOverviewTabProps> = ({
 
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs font-mono">
           {[
-            { id: 'assembly', label: '2. Bancada Física', icon: Box, desc: '3D com escala 1:1, protoboard BB-830 e fiação' },
-            { id: 'schematic', label: '3. Esquemático', icon: Cpu, desc: 'Circuit JSON e KiCad com divisor e buffer 5V' },
+            { id: 'assembly', label: '2. Bancada Física', icon: Box, desc: '3D de referência, protoboard MB-102 e fiação' },
+            { id: 'schematic', label: '3. Esquemático', icon: Cpu, desc: 'Circuit JSON da topologia UART/SPI nominal' },
             { id: 'pcb', label: '4. PCB 2D', icon: Layers, desc: 'Layout com regras IPC e aviso de carrier futura' },
-            { id: '3d', label: '5. PCB 3D', icon: Box, desc: 'Modelos CAD reais 1:1 com ViewCube' },
+            { id: '3d', label: '5. PCB 3D', icon: Box, desc: 'Bloqueado até PCB real e modelos aprovados' },
             { id: 'connections', label: '6. Conexões', icon: CableIcon, desc: 'Tabela de pinagem, bitola AWG e terminais' },
-            { id: 'sensors', label: '7. Sensor & Água', icon: Droplets, desc: 'Modelo PBR do galão 5L e ToF ultrassônico' },
-            { id: 'bom', label: '8. BOM & Assets', icon: BookOpen, desc: 'BOM com 12 itens e classes de confiança A/B/C/D' },
-            { id: 'tests', label: '9. Testes', icon: CheckCircle2, desc: 'Execução dos 78 testes automatizados' },
+            { id: 'sensors', label: '7. Sensor & Água', icon: Droplets, desc: 'Metrologia do sensor e recipiente real — pendente' },
+            { id: 'bom', label: '8. BOM & Assets', icon: BookOpen, desc: 'BOM rastreável e classes de evidência A/B/C/D' },
+            { id: 'tests', label: '9. Testes', icon: CheckCircle2, desc: 'Resultados com evidência e pendências explícitas' },
             { id: 'audit', label: '10. Auditoria', icon: ShieldCheck, desc: 'DRC em tempo real e montagem mecânica' },
           ].map((item) => {
             const Icon = item.icon;

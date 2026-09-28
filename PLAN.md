@@ -11,7 +11,7 @@
 
 ## 1. Visão Geral e Objetivo do Produto
 
-O **FuelGuard Virtual Test Bench** é uma central de comando e bancada de ensaios virtual original, concebida para permitir o aprendizado, planejamento, inspeção de circuitos e ensaios funcionais do MVP de bancada do FuelGuard antes da aquisição e montagem do hardware físico.
+O **FuelGuard** é uma central de comando e referência digital de engenharia voltada ao planejamento, inspeção de circuitos, metrologia e ensaios funcionais do hardware físico FuelGuard. O software não substitui o hardware comprado, o esquemático KiCad, a metrologia ou a homologação veicular.
 
 A aplicação adota o princípio da **honestidade visual e técnica**, diferenciando claramente através de badges semânticos o que é **simulado deterministicamente**, o que é **aproximação pedagógica** e o que **exige ensaio obrigatório em bancada física**.
 
@@ -37,21 +37,21 @@ Conforme exigido pelo briefing e pelas regras de trabalho, realizamos a análise
 | :--- | :--- | :---: | :---: | :--- | :--- | :--- |
 | **A. Eletrônica & PCB** | `tscircuit/tscircuit` | MIT | Muito ativo | Geração de circuitos em código React/TS. | Não simula firmware em execução nem acústica; foco em layout de PCB. | **Avaliar em fase futura** (pós-validação física). |
 | **A. Eletrônica & PCB** | `tscircuit/tscircuit.com` | MIT | Ativo | Referência de UX para edição de circuitos no browser. | Aplicação completa, pesada para importar no bundle. | **Usar apenas como referência de UX**. |
-| **A. Eletrônica & PCB** | `tscircuit/3d-viewer` | MIT | Ativo | Visualização 3D de placas PCB fabricáveis. | No MVP a montagem é em protoboard com jumpers curtos; sem PCB final. | **Avaliar em fase futura**. |
-| **A. Eletrônica & PCB** | `wokwi/wokwi-elements` | MIT | Ativo | Web Components visuais de peças eletrônicas. | Apenas desenha SVGs; não executa regras elétricas nem física. | **Usar no MVP** (como referência visual para os nós SVG da bancada). |
+| **A. Eletrônica & PCB** | `tscircuit/3d-viewer` | MIT | Ativo | Visualização 3D de placas PCB fabricáveis. | A PCB FuelGuard só será visualizada depois de existir layout revisado e fabricável. | **Avaliar após validação física**. |
+| **A. Eletrônica & PCB** | `wokwi/wokwi-elements` | MIT | Ativo | Web Components visuais de peças eletrônicas. | Apenas desenha SVGs; não executa regras elétricas nem física. | **Usar somente como referência visual**. |
 | **A. Eletrônica & PCB** | `wokwi/wokwi-cli` | Apache-2.0 | Ativo | Automação de simulação e exportação VCD em CI. | Exige `WOKWI_CLI_TOKEN` para a API de simulação completa. | **Avaliar no Marco M5** (fallback gracioso se sem token). |
 | **A. Eletrônica & PCB** | `wokwi/wokwi-docs` | Docs | Oficial | Mapeamento de pinos do ESP32-S3 e formato `diagram.json`. | Registra que o HC-SR04 do Wokwi difere dos parâmetros do JSN. | **Usar como referência técnica**. |
-| **A. Eletrônica & PCB** | `pfalstad/circuitjs1` | **GPL-2.0** | Ativo | Referência para simulação e animação de correntes. | **GPL viral**. Incorporar código contamina o projeto com GPL. | **Não usar código no MVP**; manter como link externo. |
+| **A. Eletrônica & PCB** | `pfalstad/circuitjs1` | **GPL-2.0** | Ativo | Referência para simulação e animação de correntes. | **GPL viral**. Incorporar código contamina o projeto com GPL. | **Não incorporar código**; manter como link externo. |
 | **B. Firmware & Sensores** | `espressif/arduino-esp32` | LGPL-2.1 | Oficial / Ativo | Core oficial de APIs de GPIO, SPI, timers do ESP32-S3. | Firmware em C++ roda no chip, não no browser diretamente. | **Usar como base do sketch demo C++** e espelho da lógica em TS. |
 | **B. Firmware & Sensores** | `elechouse/PN532` & `Adafruit-PN532`| BSD-3-Clause | Maduro | Sequência de comandos SPI do PN532 (`SAMConfig`, leitura UID). | Breakouts comerciais podem ter pinagens distintas do oficial. | **Usar como referência de protocolo** para o chip virtual em TS. |
-| **C. Editor de Bancada** | `xyflow/xyflow` (React Flow) | MIT | Altamente ativo | Canvas interativo para componentes, pinos e fios. | É puramente visualizador; **NÃO** faz simulação nem validação elétrica. | **Usar no MVP** com motor próprio de validação elétrica. |
+| **C. Editor de Bancada** | `xyflow/xyflow` (React Flow) | MIT | Altamente ativo | Canvas interativo para componentes, pinos e fios. | É puramente visualizador; **NÃO** faz simulação nem validação elétrica. | **Usar com motor próprio de validação elétrica**. |
 | **D. 3D & Física** | `mrdoob/three.js` & `react-three-fiber`| MIT | Altamente ativo | Renderização 3D WebGL da bancada e do tanque. | Peso no bundle e sobrecarga de GPU. O 2D atende com leveza e fluidez. | **Avaliar em fase futura** (após o 2D estar 100% validado). |
-| **D. 3D & Física** | `dimforge/rapier` & `pmndrs/cannon-es` | Apache-2.0 / MIT | Ativo | Motores de física de corpos rígidos 3D em WASM/JS. | Corpos rígidos não simulam nível d'água nem acústica; pesados para UI. | **Não usar no MVP**. |
-| **D. 3D & Física** | `Kitware/vtk-js` | Apache-2.0 | Ativo | Visualização científica 3D volumétrica médica/engenharia. | Biblioteca gigantesca e complexa; desproporcional para o MVP. | **Não usar no MVP**. |
-| **E. Fluidos & Água** | `jeantimex/fluid` | MIT | Demonstrativo | Simulação SPH em WebGPU. | Exige WebGPU (incompatível com PCs modestos); quebra determinismo. | **Não usar no MVP**. |
+| **D. 3D & Física** | `dimforge/rapier` & `pmndrs/cannon-es` | Apache-2.0 / MIT | Ativo | Motores de física de corpos rígidos 3D em WASM/JS. | Corpos rígidos não simulam nível d'água nem acústica; pesados para UI. | **Não usar no escopo atual**. |
+| **D. 3D & Física** | `Kitware/vtk-js` | Apache-2.0 | Ativo | Visualização científica 3D volumétrica médica/engenharia. | Biblioteca gigantesca e complexa; desproporcional ao produto atual. | **Não usar no escopo atual**. |
+| **E. Fluidos & Água** | `jeantimex/fluid` | MIT | Demonstrativo | Simulação SPH em WebGPU. | Exige WebGPU (incompatível com PCs modestos); quebra determinismo. | **Não usar no escopo atual**. |
 | **E. Fluidos & Água** | `amandaghassaei/gpu-io` & `gl-water2d` | MIT | Ativo | Shaders WebGL2 para ondas e superfícies d'água. | Custo computacional excessivo para galão didático. | **Usar apenas como referência visual futura**. |
 | **E. Fluidos & Água** | `amandaghassaei/FluidSimulation` | MIT | Obsoleto | Antigo simulador WebGL de fluidos. | Substituído pelo autor pelo `gpu-io`. | **Não usar** (descontinuado). |
-| **F. Térmica & CFD** | `openfoam/openfoam` & `seamplex/fino` | **GPL-3.0** | Ativo | CFD industrial e solver FEM de condução térmica. | Inviável no browser; o MVP usa fórmula analítica $c(T)$ direta. | **Não usar no MVP**. |
+| **F. Térmica & CFD** | `openfoam/openfoam` & `seamplex/fino` | **GPL-3.0** | Ativo | CFD industrial e solver FEM de condução térmica. | Inviável no browser; a referência usa fórmula analítica $c(T)$ direta. | **Não usar no escopo atual**. |
 | **G. Mensageria & IoT** | `mqttjs/MQTT.js` | MIT | Ativo | Cliente MQTT para WebSockets no browser. | O primeiro release deve funcionar 100% offline sem broker ativo. | **Avaliar em fase futura / Opcional**. |
 | **G. Mensageria & IoT** | `eclipse-mosquitto` | EPL-2.0 / EDL-1.0 | Ativo | Broker MQTT leve executável localmente. | Exige instalação nativa e configuração externa. | **Opcional para testes de rede de bancada**. |
 | **G. Mensageria & IoT** | `node-red` & `thingsboard` | Apache-2.0 | Corporativo | Orquestração de fluxos e dashboards IoT industriais. | Servidores complexos em Node/Java; fora do escopo web didático. | **Usar apenas como referência de design de widgets**. |
@@ -62,7 +62,7 @@ Conforme exigido pelo briefing e pelas regras de trabalho, realizamos a análise
 | **Python: Sinais & Sim** | `numpy/numpy` | BSD-3-Clause | Pilar científico | Computação matricial e ajuste polinomial de calibração. | Não deve ser carregado no browser (evitar Pyodide pesado). | **Usar em scripts de suporte de calibração volumétrica**. |
 | **Python: Sinais & Sim** | `scipy/scipy` | BSD-3-Clause | Ativo | Interpolação cúbica (PCHIP) e regressão não linear. | Execução fora do cliente web. | **Usar em scripts de geração de curvas $V(h)$ para galões irregulares**. |
 | **Python: Sinais & Sim** | `pandas-dev/pandas` | BSD-3-Clause | Padrão analítico | Manipulação tabular de séries temporais de bancada. | Desnecessário no cliente web leve. | **Usar em scripts de pós-processamento de datasets de ensaio**. |
-| **Python: ML Futuro** | `scikit-learn` & `online-ml/river` | BSD-3-Clause | Muito ativo | Algoritmos de Machine Learning supervisionado e online. | **Proibido usar ML para inventar dados** ou substituir regras físicas no MVP. | **Não usar no MVP / Avaliar em fase futura** após coleta real. |
+| **Python: ML Futuro** | `scikit-learn` & `online-ml/river` | BSD-3-Clause | Muito ativo | Algoritmos de Machine Learning supervisionado e online. | **Proibido usar ML para inventar dados** ou substituir regras físicas. | **Não usar antes de coletar dados reais e rotulados**. |
 | **Python: Mensageria & Testes** | `eclipse-paho/paho.mqtt.python` | EPL-2.0 / EDL-1.0 | Ativo | Cliente MQTT padrão em Python. | Requer broker externo. | **Usar em scripts de teste de mensageria de bancada**. |
 | **Python: Mensageria & Testes** | `empicano/aiomqtt` | BSD-3-Clause | Ativo | Wrapper assíncrono moderno sobre Paho MQTT. | Requer runtime Python assíncrono. | **Avaliar em conjunto com FastAPI em fase futura**. |
 | **Python: Mensageria & Testes** | `pytest-dev/pytest` | MIT | Padrão industrial | Runner de testes para scripts analíticos Python. | Nenhuma. | **Usar na suíte de testes de ferramentas analíticas Python**. |
@@ -71,22 +71,22 @@ Conforme exigido pelo briefing e pelas regras de trabalho, realizamos a análise
 
 ## 4. Requisitos Rastreáveis ao Briefing
 
-### 4.1. Requisitos do MVP (Essenciais e Determinísticos)
-- **REQ-MVP-01 (Bancada Didática Visual 2D):** Renderizar em canvas interativo 2D ultraleve os componentes reais especificados: ESP32-S3 DevKitC-1, módulo PN532, sensor JSN-SR04T v2.0 com placa de controle e transdutor, buffer SN74AHCT125N, divisor de tensão resistivo (10 kΩ e 15 kΩ), reed switch com ímã, LED verde com resistor de 1 kΩ, buzzer e galão com água.
-- **REQ-MVP-02 (Fiação e Validação Elétrica em Tempo Real):** Permitir ligar e desligar pinos visualmente com jumpers coloridos industriais. O validador elétrico analisa em tempo real a topologia do circuito e emite alertas bloqueantes para sobretensão (ex: ECHO 5V direto no GPIO do ESP32), incompatibilidade lógica e ausência de GND comum.
-- **REQ-MVP-03 (Núcleo Isolado em Web Worker):** Simulação matemática determinística desacoplada da UI rodando em Web Worker a 50 Hz, controlada por clock virtual com play, pause, step e velocidades ($0.5\times$, $1\times$, $2\times$).
-- **REQ-MVP-04 (Modelo Acústico do Sensor JSN-SR04T):** Cálculo da velocidade do som com base na temperatura ajustável:
+### 4.1. Requisitos da referência de engenharia
+- **REQ-ENG-01 (Bancada de Referência Visual 2D):** Renderizar em canvas interativo 2D ultraleve os componentes comerciais especificados, mantendo bloqueados os itens sem lote ou geometria confirmados.
+- **REQ-ENG-02 (Fiação e Validação Elétrica em Tempo Real):** Permitir ligar e desligar pinos visualmente com jumpers. O validador elétrico bloqueia sobretensão, incompatibilidade lógica e ausência de GND comum.
+- **REQ-ENG-03 (Núcleo Isolado em Web Worker):** Simulação matemática determinística desacoplada da UI, controlada por clock virtual.
+- **REQ-ENG-04 (Modelo Acústico do Sensor JSN-SR04T):** Cálculo da velocidade do som com base na temperatura ajustável:
   $$c(T) = 331.3 \cdot \sqrt{1 + \frac{T}{273.15}} \text{ m/s}$$
   Cálculo do tempo de trânsito $t_{echo} = \frac{2 \cdot d}{c}$, modelagem da zona cega mínima ($d < 20\text{ cm}$ $\rightarrow$ `out_of_range`), alcance máximo ($d > 450\text{ cm}$ ou sem eco $\rightarrow$ `timeout`), ruído acústico gaussiano com semente reprodutível (Mulberry32) e oscilação de superfície após abastecimento.
-- **REQ-MVP-05 (Modelo Geométrico e Volumétrico do Galão):** Cálculo da altura da água $h = H_{ref} - d$. Conversão para volume através de geometria prismática ($V = A \cdot h$) ou interpolação por tabela de calibração empírica $V(h)$ com parâmetros editáveis pelo usuário.
-- **REQ-MVP-06 (Filtro Mediano de Firmware e Qualidade):** Algoritmo em TypeScript puro espelhando o firmware: janela de 5 amostras com filtro mediano, rejeição de transientes espúrios e histerese temporal. Emissão de flags de qualidade: `valid`, `unstable`, `out_of_range`, `timeout`.
-- **REQ-MVP-07 (Autenticação NFC de Demonstração):** Simulação do PN532 com máquina de estados SPI. Apresentação de tags cadastradas (autorizada) e desconhecidas (recusada). Emissão dos eventos `session.started` e `nfc.denied`. O sistema alerta explicitamente que UID não é credencial criptográfica segura.
-- **REQ-MVP-08 (Sensor de Tampa com Debounce):** Simulação do reed switch no GPIO7 com pull-up de 10 kΩ. Filtro de debounce temporal de 50 ms, gerando evento único `lid.changed` na estabilização.
-- **REQ-MVP-09 (Central de Comando & Dashboard Fluido):** Display com resumo de nível/volume, gauge animado, representação em corte do tanque em 2D com feixe e eco visíveis, séries temporais com Chart.js, console serial virtual (115200 baud) e timeline cronológica de eventos ordenada por `sim_time_ms` + `seq`.
-- **REQ-MVP-10 (Conectividade Offline & Fila de Eventos):** Controle do estado de rede (`online` / `offline`). Em modo offline, acumulação idempotente de eventos na fila local; ao reconectar, replay ordenado com garantia de integridade.
-- **REQ-MVP-11 (Persistência Local e Exportação/Importação):** Armazenamento em IndexedDB (`idb`) de projetos, presets de calibração e logs de ensaio. Exportação e importação completa em arquivo `.json` com `schema_version: 1`.
+- **REQ-ENG-05 (Modelo Geométrico e Volumétrico do Recipiente):** Só calcular volume após receber geometria e calibração do recipiente real.
+- **REQ-ENG-06 (Filtro de Firmware e Qualidade):** Algoritmo em TypeScript espelhando o firmware, com rejeição de transientes e flags de qualidade.
+- **REQ-ENG-07 (NFC de Referência):** Simulação do PN532 com máquina de estados SPI e aviso de que UID não é credencial criptográfica segura.
+- **REQ-ENG-08 (Sensor de Tampa com Debounce):** Simulação do reed switch no GPIO7, condicionada à tampa e ao ímã reais.
+- **REQ-ENG-09 (Central de Comando & Dashboard):** Exibir nível, volume e eventos somente com indicação explícita de dados simulados, documentados ou medidos.
+- **REQ-ENG-10 (Conectividade Offline & Fila de Eventos):** Controle offline/online e fila local idempotente para ensaios.
+- **REQ-ENG-11 (Persistência Local e Exportação/Importação):** Armazenar projetos, calibrações e logs de ensaio com schema versionado.
 
-### 4.2. Requisitos de Fases Futuras (Pós-MVP)
+### 4.2. Requisitos ainda não liberados
 - **REQ-FUT-01 (Emulação Wokwi ESP32-S3):** Integração com API/CLI do Wokwi e exportação de `diagram.json` para rodar o sketch C++ real do ESP32-S3 com fallback gracioso sem token.
 - **REQ-FUT-02 (Renderização 3D Opcional com Three.js):** Modelo 3D interativo do tanque e bancada didática ativado sob demanda, sem pesar no carregamento padrão.
 - **REQ-FUT-03 (Telemetria Externa MQTT & Gateway Python):** Conexão via WebSocket com broker MQTT local (Mosquitto) ou backend FastAPI para integração HIL física via USB.

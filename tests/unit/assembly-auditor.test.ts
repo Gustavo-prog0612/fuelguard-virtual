@@ -4,12 +4,12 @@ import { FUELGUARD_CAD_LIBRARY } from '@/circuit-cad/component-library';
 import { PHYSICAL_WIRING_REGISTRY, PhysicalCable } from '@/circuit-cad/wiring-registry';
 
 describe('Auditoria de Montagem Mecatrônica & Elétrica (Assembly Auditor)', () => {
-  it('deve aprovar a montagem física nominal sem falhas impeditivas (isCompliant: true)', () => {
+  it('deve manter a montagem não conforme enquanto houver gates físicos pendentes', () => {
     const report = AssemblyAuditor.runAudit();
 
-    expect(report.isCompliant).toBe(true);
+    expect(report.isCompliant).toBe(false);
     expect(report.failCount).toBe(0);
-    expect(report.passCount).toBeGreaterThan(6);
+    expect(report.pendingCount).toBeGreaterThan(0);
     expect(report.totalChecks).toBeGreaterThan(10);
   });
 
@@ -18,12 +18,12 @@ describe('Auditoria de Montagem Mecatrônica & Elétrica (Assembly Auditor)', ()
     const supportChecks = report.items.filter((i) => i.category === 'support_mounting');
 
     expect(supportChecks.length).toBeGreaterThanOrEqual(4);
-    expect(supportChecks.every((c) => c.severity === 'PASS')).toBe(true);
+    expect(supportChecks.some((c) => c.severity === 'PENDING')).toBe(true);
 
-    // Protoboard, ESP32 e Buffer devem ter apoios verificados
+    // Protoboard, ESP32 e sensor de nível devem ter apoios verificados
     expect(supportChecks.some((c) => c.componentId === 'breadboard_830')).toBe(true);
     expect(supportChecks.some((c) => c.componentId === 'esp32_s3_devkit')).toBe(true);
-    expect(supportChecks.some((c) => c.componentId === 'sn74ahct125n')).toBe(true);
+    expect(supportChecks.some((c) => c.componentId === 'a02yyuw_sen0311')).toBe(true);
   });
 
   it('deve validar alinhamento de espaçadores M3 e fixação da sonda na tampa', () => {
@@ -31,7 +31,7 @@ describe('Auditoria de Montagem Mecatrônica & Elétrica (Assembly Auditor)', ()
     const fastenerChecks = report.items.filter((i) => i.category === 'fasteners_alignment');
 
     expect(fastenerChecks.length).toBeGreaterThanOrEqual(2);
-    expect(fastenerChecks.every((c) => c.severity === 'PASS')).toBe(true);
+    expect(fastenerChecks.some((c) => c.severity === 'PENDING')).toBe(true);
   });
 
   it('deve garantir que todos os cabos físicos possuam conectores e pinos válidos', () => {
@@ -80,14 +80,14 @@ describe('Auditoria de Montagem Mecatrônica & Elétrica (Assembly Auditor)', ()
 
   it('deve emitir avisos (WARNING) visíveis para modelos de Classe C e Classe D com medidas pendentes', () => {
     const report = AssemblyAuditor.runAudit();
-    const warnings = report.items.filter((i) => i.severity === 'WARNING');
+    const warnings = report.items.filter((i) => i.severity === 'WARNING' || i.severity === 'PENDING');
 
     expect(warnings.length).toBeGreaterThanOrEqual(2);
 
-    // Deve alertar sobre a zona cega de 20cm do JSN-SR04T
+    // Deve alertar sobre a zona cega documentada de 3cm do SEN0311
     const blindZoneWarn = warnings.find((w) => w.id === 'AUD-SNS-01');
     expect(blindZoneWarn).toBeDefined();
-    expect(blindZoneWarn?.technicalDetails).toContain('20 cm');
+    expect(blindZoneWarn?.technicalDetails).toContain('confirmado');
 
     // Deve alertar sobre a classe D do recipiente
     const tankWarn = warnings.find((w) => w.id === 'AUD-LIC-WARN-tank_cylinder');
@@ -99,9 +99,9 @@ describe('Auditoria de Montagem Mecatrônica & Elétrica (Assembly Auditor)', ()
     const buzzerCheck = report.items.find((i) => i.id === 'AUD-SUP-06');
 
     expect(buzzerCheck).toBeDefined();
-    expect(buzzerCheck?.severity).toBe('PASS');
-    expect(buzzerCheck?.componentId).toBe('buzzer_piezo');
-    expect(buzzerCheck?.technicalDetails).toContain('7.62mm');
+    expect(buzzerCheck?.severity).toBe('PENDING');
+    expect(buzzerCheck?.componentId).toBe('buzzer_active');
+    expect(buzzerCheck?.technicalDetails).toContain('CMI-1295IC-0385T');
 
     // Valida cabos do LED e Buzzer no wiring registry
     const ledCable = PHYSICAL_WIRING_REGISTRY.find((c) => c.id === 'W_LED_STATUS');
@@ -112,7 +112,7 @@ describe('Auditoria de Montagem Mecatrônica & Elétrica (Assembly Auditor)', ()
     expect(bzCtrlCable).toBeDefined();
     expect(bzGndCable).toBeDefined();
     expect(ledCable?.fromComponent).toBe('esp32_s3_devkit');
-    expect(bzCtrlCable?.toComponent).toBe('buzzer_piezo');
+    expect(bzCtrlCable?.toComponent).toBe('buzzer_active');
   });
 
   it('deve validar confinamento hidrostático e caminho acústico desobstruído do sensor', () => {
@@ -120,12 +120,12 @@ describe('Auditoria de Montagem Mecatrônica & Elétrica (Assembly Auditor)', ()
 
     const acousticCheck = report.items.find((i) => i.id === 'AUD-SNS-03');
     expect(acousticCheck).toBeDefined();
-    expect(acousticCheck?.severity).toBe('PASS');
-    expect(acousticCheck?.message).toContain('55°');
+    expect(acousticCheck?.severity).toBe('PENDING');
+    expect(acousticCheck?.message).toContain('aguardando');
 
     const clearanceCheck = report.items.find((i) => i.id === 'AUD-CLR-02');
     expect(clearanceCheck).toBeDefined();
-    expect(clearanceCheck?.severity).toBe('PASS');
-    expect(clearanceCheck?.message).toContain('51.8mm');
+    expect(clearanceCheck?.severity).toBe('PENDING');
+    expect(clearanceCheck?.message).toContain('pendente');
   });
 });

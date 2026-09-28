@@ -9,6 +9,7 @@ import { CircuitJsonPackage } from './circuit-json-builder';
 import rp2040ElementsData from './data/rp2040-circuit-data.json';
 import { CadComponentMetadata } from './component-library';
 import { DrcViolation } from './drc-checker';
+import { RP2040_BOARD_STATUS } from '@/../hardware/board-status';
 
 export const RP2040_METADATA = {
   id: 'rp2040-motor-controller',
@@ -261,6 +262,10 @@ export function getRp2040CircuitPackage(): CircuitJsonPackage {
     circuit_json_version: '0.0.491',
     timestamp: '2026-09-25T13:32:52.614Z',
     title: 'RP2040 NEMA 17 Stepper Motor Controller (imrishabh18)',
+    scope: RP2040_BOARD_STATUS.scope,
+    pcbReadiness: RP2040_BOARD_STATUS.pcbReadiness,
+    sourceOfTruth: RP2040_BOARD_STATUS.sourceOfTruth,
+    evidence: RP2040_BOARD_STATUS.evidence.map((item) => item.reference),
     circuit_elements: rp2040ElementsData as any[],
   };
 }

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "fuelguard-engineering-adapter",
+  "revision": "0.3.0",
+  "scope": "adapter-pcb",
+  "readiness": "not-designed",
+  "sourceOfTruth": ["hardware/nets/NetDefinition.ts", "fuelguard/hardware/circuit/pinmap.ts", "hardware/measurements/measurement-register.json", "docs/adr/0002-adapter-pcb-input-freeze.md"],
+  "intent": "Placa adaptadora real de engenharia para ESP32-S3-DevKitC-1-N8R8, PN532 V4, SEN0311, MC-38 e indicadores. Não é ECU automotiva, não é certificada para combustível e não substitui o DevKit.",
+  "benchBaseline": {
+    "tank": "FG-TANK-6L-R1",
+    "internalDimensionsMm": { "width": 200, "length": 200, "height": 160 },
+    "externalDimensionsMm": { "width": 206, "length": 206, "height": 168 },
+    "wallThicknessMm": 3,
+    "lidThicknessMm": 5,
+    "nominalCapacityLiters": 6.4,
+    "operationalVolumeLiters": { "min": 1, "max": 5 },
+    "sensorDistanceAtOperationalRangeMm": { "min": 35, "max": 135 },
+    "mounting": ["sensor centralizado na tampa", "4x M3", "prensa-cabo", "MC-38 lateral com ímã", "gota no cabo antes da protoboard"]
+  },
+  "electricalArchitecture": {
+    "controller": { "reference": "U1", "partNumber": "ESP32-S3-DevKitC-1-N8R8", "revision": "v1.1", "mounting": "Duas fileiras 2,54 mm; altura/keepout ainda aguardam MEAS-ESP32-01.", "status": "PENDING_PHYSICAL_EVIDENCE" },
+    "levelSensorInterface": {
+      "reference": "SEN1",
+      "partNumber": "DFRobot SEN0311 / A02YYUW",
+      "power": "+3.3V",
+      "uart": "9600 8N1 TTL",
+      "txPath": "SEN1.TX -> LEVEL_UART_RX -> U1.GPIO16",
+      "rxPath": "SEN1.RX -> LEVEL_MODE_PROCESSED -> +3.3V (high; saída processada)",
+      "blindZoneMm": 30,
+      "rangeMm": { "min": 30, "max": 4500 },
+      "status": "DOCUMENTED_FUNCTION_PENDING_PHYSICAL_ENVELOPE"
+    },
+    "pn532Interface": { "reference": "RFID1", "protocol": "SPI a 3,3 V: CS GPIO10, MOSI GPIO11, SCK GPIO12, MISO GPIO13", "headerPinMap": ["1:SCK", "2:MISO", "3:MOSI", "4:SS/CS", "5:VCC", "6:GND", "7:IRQ-NC", "8:RSTO-NC"], "status": "PENDING_MEAS-PN532-02" },
+    "lidInterface": { "reference": "SW1", "partNumber": "MC-38 vendor-lot pending", "signal": "LID_INTERLOCK / GPIO7 / pull-up interno", "polarity": "NO/NC deve ser confirmada na unidade", "status": "PENDING_MEAS-MC38-01" },
+    "indicators": {
+      "led": "GPIO4 -> R3 220 Ω -> D1 WP7113GD -> GND",
+      "buzzer": "GPIO14 -> BZ1 CMI-1295IC-0385T ativo 2–5 V; corrente, polaridade e passo devem ser confirmados na unidade.",
+      "status": "PENDING_MEAS-BUZZER-01"
+    }
+  },
+  "connectorDecisions": [
+    { "id": "J-ESP32", "purpose": "Carrier do DevKit", "selection": null, "status": "PENDING_MEAS-ESP32-01", "mustConfirm": ["contagem real de pinos", "passo", "distância entre fileiras", "altura de inserção", "keepout dos USBs"] },
+    { "id": "J-SEN1", "purpose": "Interface de quatro vias para SEN0311", "selection": null, "status": "PENDING_MEAS-SEN0311-01", "mustConfirm": ["saída real do cabo", "ordem VCC/GND/RX/TX", "passo/gênero do conector", "alívio de tração"] },
+    { "id": "J-PN532", "purpose": "Interface para header físico de oito vias do PN532 V4", "selection": null, "status": "PENDING_MEAS-PN532-02", "mustConfirm": ["gênero e altura do receptáculo", "header de oito vias", "ordem de pinos", "modo SPI", "antena/keepout"] },
+    { "id": "J-REED", "purpose": "Interlock MC-38 da tampa", "selection": null, "status": "PENDING_MEAS-MC38-01", "mustConfirm": ["NO/NC", "tipo de cabo", "ímã correspondente", "gap de atuação", "percurso até a tampa"] },
+    { "id": "J-PWR", "purpose": "Entrada de alimentação da placa adaptadora", "selection": null, "status": "PENDING_ARCHITECTURE_DECISION", "mustConfirm": ["fonte única de 5 V", "proteção contra back-power pelo DevKit", "limite de corrente", "fusível/PTC", "TVS/ESD"] }
+  ],
+  "releaseBlocks": [
+    "O esquemático funcional foi congelado, mas footprints/conectores continuam bloqueados pelas medições físicas.",
+    "Não há contorno, stackup, fabricante ou regras de DRC aprovados.",
+    "Não há arquivo KiCad de esquemático ou layout no estado atual; portanto ERC, DRC, Gerbers, BOM de fabricação e CPL ainda não existem.",
+    "O visualizador 3D é referência paramétrica e não fonte de cotas de fabricação.",
+    "A geometria FG-TANK-6L-R1 é uma baseline de bancada aprovada, ainda não uma peça fabricada/medida."
+  ]
+}

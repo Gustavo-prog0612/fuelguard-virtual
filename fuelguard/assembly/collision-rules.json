@@ -16,14 +16,15 @@
     {
       "ruleId": "COL-03",
       "name": "Water Volume Boundary Containment",
-      "description": "O cilindro de água deve ter raio estritamente menor que o raio interno do tanque acrílico (r_água <= 71.5mm vs r_interno = 72.0mm) e altura delimitada entre o fundo interno e a cota máxima de 200mm.",
-      "radialMarginMm": 0.5
+      "description": "O volume de água retangular deve permanecer dentro da caixa interna 200 x 200 x 160 mm, com margem de respingo e sem atravessar as paredes de acrílico de 3 mm.",
+      "boundaryMm": { "width": 200, "depth": 200, "height": 160 },
+      "wallMarginMm": 3.0
     },
     {
       "ruleId": "COL-04",
       "name": "Ultrasonic Line-of-Sight Clearance",
-      "description": "O cone acústico de 55° emitido pela sonda JSN-SR04T não pode sofrer oclusão por cabos ou pela borda do galão antes de atingir a superfície do líquido.",
-      "coneDivergenceDeg": 55.0
+      "description": "A visada do probe A02YYUW/SEN0311 deve permanecer centralizada e perpendicular à superfície da água; cabos e suporte não podem entrar no caminho.",
+      "coneDivergenceDeg": 60.0
     }
   ]
 }

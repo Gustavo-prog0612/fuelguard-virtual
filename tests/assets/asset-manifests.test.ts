@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import esp32Manifest from '@/../fuelguard/assets/components/esp32-s3-devkitc-1/asset-manifest.json';
 import pn532Manifest from '@/../fuelguard/assets/components/pn532-v4/asset-manifest.json';
-import jsnManifest from '@/../fuelguard/assets/components/jsn-sr04t-v2/asset-manifest.json';
-import sn74Manifest from '@/../fuelguard/assets/components/sn74ahct125n/asset-manifest.json';
-import rDivManifest from '@/../fuelguard/assets/components/voltage-divider/asset-manifest.json';
+import sen0311Manifest from '@/../fuelguard/assets/components/sen0311/asset-manifest.json';
 import reedManifest from '@/../fuelguard/assets/components/reed-switch/asset-manifest.json';
 import buzzerManifest from '@/../fuelguard/assets/components/buzzer/asset-manifest.json';
 import ledManifest from '@/../fuelguard/assets/components/led-indicator/asset-manifest.json';
@@ -13,9 +11,7 @@ import tankManifest from '@/../fuelguard/assets/mechanical/tank/asset-manifest.j
 const ALL_MANIFESTS = [
   esp32Manifest,
   pn532Manifest,
-  jsnManifest,
-  sn74Manifest,
-  rDivManifest,
+  sen0311Manifest,
   reedManifest,
   buzzerManifest,
   ledManifest,
@@ -38,22 +34,27 @@ describe('Auditoria de Assets CAD 3D — Rastreabilidade e Classes de Fidelidade
       expect(m.scale).toEqual([1.0, 1.0, 1.0]);
       expect(m.transforms).toBeDefined();
       expect(m.fidelityClass).toMatch(/^[ABCD]$/);
-      expect(m.verificationDate).toBeDefined();
+      const verificationStatus = (m as any).verificationStatus;
+      if (verificationStatus === 'PENDING_PHYSICAL_EVIDENCE') {
+        expect(m.verificationDate).toBeNull();
+      } else {
+        expect(m.verificationDate).toBeDefined();
+      }
     });
   });
 
   it('deve certificar que componentes Classe A possuem modelo oficial verificado', () => {
     const classA = ALL_MANIFESTS.filter((m) => m.fidelityClass === 'A');
-    expect(classA.length).toBeGreaterThanOrEqual(4); // ESP32, Divisor, Buzzer, LED
+    expect(classA.length).toBeGreaterThanOrEqual(2); // ESP32 e LED têm fonte oficial; referências sem MPN/STEP não entram como Classe A
 
     classA.forEach((m) => {
-      expect(m.confidenceRationale.toLowerCase()).toMatch(/oficia/);
+      expect(m.confidenceRationale.toLowerCase()).toMatch(/oficia|datasheet|documenta/);
     });
   });
 
   it('deve exigir notas de isenção ou medições pendentes para componentes Classe C e D', () => {
     const classCAndD = ALL_MANIFESTS.filter((m) => m.fidelityClass === 'C' || m.fidelityClass === 'D');
-    expect(classCAndD.length).toBeGreaterThanOrEqual(2); // JSN e Tanque
+    expect(classCAndD.length).toBeGreaterThanOrEqual(2); // SEN0311 e tanque
 
     classCAndD.forEach((m) => {
       // Nunca deve prometer precisão idêntica ao real sem modelo oficial

@@ -171,7 +171,7 @@ export const TestsView: React.FC = () => {
               <span>Perda de Eco / Zona Cega</span>
               <AlertTriangle className="w-4 h-4" />
             </div>
-            <p className="text-[10px] text-inst-secondary">Eleva nível para 88 cm (distância 12 cm &lt; 20 cm).</p>
+            <p className="text-[10px] text-inst-secondary">Eleva nível para 15 cm (distância 1 cm &lt; 3 cm).</p>
           </button>
 
           <button 

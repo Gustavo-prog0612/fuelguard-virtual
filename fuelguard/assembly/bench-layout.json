@@ -1,142 +1,16 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "bench": {
-    "dimensionsMm": { "width": 420.0, "depth": 300.0, "thickness": 12.0 },
-    "surface": "MATTE_DARK_ESD_RUBBER",
-    "colorHex": "#12171f"
-  },
+  "revision": "3.0.0-real-bench-baseline",
+  "bench": { "dimensionsMm": { "width": 420.0, "depth": 300.0, "thickness": 12.0 }, "surface": "MATTE_DARK_ESD_RUBBER", "colorHex": "#12171f" },
   "objects": [
-    {
-      "id": "BB1",
-      "name": "Protoboard BB-830",
-      "assetRef": "BB1",
-      "positionMm": [-30.0, 4.25, 0.0],
-      "rotationDeg": [0, 0, 0],
-      "supportPoint": { "type": "BENCH_SURFACE", "contactY": 0.0 },
-      "fasteningMethod": "SELF_ADHESIVE_PADS",
-      "boundingBoxMm": { "width": 165.0, "height": 8.5, "depth": 55.0 },
-      "collisionClass": "SOLID_BASE",
-      "connectedNetGroup": "CENTRAL_PROTOTYPING"
-    },
-    {
-      "id": "U1",
-      "name": "ESP32-S3 DevKitC-1 v1.1",
-      "assetRef": "U1",
-      "positionMm": [-75.0, 11.5, 0.0],
-      "rotationDeg": [0, 0, 0],
-      "supportPoint": { "type": "BB_SOCKET_INSERTION", "contactY": 8.5 },
-      "fasteningMethod": "THT_FRICTION_PINS",
-      "boundingBoxMm": { "width": 25.5, "height": 12.8, "depth": 68.0 },
-      "collisionClass": "ACTIVE_MODULE",
-      "connectedNetGroup": "MICROCONTROLLER"
-    },
-    {
-      "id": "U2",
-      "name": "Buffer SN74AHCT125N",
-      "assetRef": "U2",
-      "positionMm": [-18.0, 10.5, -12.0],
-      "rotationDeg": [0, 0, 0],
-      "supportPoint": { "type": "BB_SOCKET_INSERTION", "contactY": 8.5 },
-      "fasteningMethod": "THT_FRICTION_PINS",
-      "boundingBoxMm": { "width": 6.35, "height": 4.57, "depth": 19.3 },
-      "collisionClass": "INTEGRATED_CIRCUIT",
-      "connectedNetGroup": "LEVEL_SHIFT"
-    },
-    {
-      "id": "R_DIV",
-      "name": "Divisor de Tensão 10k/15k",
-      "assetRef": "R_DIV",
-      "positionMm": [-18.0, 10.0, 6.0],
-      "rotationDeg": [0, 0, 0],
-      "supportPoint": { "type": "BB_SOCKET_INSERTION", "contactY": 8.5 },
-      "fasteningMethod": "THT_LEADS_INSERTED",
-      "boundingBoxMm": { "width": 12.0, "height": 3.5, "depth": 8.0 },
-      "collisionClass": "PASSIVE_COMPONENT",
-      "connectedNetGroup": "VOLTAGE_DIVIDER"
-    },
-    {
-      "id": "D1",
-      "name": "LED Verde 5mm + Resistor 1k",
-      "assetRef": "D1",
-      "positionMm": [12.0, 12.0, -14.0],
-      "rotationDeg": [0, 0, 0],
-      "supportPoint": { "type": "BB_SOCKET_INSERTION", "contactY": 8.5 },
-      "fasteningMethod": "THT_LEADS_INSERTED",
-      "boundingBoxMm": { "width": 5.0, "height": 8.6, "depth": 5.0 },
-      "collisionClass": "PASSIVE_COMPONENT",
-      "connectedNetGroup": "STATUS_INDICATOR"
-    },
-    {
-      "id": "BZ1",
-      "name": "Buzzer Piezoelétrico 12mm",
-      "assetRef": "BZ1",
-      "positionMm": [24.0, 13.0, 10.0],
-      "rotationDeg": [0, 0, 0],
-      "supportPoint": { "type": "BB_SOCKET_INSERTION", "contactY": 8.5 },
-      "fasteningMethod": "THT_LEADS_INSERTED",
-      "boundingBoxMm": { "width": 12.0, "height": 9.5, "depth": 12.0 },
-      "collisionClass": "ACTIVE_MODULE",
-      "connectedNetGroup": "ALARM_AUDIO"
-    },
-    {
-      "id": "RFID1",
-      "name": "Módulo PN532 NFC/RFID",
-      "assetRef": "RFID1",
-      "positionMm": [14.0, 14.0, 68.0],
-      "rotationDeg": [0, -15, 0],
-      "supportPoint": { "type": "HEX_STANDOFFS_M3", "contactY": 0.0 },
-      "fasteningMethod": "M3_BRASS_STANDOFFS_4X",
-      "boundingBoxMm": { "width": 42.7, "height": 5.0, "depth": 40.4 },
-      "collisionClass": "STANDALONE_MODULE",
-      "connectedNetGroup": "SPI_BUS"
-    },
-    {
-      "id": "SEN1_BOARD",
-      "name": "Placa JSN-SR04T v2.0",
-      "assetRef": "SEN1",
-      "positionMm": [-10.0, 14.0, -78.0],
-      "rotationDeg": [0, 10, 0],
-      "supportPoint": { "type": "HEX_STANDOFFS_M3", "contactY": 0.0 },
-      "fasteningMethod": "M3_BRASS_STANDOFFS_2X",
-      "boundingBoxMm": { "width": 42.0, "height": 12.0, "depth": 29.0 },
-      "collisionClass": "STANDALONE_MODULE",
-      "connectedNetGroup": "ULTRASONIC_CONTROL"
-    },
-    {
-      "id": "TK1",
-      "name": "Recipiente Didático 5L",
-      "assetRef": "TK1",
-      "positionMm": [90.0, 110.0, -10.0],
-      "rotationDeg": [0, 0, 0],
-      "supportPoint": { "type": "BENCH_SURFACE", "contactY": 0.0 },
-      "fasteningMethod": "GRAVITY_RESTING",
-      "boundingBoxMm": { "width": 150.0, "height": 220.0, "depth": 150.0 },
-      "collisionClass": "FLUID_CONTAINER",
-      "connectedNetGroup": "HYDROSTATIC_RIG"
-    },
-    {
-      "id": "SEN1_PROBE",
-      "name": "Transdutor Ultrassônico M20",
-      "assetRef": "SEN1",
-      "positionMm": [90.0, 224.0, -10.0],
-      "rotationDeg": [180, 0, 0],
-      "supportPoint": { "type": "LID_CENTER_THREAD", "contactY": 220.0 },
-      "fasteningMethod": "M20_LOCKNUT_SEALED",
-      "boundingBoxMm": { "width": 25.0, "height": 26.0, "depth": 25.0 },
-      "collisionClass": "ACOUSTIC_PROBE",
-      "connectedNetGroup": "ACOUSTIC_COAX"
-    },
-    {
-      "id": "SW1_ASSEMBLY",
-      "name": "Conjunto Reed Switch + Ímã",
-      "assetRef": "SW1",
-      "positionMm": [90.0, 218.0, 62.0],
-      "rotationDeg": [0, 0, 0],
-      "supportPoint": { "type": "COLLAR_AND_LID_RIM", "contactY": 215.0 },
-      "fasteningMethod": "ADHESIVE_AND_BRACKET",
-      "boundingBoxMm": { "width": 12.0, "height": 14.0, "depth": 16.0 },
-      "collisionClass": "SAFETY_INTERLOCK",
-      "connectedNetGroup": "LID_SENSE"
-    }
+    { "id": "BB1", "name": "Protoboard MB-102 830 pontos", "assetRef": "BB1", "positionMm": [-52.0, 4.25, -42.0], "rotationDeg": [0, 0, 0], "supportPoint": { "type": "BENCH_SURFACE", "contactY": 0.0 }, "fasteningMethod": "SELF_ADHESIVE_PADS", "boundingBoxMm": { "width": 165.0, "height": 8.5, "depth": 55.0 }, "collisionClass": "SOLID_BASE", "connectedNetGroup": "CENTRAL_PROTOTYPING" },
+    { "id": "U1", "name": "ESP32-S3 DevKitC-1 v1.1", "assetRef": "U1", "positionMm": [-85.0, 11.5, -42.0], "rotationDeg": [0, 0, 0], "supportPoint": { "type": "BB_SOCKET_INSERTION", "contactY": 8.5 }, "fasteningMethod": "THT_FRICTION_PINS", "boundingBoxMm": { "width": 25.5, "height": 12.8, "depth": 68.0 }, "collisionClass": "ACTIVE_MODULE", "connectedNetGroup": "MICROCONTROLLER" },
+    { "id": "D1", "name": "LED verde 5 mm + R3 220 Ω", "assetRef": "D1", "positionMm": [-8.0, 12.0, -58.0], "rotationDeg": [0, 0, 0], "supportPoint": { "type": "BB_SOCKET_INSERTION", "contactY": 8.5 }, "fasteningMethod": "THT_LEADS_INSERTED", "boundingBoxMm": { "width": 5.0, "height": 8.6, "depth": 5.0 }, "collisionClass": "PASSIVE_COMPONENT", "connectedNetGroup": "STATUS_INDICATOR" },
+    { "id": "BZ1", "name": "Buzzer ativo CMI-1295IC-0385T", "assetRef": "BZ1", "positionMm": [8.0, 13.25, -42.0], "rotationDeg": [0, 0, 0], "supportPoint": { "type": "BB_SOCKET_INSERTION", "contactY": 8.5 }, "fasteningMethod": "THT_LEADS_INSERTED", "boundingBoxMm": { "width": 12.0, "height": 9.5, "depth": 12.0 }, "collisionClass": "ACTIVE_MODULE", "connectedNetGroup": "ALARM_AUDIO" },
+    { "id": "RFID1", "name": "ELECHOUSE PN532 V4 — suporte frontal", "assetRef": "RFID1", "positionMm": [94.0, 28.0, -42.0], "rotationDeg": [0, 0, 0], "supportPoint": { "type": "FRONT_SUPPORT_PENDING_MEASUREMENT", "contactY": 0.0 }, "fasteningMethod": "M3_STANDOFFS_PENDING_MEASUREMENT", "boundingBoxMm": { "width": 42.7, "height": 5.0, "depth": 40.4 }, "collisionClass": "STANDALONE_MODULE", "connectedNetGroup": "SPI_BUS" },
+    { "id": "TK1", "name": "Tanque acrílico FG-TANK-6L-R1", "assetRef": "TK1", "positionMm": [92.0, 84.0, 54.0], "rotationDeg": [0, 0, 0], "supportPoint": { "type": "BENCH_SURFACE", "contactY": 0.0 }, "fasteningMethod": "ACRYLIC_BOX_3MM", "boundingBoxMm": { "width": 206.0, "height": 168.0, "depth": 206.0 }, "collisionClass": "TRANSPARENT_FLUID_CONTAINER", "connectedNetGroup": "MEASUREMENT_TANK", "verificationStatus": "PARAMETRIC_BASELINE_PENDING_PHYSICAL_CONFIRMATION" },
+    { "id": "LID1", "name": "Tampa FG-TANK-6L-R1 — 4x M3", "assetRef": "LID1", "positionMm": [92.0, 171.5, 54.0], "rotationDeg": [0, 0, 0], "supportPoint": { "type": "TANK_TOP_PARAMETRIC", "contactY": 168.0 }, "fasteningMethod": "4X_M3_PENDING_PHYSICAL_CONFIRMATION", "boundingBoxMm": { "width": 206.0, "height": 5.0, "depth": 206.0 }, "collisionClass": "LID_ASSEMBLY", "connectedNetGroup": "TANK_LID" },
+    { "id": "SEN1_PROBE", "name": "DFRobot A02YYUW / SEN0311 — probe central", "assetRef": "SEN1", "positionMm": [92.0, 169.0, 54.0], "rotationDeg": [0, 0, 0], "supportPoint": { "type": "LID_SENSOR_SUPPORT_PENDING_MEASUREMENT", "contactY": 168.0 }, "fasteningMethod": "CENTRAL_SUPPORT_AND_CABLE_GLAND", "boundingBoxMm": { "width": 20.0, "height": 20.0, "depth": 20.0 }, "collisionClass": "SENSOR_PROBE", "connectedNetGroup": "LEVEL_UART", "verificationStatus": "ENVELOPE_PENDING_MEAS-SEN0311-PROBE-01" },
+    { "id": "SW1", "name": "MC-38 + ímã — lateral da tampa", "assetRef": "SW1", "positionMm": [190.0, 172.0, 54.0], "rotationDeg": [0, 0, 0], "supportPoint": { "type": "LID_SIDE_BRACKET_PENDING_MEASUREMENT", "contactY": 168.0 }, "fasteningMethod": "PRINTED_OR_ACRYLIC_BRACKET", "boundingBoxMm": { "width": 28.0, "height": 14.0, "depth": 8.0 }, "collisionClass": "LID_INTERLOCK", "connectedNetGroup": "LID_INTERLOCK", "verificationStatus": "VENDOR_VARIANT_PENDING" }
   ]
 }

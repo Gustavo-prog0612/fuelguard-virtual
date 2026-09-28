@@ -9,7 +9,7 @@ Este documento registra todas as bibliotecas de terceiros, ferramentas e referê
 
 ---
 
-## 1. Dependências do MVP Web (Frontend & Núcleo Leve no Browser)
+## 1. Dependências da aplicação Web (Frontend & Núcleo Leve no Browser)
 
 As tecnologias abaixo possuem licenças permissivas e foram selecionadas especificamente por serem ultraleves, garantindo que o bundle seja enxuto, sem travamentos e com execução fluida a 60 FPS:
 
@@ -34,7 +34,7 @@ Para manter a aplicação web livre de sobrecargas (sem WebAssembly pesado ou Py
 
 | Pacote / Ferramenta | Licença | Repositório Oficial | Finalidade Específica | Decisão de Arquitetura |
 | :--- | :---: | :--- | :--- | :--- |
-| **FastAPI** | MIT | [fastapi/fastapi](https://github.com/fastapi/fastapi) | Servidor assíncrono opcional para telemetria local e ponte HIL. | **Opcional no MVP / Backend de Suporte**. A web app funciona 100% offline sem ele. |
+| **FastAPI** | MIT | [fastapi/fastapi](https://github.com/fastapi/fastapi) | Servidor assíncrono opcional para telemetria local e ponte HIL. | **Opcional / Backend de suporte**. A web app funciona offline sem ele. |
 | **Pydantic** | MIT | [pydantic/pydantic](https://github.com/pydantic/pydantic) | Validação estrita de contratos e schemas de eventos em Python. | **Usar como espelho de contrato** (`schema_version: 1`) entre TS e Python. |
 | **SimPy** | MIT | [simpx/simpy](https://github.com/simpx/simpy) | Simulação baseada em eventos discretos (DES) para filas e falhas. | **Usar em scripts analíticos de benchmark**; o browser roda clock próprio em TS. |
 | **FilterPy** | MIT | [rlabbe/filterpy](https://github.com/rlabbe/filterpy) | Implementação de referência de filtros de Kalman e estimadores. | **Usar em estudo comparativo offline**. No browser, o filtro mediano é mais fluido. |
@@ -44,8 +44,8 @@ Para manter a aplicação web livre de sobrecargas (sem WebAssembly pesado ou Py
 | **Pytest** | MIT | [pytest-dev/pytest](https://github.com/pytest-dev/pytest) | Suíte de testes unitários para os scripts analíticos e validação Pydantic. | **Usar no pipeline de testes do ferramental Python**. |
 | **Paho MQTT Python** | EPL-2.0 / EDL-1.0 | [eclipse-paho/paho.mqtt.python](https://github.com/eclipse-paho/paho.mqtt.python) | Cliente MQTT para scripts de integração e teste de mensageria. | **Opcional**; usado para testar publicação em broker local. |
 | **aiomqtt** | BSD-3-Clause | [empicano/aiomqtt](https://github.com/empicano/aiomqtt) | Cliente MQTT assíncrono compatível com `asyncio` e FastAPI. | **Avaliar em fase futura** caso o gateway FastAPI seja ativado. |
-| **scikit-learn** | BSD-3-Clause | [scikit-learn/scikit-learn](https://github.com/scikit-learn/scikit-learn) | Algoritmos de aprendizado de máquina supervisionado e clustering. | **Não usar no MVP / Avaliar no Futuro**. Proibido usar ML para inventar leituras. |
-| **River** | BSD-3-Clause | [online-ml/river](https://github.com/online-ml/river) | Aprendizado contínuo em streaming (*online machine learning*). | **Não usar no MVP / Avaliar no Futuro** quando houver dados reais de bancada física. |
+| **scikit-learn** | BSD-3-Clause | [scikit-learn/scikit-learn](https://github.com/scikit-learn/scikit-learn) | Algoritmos de aprendizado de máquina supervisionado e clustering. | **Não usar antes de haver dados reais rotulados**. Proibido usar ML para inventar leituras. |
+| **River** | BSD-3-Clause | [online-ml/river](https://github.com/online-ml/river) | Aprendizado contínuo em streaming (*online machine learning*). | **Não usar antes de haver dados reais** de bancada física. |
 | **Eclipse Mosquitto** | EPL-2.0 / EDL-1.0 | [eclipse-mosquitto/mosquitto](https://github.com/eclipse-mosquitto/mosquitto) | Broker MQTT leve executável em máquina local para ensaios. | **Opcional / Testes de rede**. O simulador nativo opera sem broker externo. |
 
 ---
@@ -59,7 +59,7 @@ Para manter a aplicação web livre de sobrecargas (sem WebAssembly pesado ou Py
 | **Wokwi Elements** | MIT | [wokwi/wokwi-elements](https://github.com/wokwi/wokwi-elements) | Consulta de convenções visuais de pinagem 2D. | Os componentes do FuelGuard usam nós e SVGs próprios integrados ao Tailwind. |
 | **Wokwi CLI / Docs** | Apache-2.0 / Docs | [wokwi/wokwi-docs](https://github.com/wokwi/wokwi-docs) | Estrutura do `diagram.json` para ESP32-S3. | Usado no Marco M5 para exportação opcional; não é dependência de runtime. |
 | **CircuitJS1** | **GPL-2.0** | [pfalstad/circuitjs1](https://github.com/pfalstad/circuitjs1) | Estudo visual de correntes e animações de circuito. | **PROIBIDA** incorporação de código para evitar contaminação por GPL viral. O motor elétrico do FuelGuard é original em TypeScript. |
-| **gpu-io / gl-water2d** | MIT | [amandaghassaei/gpu-io](https://github.com/amandaghassaei/gpu-io) | Estudo de equações de ondas e shaders WebGL. | O MVP adota modelo harmônico amortecido ultraleve em 2D; gpu-io mantido como estudo futuro. |
+| **gpu-io / gl-water2d** | MIT | [amandaghassaei/gpu-io](https://github.com/amandaghassaei/gpu-io) | Estudo de equações de ondas e shaders WebGL. | A aplicação adota modelo harmônico amortecido ultraleve em 2D; gpu-io permanece como estudo futuro. |
 | **OpenFOAM / Fino** | **GPL-3.0** | [openfoam/openfoam](https://github.com/openfoam) | Consulta teórica de equações acústicas e térmicas. | Fora do escopo web; o FuelGuard adota formulação analítica direta $c(T)$. |
 | **Node-RED / ThingsBoard** | Apache-2.0 | [node-red/node-red](https://github.com/node-red) | Referência conceitual de dashboards e telemetria IoT. | Apenas inspiração de design para os widgets da central de comando. |
 

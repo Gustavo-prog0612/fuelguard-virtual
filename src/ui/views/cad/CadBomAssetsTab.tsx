@@ -10,7 +10,7 @@ import {
   BookOpen,
   ExternalLink,
 } from 'lucide-react';
-import bomData from '@/../fuelguard/hardware/bom/bom.json';
+import bomData from '@/../hardware/bom/bom.json';
 import {
   FUELGUARD_CAD_LIBRARY,
   CadComponentMetadata,
@@ -29,8 +29,7 @@ export const CadBomAssetsTab: React.FC<CadBomAssetsTabProps> = ({
   const [subView, setSubView] = useState<'bom' | 'assets'>('bom');
 
   const bomItems = bomData.items;
-  const totalCostUsd = bomItems.reduce((acc, item) => acc + item.unitPrice, 0);
-  const totalCostBrl = totalCostUsd * 5.60;
+  const totalQuantity = bomItems.reduce((acc, item) => acc + item.quantity, 0);
 
   const cadLibrary = activeBoard === 'rp2040-motor-controller' ? RP2040_COMPONENT_LIBRARY : FUELGUARD_CAD_LIBRARY;
   const componentsList = Object.values(cadLibrary) as CadComponentMetadata[];
@@ -44,12 +43,12 @@ export const CadBomAssetsTab: React.FC<CadBomAssetsTabProps> = ({
             <div className="flex items-center space-x-2">
               <BookOpen className="w-4 h-4 text-fuelguard-green" />
               <h2 className="text-base font-display font-bold uppercase tracking-wider text-inst-primary">
-                BOM Oficial (12 Itens) & Registro de Tolerâncias Mecatrônicas
+                BOM de Referência Real & Registro de Tolerâncias Mecatrônicas
               </h2>
             </div>
             <p className="text-xs text-inst-secondary mt-1 max-w-4xl leading-relaxed">
-              Todos os componentes da bancada possuem part numbers reais de distribuidores (Mouser/DigiKey/JLCPCB/RoboCore).
-              As peças Classe C possuem dimensões medidas com paquímetro digital de 0.02mm de resolução.
+              A BOM canônica separa módulos comerciais, passivos e peças mecânicas. Classes C/D são referências dimensionais
+              e não devem ser usadas para fabricar uma PCB ou suporte sem medição da unidade real.
             </p>
           </div>
 
@@ -81,14 +80,12 @@ export const CadBomAssetsTab: React.FC<CadBomAssetsTabProps> = ({
         {/* Resumo de Custos e Classes */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs font-mono">
           <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border">
-            <span className="text-[10px] text-inst-muted block uppercase">Custo Unitário Total do MVP:</span>
-            <span className="text-sm font-bold text-fuelguard-green">
-              ${totalCostUsd.toFixed(2)} USD (≈ R$ {totalCostBrl.toFixed(2)})
-            </span>
+            <span className="text-[10px] text-inst-muted block uppercase">Itens cadastrados:</span>
+            <span className="text-sm font-bold text-fuelguard-green">{bomItems.length} referências / {totalQuantity} unidades</span>
           </div>
           <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border">
             <span className="text-[10px] text-inst-muted block uppercase">Componentes Críticos:</span>
-            <span className="text-sm font-bold text-amber-400">ESP32-S3, PN532, JSN-SR04T</span>
+            <span className="text-sm font-bold text-amber-400">ESP32-S3, PN532 V4, SEN0311</span>
           </div>
           <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border">
             <span className="text-[10px] text-inst-muted block uppercase">Classes de Fidelidade:</span>
@@ -113,8 +110,8 @@ export const CadBomAssetsTab: React.FC<CadBomAssetsTabProps> = ({
                   <th className="p-3">Categoria</th>
                   <th className="p-3">Descrição Técnica</th>
                   <th className="p-3">Fabricante</th>
-                  <th className="p-3">Footprint</th>
-                  <th className="p-3">Preço Unit.</th>
+                  <th className="p-3">Dimensões</th>
+                  <th className="p-3">Preço</th>
                   <th className="p-3">Classe</th>
                   <th className="p-3">Fornecedor</th>
                 </tr>
@@ -127,8 +124,12 @@ export const CadBomAssetsTab: React.FC<CadBomAssetsTabProps> = ({
                     <td className="p-3 text-[10px] text-inst-muted uppercase">{item.category}</td>
                     <td className="p-3 text-inst-secondary max-w-xs">{item.description}</td>
                     <td className="p-3 text-inst-secondary">{item.manufacturer}</td>
-                    <td className="p-3 text-inst-muted text-[11px]">{item.footprint}</td>
-                    <td className="p-3 text-emerald-400 font-bold">${item.unitPrice.toFixed(2)}</td>
+                    <td className="p-3 text-inst-muted text-[11px]">
+                      {item.dimensionsMm
+                        ? `${item.dimensionsMm.width} × ${item.dimensionsMm.height} × ${item.dimensionsMm.depth} mm`
+                        : 'Pendente: lote/medição'}
+                    </td>
+                    <td className="p-3 text-amber-300 font-bold">Não congelado</td>
                     <td className="p-3">
                       <span
                         className={`px-1.5 py-0.5 rounded-xs text-[10px] font-bold border ${
@@ -145,18 +146,18 @@ export const CadBomAssetsTab: React.FC<CadBomAssetsTabProps> = ({
                       </span>
                     </td>
                     <td className="p-3">
-                      {item.datasheetUrl ? (
+                      {item.sourceUrl ? (
                         <a
-                          href={item.datasheetUrl}
+                          href={item.sourceUrl}
                           target="_blank"
                           rel="noreferrer"
                           className="text-sky-400 hover:underline flex items-center gap-1 text-[11px]"
                         >
-                          <span>{item.supplier.split('/')[0].trim()}</span>
+                          <span>{item.manufacturer}</span>
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       ) : (
-                        <span className="text-inst-muted text-[11px]">{item.supplier}</span>
+                        <span className="text-inst-muted text-[11px]">{item.manufacturer}</span>
                       )}
                     </td>
                   </tr>
@@ -199,9 +200,14 @@ export const CadBomAssetsTab: React.FC<CadBomAssetsTabProps> = ({
                   >
                     Classe {comp.confidenceLevel}
                   </span>
-                  {comp.format === 'Modelo CAD Real Integrado' && (
+                  {comp.validationStatus === 'exact_verified' && (
                     <span className="text-[8px] px-1.5 py-0.5 rounded-2xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 uppercase tracking-tight">
-                      ★ CAD Real 1:1
+                      ★ CAD verificado
+                    </span>
+                  )}
+                  {comp.validationStatus === 'documented_reference' && (
+                    <span className="text-[8px] px-1.5 py-0.5 rounded-2xs font-bold bg-sky-500/20 text-sky-300 border border-sky-500/50 uppercase tracking-tight">
+                      Fonte documentada
                     </span>
                   )}
                 </div>

@@ -38,22 +38,22 @@ export class DrcChecker {
       else if (el.type === 'source_trace') sourceTraces.push(el);
     });
 
-    // 1. CHECAGEM DRC-01: Sobretensão no pino GPIO6 (ECHO direto em 5V sem divisor)
+    // 1. CHECAGEM DRC-01: TX UART do SEN0311 não pode ser tratado como 5V no GPIO16
     sourceTraces.forEach((trace) => {
       const connectedPorts: string[] = trace.connected_source_port_ids ?? [];
-      const hasGpio6 = connectedPorts.some((p) => p.includes('gpio6'));
-      const hasJsnEcho = connectedPorts.some((p) => p.includes('jsn_echo'));
+      const hasGpio16 = connectedPorts.some((p) => p.includes('gpio16'));
+      const hasLevelTx5V = connectedPorts.some((p) => p.includes('level_tx_5v'));
 
-      if (hasGpio6 && hasJsnEcho) {
+      if (hasGpio16 && hasLevelTx5V) {
         violations.push({
           id: 'DRC-V01-FATAL',
           ruleCode: 'DRC-01',
           severity: 'ERROR',
-          title: 'Sobretensão Fatal: Sinal de 5.0V Direto no ESP32-S3',
-          message: 'O pino ECHO do sensor JSN-SR04T opera em 5,00V e está conectado diretamente ao GPIO6. A tensão máxima absoluta suportada pelo ESP32-S3 é 3,60V.',
-          remedy: 'Intercale o divisor de tensão resistivo 10kΩ/15kΩ para atenuar o sinal para 3,00V seguros.',
+          title: 'Sobretensão Fatal: UART de 5.0V no ESP32-S3',
+          message: 'O TX do SEN0311 foi marcado como 5,00V e conectado diretamente ao GPIO16. A tensão máxima suportada pelo ESP32-S3 é 3,60V.',
+          remedy: 'Alimente o SEN0311 em 3,3V, confirme o nível TTL na unidade e mantenha a entrada UART dentro de 3,6V.',
           relatedComponentId: 'esp32_s3_devkit',
-          relatedNetName: 'ECHO_5V_FATAL',
+          relatedNetName: 'LEVEL_UART_5V_FATAL',
         });
       }
     });
@@ -71,55 +71,21 @@ export class DrcChecker {
         severity: 'WARNING',
         title: 'Terra Desconectado ou Flutuante',
         message: 'Nem todos os nós de alimentação compartilham a mesma referência de terra (GND).',
-        remedy: 'Certifique-se de conectar os terras do ESP32-S3, do sensor JSN, do buffer e dos periféricos no mesmo barramento.',
+        remedy: 'Certifique-se de conectar os terras do ESP32-S3, do SEN0311, do PN532 e dos demais periféricos no mesmo barramento.',
         relatedNetName: 'GND',
       });
     }
 
-    // 3. CHECAGEM DRC-03: Alimentação do Buffer de Nível
-    const hasBufferVcc5V = sourceTraces.some((trace) => {
-      const ports: string[] = trace.connected_source_port_ids ?? [];
-      const netIds: string[] = trace.connected_source_net_ids ?? [];
-      return ports.some((p) => p.includes('buffer_vcc')) && netIds.some((n) => n.includes('5v'));
-    });
+    // 3. CHECAGEM DRC-03: a baseline não usa buffer/divisor no SEN0311
+    violations.push({ id: 'DRC-SEN0311-INFO', ruleCode: 'DRC-03', severity: 'INFO', title: 'SEN0311 sem condicionamento legado', message: 'A baseline usa UART do SEN0311 em 3,3 V; não há buffer, TRIG/ECHO ou divisor resistivo nesta arquitetura.', remedy: 'Não adicionar condicionamento sem uma nova decisão de engenharia baseada em medição.' });
 
-    if (!hasBufferVcc5V) {
-      violations.push({
-        id: 'DRC-BUF-PWR',
-        ruleCode: 'DRC-03',
-        severity: 'WARNING',
-        title: 'Buffer SN74AHCT125N sem Alimentação de 5V',
-        message: 'Para elevar o sinal TRIG de 3.3V para 5.0V TTL, o VCC do buffer deve ser alimentado com 5V.',
-        remedy: 'Conecte o pino 14 (VCC) do buffer ao barramento de 5.0V da fonte USB.',
-        relatedComponentId: 'sn74ahct125n',
-      });
-    }
-
-    // 4. CHECAGEM DRC-04: Habilitação da Porta do Buffer (/1OE)
-    const hasBufferOeGnd = sourceTraces.some((trace) => {
-      const ports: string[] = trace.connected_source_port_ids ?? [];
-      return ports.some((p) => p.includes('buffer_1oe') && ports.some((p2) => p2.includes('gnd')));
-    });
-
-    if (!hasBufferOeGnd) {
-      violations.push({
-        id: 'DRC-BUF-OE',
-        ruleCode: 'DRC-04',
-        severity: 'INFO',
-        title: 'Pino de Habilitação /1OE deve ser Aterrado',
-        message: 'O buffer de 3 estados requer nível lógico baixo (0V) no pino /1OE para manter as saídas ativas.',
-        remedy: 'Ligue o pino 1 (/1OE) do SN74AHCT125N diretamente ao GND.',
-        relatedComponentId: 'sn74ahct125n',
-      });
-    }
-
-    // 5. CHECAGEM DRC-05: Informação de Modelo Aproximado
+    // 4. CHECAGEM DRC-05: Informação de modelo paramétrico
     violations.push({
       id: 'DRC-INFO-DIDACTIC',
       ruleCode: 'DRC-05',
       severity: 'INFO',
-      title: 'Modelos Didáticos de Bancada Ativos',
-      message: 'Os módulos PN532 e JSN-SR04T utilizam pegadas aproximadas de protótipo de bancada. Não aptos para confecção de gabarito final sem validação dimensional com paquímetro.',
+      title: 'Modelos paramétricos de bancada ativos',
+      message: 'PN532 V4, SEN0311, MC-38, MB-102 e FG-TANK-6L-R1 têm graus diferentes de confirmação mecânica. A topologia elétrica está congelada, mas suportes e footprints dependem das medições registradas.',
       remedy: 'Consulte o checklist de transição física antes de fabricar placa proprietária.',
     });
 

@@ -1,18 +1,15 @@
 /**
- * FuelGuard Virtual Test Bench — Auditoria Automática de Montagem Mecatrônica & Elétrica
- * Realiza verificações rigorosas sobre a integridade da montagem 3D física da bancada:
- * - Apoio e suportes de placas (nenhum objeto flutuando ou solto);
- * - Alinhamento de fixadores, espaçadores e parafusos com furação de PCB;
- * - Validação de conectores e fiação (terminais válidos, sem cabos soltos);
- * - Compatibilidade de tensão e conversão lógica (3.3V <-> 5.0V);
- * - Orientação dos sensores em relação à área de ensaio;
- * - Procedência e integridade das licenças (Classes A, B, C, D).
+ * Auditoria da montagem física de bancada do FuelGuard.
+ *
+ * A auditoria separa o que é seguro no contrato elétrico do que ainda depende
+ * da peça comprada: o viewer e os números paramétricos não substituem
+ * paquímetro, inspeção do lote ou ensaio com água.
  */
 
 import { FUELGUARD_CAD_LIBRARY, CadComponentMetadata } from './component-library';
 import { PHYSICAL_WIRING_REGISTRY, PhysicalCable } from './wiring-registry';
 
-export type AuditSeverity = 'PASS' | 'WARNING' | 'FAIL';
+export type AuditSeverity = 'PASS' | 'PENDING' | 'WARNING' | 'FAIL';
 export type AuditCategory =
   | 'support_mounting'
   | 'fasteners_alignment'
@@ -39,299 +36,69 @@ export interface AssemblyAuditReport {
   isCompliant: boolean;
   totalChecks: number;
   passCount: number;
+  pendingCount: number;
   warningCount: number;
   failCount: number;
   items: AssemblyAuditItem[];
 }
 
 export class AssemblyAuditor {
-  /**
-   * Executa a auditoria completa da montagem física da bancada.
-   */
   public static runAudit(
     components: Record<string, CadComponentMetadata> = FUELGUARD_CAD_LIBRARY,
-    cables: PhysicalCable[] = PHYSICAL_WIRING_REGISTRY
+    cables: PhysicalCable[] = PHYSICAL_WIRING_REGISTRY,
   ): AssemblyAuditReport {
     const items: AssemblyAuditItem[] = [];
+    const add = (item: AssemblyAuditItem) => items.push(item);
 
-    // =========================================================================
-    // 1. AUDITORIA DE APOIO E SUPORTES MECÂNICOS
-    // =========================================================================
-    // 1.1 Protoboard BB-830 deve estar apoiada sobre o tapete ESD
-    items.push({
-      id: 'AUD-SUP-01',
-      category: 'support_mounting',
-      title: 'Apoio da Protoboard BB-830 sobre Tapete ESD',
-      severity: 'PASS',
-      componentId: 'breadboard_830',
-      message: 'Protoboard assentada com plano de contato contínuo Y=3.0mm a Y=11.5mm.',
-      technicalDetails: 'Base de ABS de 165x55mm repousa diretamente sobre a borracha do tapete antiestático.',
-    });
+    add({ id: 'AUD-SUP-01', category: 'support_mounting', title: 'Apoio da protoboard MB-102 sobre a bancada', severity: 'PENDING', componentId: 'breadboard_830', message: 'O exemplar MB-102 deve ser medido antes de congelar o suporte da bancada.', technicalDetails: 'Envelope nominal de referência: aproximadamente 165 x 55 x 8,5 mm; lote comercial varia.' });
+    add({ id: 'AUD-SUP-02', category: 'support_mounting', title: 'Encaixe da ESP32-S3 DevKitC-1 v1.1', severity: 'PASS', componentId: 'esp32_s3_devkit', message: 'A placa oficial usa duas fileiras de 22 pinos em passo 2,54 mm.', technicalDetails: 'A revisão v1.1 está registrada; a furação da bancada ainda deve respeitar a unidade recebida.' });
+    add({ id: 'AUD-SUP-03', category: 'support_mounting', title: 'Suporte frontal do PN532 V4', severity: 'PENDING', componentId: 'pn532_breakout', message: 'O módulo deve ficar em suporte frontal, sem permanecer solto na bancada.', technicalDetails: 'Envelope nominal 42,7 x 40,4 x 4,0 mm; header, furos e antena da unidade V4 aguardam conferência.' });
+    add({ id: 'AUD-SUP-04', category: 'support_mounting', title: 'Fixação do probe DFRobot A02YYUW/SEN0311', severity: 'PENDING', componentId: 'a02yyuw_sen0311', message: 'O probe será centralizado na tampa, mas o diâmetro do suporte depende da unidade comprada.', technicalDetails: 'A DFRobot documenta a função elétrica e a faixa; o envelope físico e o cabo são vendor-lot-specific.', mitigationOrAction: 'Medir probe, cabo e prensa-cabo antes de liberar o furo da tampa.' });
+    add({ id: 'AUD-SUP-05', category: 'support_mounting', title: 'Assentamento do tanque FG-TANK-6L-R1', severity: 'PENDING', componentId: 'tank_cylinder', message: 'Tanque retangular transparente com base apoiada e área de respingos controlada.', technicalDetails: 'Baseline: 206 x 206 x 168 mm externos; 200 x 200 x 160 mm internos; acrílico 3 mm.' });
+    add({ id: 'AUD-SUP-06', category: 'support_mounting', title: 'Apoio do buzzer ativo BZ1 e LED D1', severity: 'PENDING', componentId: 'buzzer_active', message: 'O indicador ativo Same Sky CMI-1295IC-0385T e o LED verde serão montados na protoboard.', technicalDetails: 'CMI-1295IC-0385T tem circuito interno, opera em 2–5 V e não usa Q1; confirmar passo e polaridade na unidade.' });
 
-    // 1.2 ESP32-S3 DevKitC-1 deve estar encaixado nos furos da protoboard
-    items.push({
-      id: 'AUD-SUP-02',
-      category: 'support_mounting',
-      title: 'Encaixe dos Pinos do ESP32-S3 na Protoboard',
-      severity: 'PASS',
-      componentId: 'esp32_s3_devkit',
-      message: 'Barra de pinos 2x22 com passo 2.54mm e vão de 22.86mm centrada na canaleta.',
-      technicalDetails: 'Terminais metálicos machos transpassam as fileiras de ilhós da protoboard sem flutuação.',
-    });
+    add({ id: 'AUD-FST-01', category: 'fasteners_alignment', title: 'Quatro fixações M3 da tampa', severity: 'PENDING', componentId: 'tank_cylinder', message: 'As posições das quatro fixações M3 estão definidas como requisito da tampa.', technicalDetails: 'Centro do sensor, prensa-cabo e reed MC-38 devem manter afastamento de respingos e não interferir na antena.' });
+    add({ id: 'AUD-FST-02', category: 'fasteners_alignment', title: 'Suporte central do sensor na tampa', severity: 'PENDING', componentId: 'a02yyuw_sen0311', message: 'O recorte e o suporte aguardam medição do probe SEN0311 real.', technicalDetails: 'Não assumir rosca M20, flange ou O-ring de um JSN; a referência atual não usa esse conjunto.' });
 
-    // 1.3 Buffer DIP-14 assentado sobre a canaleta central
-    items.push({
-      id: 'AUD-SUP-03',
-      category: 'support_mounting',
-      title: 'Montagem do Buffer SN74AHCT125N DIP-14',
-      severity: 'PASS',
-      componentId: 'sn74ahct125n',
-      message: 'Encapsulamento DIP-14 montado sobre o vão central de 0.3" (7.62mm).',
-      technicalDetails: 'Pinos 1-7 e 8-14 inseridos em colunas opostas da matriz sem curto-circuito interno.',
-    });
-
-    // 1.4 Módulo JSN-SR04T apoiado sobre a bancada
-    items.push({
-      id: 'AUD-SUP-04',
-      category: 'support_mounting',
-      title: 'Apoio da Placa Controladora JSN-SR04T',
-      severity: 'PASS',
-      componentId: 'jsn_sr04t',
-      message: 'Placa repousa sobre a bancada com 4 pés de borracha anti-impacto (Y=5.0mm).',
-      technicalDetails: 'Isolamento de 2.0mm em relação à superfície condutiva para prevenir curtos no verso.',
-    });
-
-    // 1.5 Recipiente de Teste apoiado sobre a bancada
-    items.push({
-      id: 'AUD-SUP-05',
-      category: 'support_mounting',
-      title: 'Assentamento do Recipiente Cilíndrico de Teste',
-      severity: 'PASS',
-      componentId: 'tank_cylinder',
-      message: 'Base plana com flange de apoio inferior de Ø150mm repousando no tapete.',
-      technicalDetails: 'Centro de gravidade estável em repouso com até 5 litros de água potável.',
-    });
-
-    // 1.6 Buzzer e LED Indicador montados na Protoboard
-    items.push({
-      id: 'AUD-SUP-06',
-      category: 'support_mounting',
-      title: 'Apoio do Buzzer BZ1 e LED D1 na Protoboard',
-      severity: 'PASS',
-      componentId: 'buzzer_piezo',
-      message: 'Terminais radiais THT inseridos com firmeza nos contatos elásticos da matriz BB-830.',
-      technicalDetails: 'Passo de 7.62mm do buzzer e 2.54mm do LED alinhados com a furação da protoboard sem tensão nos leads.',
-    });
-
-    // =========================================================================
-    // 2. AUDITORIA DE FIXADORES, ESPAÇADORES E PARAFUSOS
-    // =========================================================================
-    // 2.1 Módulo PN532 na tampa com suporte acrílico e espaçadores de nylon M3
-    items.push({
-      id: 'AUD-FST-01',
-      category: 'fasteners_alignment',
-      title: 'Espaçadores e Parafusos do Módulo PN532',
-      severity: 'PASS',
-      componentId: 'pn532_breakout',
-      message: '4 espaçadores de nylon M3x10mm e parafusos de cabeça cilíndrica alinhados com a furação da PCB.',
-      technicalDetails: 'Furação de 36.0 x 34.0 mm da placa coincide com os furos do suporte sem estresse mecânico.',
-    });
-
-    // 2.2 Sonda ultrassônica M20 fixada com flange e anel de vedação na tampa
-    items.push({
-      id: 'AUD-FST-02',
-      category: 'fasteners_alignment',
-      title: 'Fixação Mecânica da Sonda Ultrassônica na Tampa',
-      severity: 'PASS',
-      componentId: 'jsn_sr04t',
-      message: 'Sonda estanque montada no furo central da tampa com rebaixo para flange de Ø22mm.',
-      technicalDetails: 'Corpo roscado M20 com anel de vedação de borracha para evitar vazamento de vapor d\'água.',
-    });
-
-    // =========================================================================
-    // 3. AUDITORIA DE CABOS, TERMINAIS E CONTINUIDADE ELÉTRICA
-    // =========================================================================
     let danglingCables = 0;
-    cables.forEach((c) => {
-      const fromExists = !!components[c.fromComponent] || c.fromComponent === 'breadboard_830' || c.fromComponent === 'external_host' || c.fromComponent === 'tank_cylinder';
-      const toExists = !!components[c.toComponent] || c.toComponent === 'breadboard_830' || c.toComponent === 'external_host' || c.toComponent === 'tank_cylinder';
-
+    const virtualEndpoints = new Set(['breadboard_830', 'external_host', 'tank_cylinder', 'mc38_lid_sensor']);
+    for (const cable of cables) {
+      const fromExists = !!components[cable.fromComponent] || virtualEndpoints.has(cable.fromComponent);
+      const toExists = !!components[cable.toComponent] || virtualEndpoints.has(cable.toComponent);
       if (!fromExists || !toExists) {
         danglingCables++;
-        items.push({
-          id: `AUD-WIR-ERR-${c.id}`,
-          category: 'wiring_endpoints',
-          title: `Cabo Sem Terminação Válida: ${c.id}`,
-          severity: 'FAIL',
-          cableId: c.id,
-          message: `O cabo ${c.id} possui origem ou destino inexistente (${c.fromComponent} -> ${c.toComponent}).`,
-          technicalDetails: 'Cabos na montagem real devem ter conectores físicos devidamente registrados.',
-          mitigationOrAction: 'Cadastre o componente ou corrija o nome do ponto de terminação no wiring-registry.',
-        });
+        add({ id: `AUD-WIR-ERR-${cable.id}`, category: 'wiring_endpoints', cableId: cable.id, title: `Cabo sem terminação válida: ${cable.id}`, severity: 'FAIL', message: `Origem ou destino inexistente (${cable.fromComponent} -> ${cable.toComponent}).`, technicalDetails: 'Todo cabo precisa terminar em componente, trilho ou host explicitamente registrado.', mitigationOrAction: 'Corrigir o wiring-registry ou cadastrar o endpoint físico.' });
       }
-    });
-
+    }
     if (danglingCables === 0) {
-      items.push({
-        id: 'AUD-WIR-OK',
-        category: 'wiring_endpoints',
-        title: 'Integridade dos Terminais e Conectores do Chicote',
-        severity: 'PASS',
-        message: `Todos os ${cables.length} condutores possuem conectores DuPont/coaxiais e pinos válidos.`,
-        technicalDetails: '100% dos cabos conectam componentes registrados com terminais moldados de 2.54mm.',
-      });
+      add({ id: 'AUD-WIR-OK', category: 'wiring_endpoints', title: 'Integridade dos terminais do chicote', severity: 'PASS', message: `Todos os ${cables.length} condutores possuem origem e destino registrados.`, technicalDetails: 'O registro canônico cobre alimentação, UART, SPI, interlock, LED, buzzer e USB-C.' });
     }
 
-    // =========================================================================
-    // 4. AUDITORIA DE TENSÃO E CONVERSÃO DE NÍVEL LÓGICO
-    // =========================================================================
-    // 4.1 Proteção do pino ECHO (5V -> divisor -> 3.0V -> GPIO6)
-    const echoCableSafe = cables.find((c) => c.netName === 'ECHO_3V0_SAFE');
-    const echoCable5V = cables.find((c) => c.netName === 'ECHO_5V_RAW');
+    const levelCable = cables.find((c) => c.netName === 'LEVEL_UART_RX');
+    const modeCable = cables.find((c) => c.netName === 'LEVEL_MODE_PROCESSED');
+    add({ id: 'AUD-VOLT-01', category: 'electrical_voltage', title: 'Domínio lógico do SEN0311', severity: levelCable && modeCable && levelCable.nominalVoltageV <= 3.3 && modeCable.nominalVoltageV <= 3.3 ? 'PASS' : 'FAIL', message: 'SEN0311 alimentado em 3,3 V; TX chega ao GPIO16 sem divisor ou buffer legado.', technicalDetails: 'A alimentação em 3,3 V mantém UART TTL compatível com o ESP32-S3. RX/MODE fica em nível alto.' });
+    add({ id: 'AUD-VOLT-02', category: 'electrical_voltage', title: 'Separação da alimentação de 5 V', severity: 'PASS', message: 'VBUS de 5 V fica restrito à distribuição da fonte e aos consumidores compatíveis.', technicalDetails: 'Nenhum cabo nominal de 5 V conecta diretamente uma entrada GPIO do ESP32-S3.' });
 
-    if (echoCableSafe && echoCable5V && echoCableSafe.nominalVoltageV <= 3.3) {
-      items.push({
-        id: 'AUD-VOLT-01',
-        category: 'electrical_voltage',
-        title: 'Proteção de Tensão no Eco Ultrassônico (GPIO6)',
-        severity: 'PASS',
-        message: 'Tensão de eco atenuada via divisor 10k/15k para 3.00V (dentro do limite máx de 3.6V do ESP32).',
-        technicalDetails: 'Vout = 5.0V * (15k / (10k + 15k)) = 3.00V nominal. Margem de segurança de 0.60V.',
-      });
-    } else {
-      items.push({
-        id: 'AUD-VOLT-01-FAIL',
-        category: 'electrical_voltage',
-        title: 'Sobretensão no Pino de Eco do ESP32-S3',
-        severity: 'FAIL',
-        message: 'O pino GPIO6 está recebendo tensão acima do limite absoluto de 3.6V!',
-        technicalDetails: 'Risco iminente de queima dos diodos de clamping ESD internos do microcontrolador.',
-        mitigationOrAction: 'Interponha o divisor resistivo 10kΩ/15kΩ entre o pino ECHO do JSN e o GPIO6.',
-      });
-    }
+    add({ id: 'AUD-SNS-01', category: 'sensor_orientation', title: 'Orientação e zona cega do A02YYUW/SEN0311', severity: 'PENDING', componentId: 'a02yyuw_sen0311', message: 'Probe centralizado e perpendicular à água; a montagem final aguarda confirmação física.', technicalDetails: 'Zona cega de aproximadamente 3 cm e faixa documentada de 30–4500 mm devem ser confirmadas na unidade e no ensaio; o valor está documentado, não confirmado na montagem.', mitigationOrAction: 'Usar a faixa de 35–135 mm de distância para 1–5 L no tanque de 160 mm úteis.' });
+    add({ id: 'AUD-SNS-02', category: 'sensor_orientation', title: 'Alinhamento do MC-38 e ímã da tampa', severity: 'PENDING', componentId: 'reed_switch', message: 'Gap, orientação e estado NO/NC ainda dependem da variante MC-38 escolhida.', technicalDetails: 'MC-38 não é um MPN único; congelar vendedor, lote, ímã, cabo e polaridade antes do suporte.' });
+    add({ id: 'AUD-SNS-03', category: 'sensor_orientation', title: 'Visada do sensor e confinamento hidrostático', severity: 'PENDING', componentId: 'tank_cylinder', message: 'Visada aguardando a tampa fabricada e o ensaio com água.', technicalDetails: 'O viewer mostra a baseline paramétrica; não é gabarito de fabricação ou calibração.' });
 
-    // 4.2 Disparo de pulso TRIG (3.3V -> Buffer 74AHCT125 -> 5V TTL)
-    const trig3V3 = cables.find((c) => c.netName === 'TRIG_3V3');
-    const trig5V = cables.find((c) => c.netName === 'TRIG_5V');
-
-    if (trig3V3 && trig5V) {
-      items.push({
-        id: 'AUD-VOLT-02',
-        category: 'electrical_voltage',
-        title: 'Elevação de Nível do Pulso de Disparo (TRIG 5V)',
-        severity: 'PASS',
-        message: 'Buffer SN74AHCT125N converte saída 3.3V CMOS para pulso robusto 5.0V TTL.',
-        technicalDetails: 'Garante que o limiar VIH do módulo piezoelétrico seja superado mesmo com ruído.',
-      });
-    }
-
-    // =========================================================================
-    // 5. AUDITORIA DE ORIENTAÇÃO DOS SENSORES E ÁREA DE MEDIÇÃO
-    // =========================================================================
-    items.push({
-      id: 'AUD-SNS-01',
-      category: 'sensor_orientation',
-      title: 'Orientação e Zona Cega do Sensor Ultrassônico',
-      severity: 'WARNING',
-      componentId: 'jsn_sr04t',
-      message: 'Sonda voltada perpendicularmente à água. Atenção à zona cega de 20cm do JSN-SR04T.',
-      technicalDetails: 'A distância entre a sonda na tampa e a lâmina máxima de água (95%) deve respeitar o curso mínimo de 20 cm do datasheet.',
-      mitigationOrAction: 'No MVP didático, manter o volume nominal entre 15% e 75% para garantir ecos limpos.',
-    });
-
-    items.push({
-      id: 'AUD-SNS-02',
-      category: 'sensor_orientation',
-      title: 'Acoplamento Magnético do Reed Switch de Tampa',
-      severity: 'PASS',
-      componentId: 'reed_switch',
-      message: 'Ímã de neodímio na tampa alinha-se a menos de 10mm da ampola ao fechar.',
-      technicalDetails: 'Distância de ativação nominal de 12-15mm permite detecção confiável do estado de tampa aberta/fechada.',
-    });
-
-    items.push({
-      id: 'AUD-SNS-03',
-      category: 'sensor_orientation',
-      title: 'Visada Acústica Desobstruída e Cone de Emissão',
-      severity: 'PASS',
-      componentId: 'jsn_sr04t',
-      message: 'Cone acústico de 55° possui linha direta e perpendicular à lâmina de água.',
-      technicalDetails: 'Sem obstáculos ou fiações interceptando o feixe ultrassônico entre o transdutor e o menisco líquido.',
-    });
-
-    // =========================================================================
-    // 6. AUDITORIA DE PROCEDÊNCIA E LICENÇAS DOS ASSETS
-    // =========================================================================
-    Object.values(components).forEach((comp) => {
+    for (const comp of Object.values(components)) {
       if (comp.confidenceLevel === 'D') {
-        items.push({
-          id: `AUD-LIC-WARN-${comp.id}`,
-          category: 'provenance_license',
-          title: `Asset Classe D (Placeholder): ${comp.name}`,
-          severity: 'WARNING',
-          componentId: comp.id,
-          message: `${comp.name} é um placeholder didático representativo e não modelo de fabricação.`,
-          technicalDetails: comp.confidenceRationale,
-          mitigationOrAction: comp.replacementInstructions,
-        });
+        add({ id: `AUD-LIC-WARN-${comp.id}`, category: 'provenance_license', title: `Asset bloqueado: ${comp.name}`, severity: 'WARNING', componentId: comp.id, message: `${comp.name} ainda não possui geometria de fabricação comprovada.`, technicalDetails: comp.confidenceRationale, mitigationOrAction: comp.replacementInstructions });
       } else if (comp.confidenceLevel === 'C') {
-        items.push({
-          id: `AUD-LIC-INFO-${comp.id}`,
-          category: 'provenance_license',
-          title: `Asset Classe C (Aproximação Paramétrica): ${comp.name}`,
-          severity: 'WARNING',
-          componentId: comp.id,
-          message: `${comp.name} possui dimensões inferidas a confirmar com paquímetro no recebimento físico.`,
-          technicalDetails: `Medições pendentes: ${comp.inferredDimensions.join(', ')}`,
-          mitigationOrAction: 'Medir placa física com paquímetro digital de precisão 0.02mm.',
-        });
+        add({ id: `AUD-LIC-INFO-${comp.id}`, category: 'provenance_license', title: `Asset paramétrico: ${comp.name}`, severity: 'WARNING', componentId: comp.id, message: `${comp.name} orienta a bancada, mas ainda requer confirmação física.`, technicalDetails: comp.confidenceRationale, mitigationOrAction: comp.replacementInstructions });
       }
-    });
+    }
+    add({ id: 'AUD-LIC-WARN-tank_cylinder', category: 'provenance_license', title: 'FG-TANK-6L-R1 ainda não fabricado', severity: 'WARNING', componentId: 'tank_cylinder', message: 'A capacidade de 6,4 L é geométrica e ainda precisa de fabricação e calibração.', technicalDetails: 'As medidas 206 x 206 x 168 mm são baseline paramétrica, não evidência de peça recebida.' });
 
-    items.push({
-      id: 'AUD-LIC-OK',
-      category: 'provenance_license',
-      title: 'Rastreabilidade Canônica e Licenciamento Aberto',
-      severity: 'PASS',
-      message: '100% dos modelos possuem licença transparente (CC-BY-SA, JEDEC, OSHW) e fonte declarada.',
-      technicalDetails: 'Repositórios oficiais: Espressif KiCad, KiCad Packages3D, Adafruit OSHW e FreeCAD Library.',
-    });
+    add({ id: 'AUD-CLR-01', category: 'clearance_collision', title: 'Folga entre módulos, cabos e suporte', severity: 'PENDING', message: 'Colisões só podem ser aprovadas com as dimensões medidas dos módulos e conectores.', technicalDetails: 'three-mesh-bvh pode detectar interseções no modelo, mas não substitui inspeção da montagem real.' });
+    add({ id: 'AUD-CLR-02', category: 'clearance_collision', title: 'Confinamento hidrostático do tanque', severity: 'PENDING', componentId: 'tank_cylinder', message: 'Confinamento hidrostático pendente de fabricação da caixa e da tampa.', technicalDetails: 'A geometria interna 200 x 200 x 160 mm e a passagem com prensa-cabo precisam ser medidas na peça pronta.' });
 
-    // =========================================================================
-    // 7. AUDITORIA DE INTERPENETRAÇÃO E FOLGA (CLEARANCE)
-    // =========================================================================
-    items.push({
-      id: 'AUD-CLR-01',
-      category: 'clearance_collision',
-      title: 'Ausência de Colisões entre Placas e Carcaça',
-      severity: 'PASS',
-      message: 'Folga mínima de 4.0mm entre cabos de alta amplitude (coaxial piezo) e sinais lógicos SPI.',
-      technicalDetails: 'Nenhum condutor tubular atravessa corpos sólidos de placas ou paredes do recipiente.',
-    });
-
-    items.push({
-      id: 'AUD-CLR-02',
-      category: 'clearance_collision',
-      title: 'Confinamento Hidrostático e Nível Volumétrico',
-      severity: 'PASS',
-      componentId: 'tank_cylinder',
-      message: 'Volume d\'água estritamente circunscrito no raio interno (51.8mm) e abaixo da borda.',
-      technicalDetails: 'A lâmina d\'água não transborda e mantém distância mínima de 25mm em relação à face da sonda no topo.',
-    });
-
-    // Consolidação de métricas
-    const failCount = items.filter((i) => i.severity === 'FAIL').length;
-    const warningCount = items.filter((i) => i.severity === 'WARNING').length;
-    const passCount = items.filter((i) => i.severity === 'PASS').length;
-
-    return {
-      timestamp: new Date().toISOString(),
-      isCompliant: failCount === 0,
-      totalChecks: items.length,
-      passCount,
-      warningCount,
-      failCount,
-      items,
-    };
+    const failCount = items.filter((item) => item.severity === 'FAIL').length;
+    const warningCount = items.filter((item) => item.severity === 'WARNING').length;
+    const passCount = items.filter((item) => item.severity === 'PASS').length;
+    const pendingCount = items.filter((item) => item.severity === 'PENDING').length;
+    return { timestamp: new Date().toISOString(), isCompliant: failCount === 0 && pendingCount === 0, totalChecks: items.length, passCount, pendingCount, warningCount, failCount, items };
   }
 }

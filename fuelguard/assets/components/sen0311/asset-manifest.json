@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "reference": "SEN1",
+  "name": "DFRobot A02YYUW Waterproof Ultrasonic Sensor",
+  "manufacturer": "DFRobot",
+  "model": "SEN0311",
+  "revision": "A02YYUW; UART 9600 8N1; operação 3,3 V",
+  "sourceUrl": "https://wiki.dfrobot.com/sen0311/",
+  "license": "manufacturer-reference; probe/cable geometry pending physical confirmation",
+  "format": "Representação paramétrica elétrica documentada; envelope vendor-lot-specific",
+  "sourceUnit": "mm",
+  "dimensionsMm": { "width": 0, "height": 0, "depth": 0 },
+  "scale": [1.0, 1.0, 1.0],
+  "transforms": { "positionOffsetMm": [0.0, 0.0, 0.0], "rotationDeg": [0, 0, 0] },
+  "fidelityClass": "C",
+  "confidenceRationale": "A DFRobot documenta alimentação 3,3–5 V, UART TTL 9600 8N1, IP67, faixa 30–4500 mm e pinout. Envelope do probe, cabo e terminal do lote recebido ainda devem ser medidos.",
+  "verificationStatus": "PENDING_PHYSICAL_EVIDENCE",
+  "verificationDate": null,
+  "disclaimerNote": "Não usar dimensões zero como gabarito. Medir probe, cabo e terminal antes de fabricar o suporte.",
+  "mounting": {
+    "transducerMounting": "PENDING_MEAS-SEN0311-01",
+    "pcbMounting": "CABLE_AND_PROBE_SUPPORT_ON_FG-TANK-6L-R1-LID",
+    "orientation": "CENTERED_DOWN_TO_LIQUID_SURFACE",
+    "electrical": "VCC=3.3V; RX=HIGH processed output; TX->ESP32 GPIO16"
+  }
+}

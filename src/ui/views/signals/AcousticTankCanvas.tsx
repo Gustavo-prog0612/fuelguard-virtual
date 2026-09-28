@@ -89,7 +89,7 @@ export const AcousticTankCanvas: React.FC<AcousticTankCanvasProps> = ({
       const waterHeightPx = (clampedWaterCm / hrefCm) * tankHeightPx;
       const waterY = tankBottom - waterHeightPx;
 
-      // 1. Zona Cega (0 a 20 cm abaixo do transdutor)
+      // 1. Zona Cega (0 a 3 cm abaixo do sensor)
       const blindZonePx = (20 / hrefCm) * tankHeightPx;
       ctx.fillStyle = 'rgba(239, 68, 68, 0.08)';
       ctx.fillRect(tankLeft, tankTop, tankWidth, blindZonePx);
@@ -115,7 +115,7 @@ export const AcousticTankCanvas: React.FC<AcousticTankCanvasProps> = ({
 
       ctx.font = '9px "IBM Plex Mono", monospace';
       ctx.fillStyle = inBlindZone ? '#ef4444' : 'rgba(239, 68, 68, 0.7)';
-      ctx.fillText('ZONA CEGA (20 cm)', tankLeft + 8, tankTop + 14);
+      ctx.fillText('ZONA CEGA (3 cm)', tankLeft + 8, tankTop + 14);
 
       // 2. Cone de Emissão Acústica (~55°)
       const centerX = tankLeft + tankWidth / 2;
@@ -226,7 +226,7 @@ export const AcousticTankCanvas: React.FC<AcousticTankCanvasProps> = ({
       ctx.lineTo(tankRight, tankTop);
       ctx.stroke();
 
-      // 6. Transdutor JSN-SR04T no Topo
+      // 6. Sensor DFRobot SEN0311 no topo
       const transWidth = 70;
       const transHeight = 22;
       ctx.fillStyle = '#1e293b';
@@ -235,7 +235,7 @@ export const AcousticTankCanvas: React.FC<AcousticTankCanvasProps> = ({
       ctx.fillRect(centerX - transWidth / 2, tankTop - transHeight, transWidth, transHeight);
       ctx.strokeRect(centerX - transWidth / 2, tankTop - transHeight, transWidth, transHeight);
 
-      // Cúpula piezoelétrica JSN
+      // Probe estanque A02YYUW/SEN0311
       ctx.fillStyle = '#0f172a';
       ctx.beginPath();
       ctx.arc(centerX, tankTop, 12, 0, Math.PI);
@@ -249,7 +249,7 @@ export const AcousticTankCanvas: React.FC<AcousticTankCanvasProps> = ({
 
       ctx.fillStyle = '#e2e8f0';
       ctx.font = 'bold 9px "IBM Plex Sans", sans-serif';
-      ctx.fillText('JSN-SR04T', centerX - 8, tankTop - 8);
+      ctx.fillText('SEN0311', centerX - 8, tankTop - 8);
 
       // 7. Régua de Cotas Lateral
       ctx.fillStyle = '#64748b';
@@ -299,7 +299,7 @@ export const AcousticTankCanvas: React.FC<AcousticTankCanvasProps> = ({
 
         {inBlindZone && (
           <div className="absolute top-2 left-2 right-2 bg-rose-950/90 border border-rose-600 p-1.5 rounded-xs text-center text-[10px] font-mono text-rose-200 font-bold animate-pulse">
-            ALERTA: NÍVEL DENTRO DA ZONA CEGA (&lt; 20 cm)
+            ALERTA: NÍVEL DENTRO DA ZONA CEGA (&lt; 3 cm)
           </div>
         )}
       </div>

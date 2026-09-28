@@ -7,7 +7,7 @@
   "revision": "v1.1 (PCB Rev 2023)",
   "sourceUrl": "https://github.com/espressif/kicad-libraries",
   "license": "CC-BY-SA-4.0",
-  "format": "Modelo CAD Real Integrado (Classe A / KiCad Espressif)",
+  "format": "Referência paramétrica documentada (Classe A)",
   "sourceUnit": "mm",
   "dimensionsMm": {
     "width": 25.5,
@@ -20,7 +20,7 @@
     "rotationDeg": [0, 0, 0]
   },
   "fidelityClass": "A",
-  "confidenceRationale": "Geometria oficial confirmada a partir das bibliotecas KiCad e guia de hardware da Espressif. Inclui blindagem metálica WROOM-1, portas USB-C em aço, antena MIFA ouro e pinos 2x22.",
+  "confidenceRationale": "Envelope nominal documentado pelo guia oficial da Espressif. A unidade comprada ainda precisa confirmar altura, headers, USB e keepouts antes de furação.",
   "verificationDate": "2026-09-28",
   "mounting": {
     "type": "THT_INSERTION",

@@ -14,28 +14,21 @@ describe('Auditoria de Engenharia Elétrica — Consistência Esquemático, Netl
     });
   });
 
-  it('deve validar proteção contra sobretensão no pino de leitura de eco (REQ-ELEC-01)', () => {
-    const echoPin = ESP32_S3_PINMAP.find((p) => p.gpioNumber === 6);
-    expect(echoPin).toBeDefined();
-    expect(echoPin?.netName).toBe('ECHO_3V0_SAFE');
-
-    // A net do eco deve vir do divisor resistivo e não diretamente do sensor 5V
-    const safeNet = FUELGUARD_HARDWARE_NETS['ECHO_3V0_SAFE'];
-    expect(safeNet).toBeDefined();
-    expect(safeNet.nominalVoltageV).toBe(3.0);
-    expect(safeNet.maxAllowableVoltageV).toBeLessThanOrEqual(3.4);
-    expect(safeNet.sourcePin).toBe('R_DIV.VOUT');
+  it('deve manter a UART do SEN0311 dentro do domínio seguro do ESP32', () => {
+    const levelPin = ESP32_S3_PINMAP.find((p) => p.gpioNumber === 16);
+    expect(levelPin).toBeDefined();
+    expect(levelPin?.netName).toBe('LEVEL_UART_RX');
+    const safeNet = FUELGUARD_HARDWARE_NETS.LEVEL_UART_RX;
+    expect(safeNet.nominalVoltageV).toBe(3.3);
+    expect(safeNet.maxAllowableVoltageV).toBeLessThanOrEqual(3.6);
+    expect(safeNet.sourcePin).toBe('SEN1.TX');
   });
 
-  it('deve garantir elevação de nível no pino TRIG para disparo TTL do sensor (REQ-ELEC-02)', () => {
-    const trigEspNet = FUELGUARD_HARDWARE_NETS['TRIG_3V3'];
-    expect(trigEspNet.nominalVoltageV).toBe(3.3);
-    expect(trigEspNet.sinkPins).toContain('U2.1A');
-
-    const trigSensorNet = FUELGUARD_HARDWARE_NETS['TRIG_5V'];
-    expect(trigSensorNet.nominalVoltageV).toBe(5.0);
-    expect(trigSensorNet.sourcePin).toBe('U2.1Y');
-    expect(trigSensorNet.sinkPins).toContain('SEN1.TRIG');
+  it('deve fixar o modo processado do SEN0311 em nível alto', () => {
+    const modeNet = FUELGUARD_HARDWARE_NETS.LEVEL_MODE_PROCESSED;
+    expect(modeNet.nominalVoltageV).toBe(3.3);
+    expect(modeNet.sourcePin).toBe('+3.3V');
+    expect(modeNet.sinkPins).toContain('SEN1.RX_MODE');
   });
 
   it('deve verificar ausência de pinos flutuantes ou sem terminação (zero floating pins)', () => {

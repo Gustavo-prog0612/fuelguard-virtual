@@ -24,9 +24,9 @@ export const BenchView: React.FC = () => {
 
     // Se houver violação crítica, avisa a simulação
     if (rep.overallStatus === 'CRITICAL_ERROR') {
-      sim.setFault('FAULT_ECHO_5V', true);
+      sim.setFault('FAULT_LEVEL_UART_5V', true);
     } else {
-      sim.setFault('FAULT_ECHO_5V', false);
+      sim.setFault('FAULT_LEVEL_UART_5V', false);
     }
   }, [connections]);
 
@@ -83,8 +83,8 @@ export const BenchView: React.FC = () => {
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#1f2937]" /> GND</span>
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#dc2626]" /> +5V</span>
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#d97706]" /> +3V3</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#7c3aed]" /> TRIG</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#0284c7]" /> ECHO</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#7c3aed]" /> UART TX</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#0284c7]" /> UART RX</span>
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#059669]" /> SPI</span>
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#166534]" /> LED</span>
           </div>
