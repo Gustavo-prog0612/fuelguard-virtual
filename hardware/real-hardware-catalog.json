@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "catalog": "FuelGuard Real Hardware Engineering Catalog",
+  "revision": "2026-09-28.2",
+  "status": "ENGINEERING_REFERENCE_NOT_RELEASED",
+  "units": "mm",
+  "evidencePolicy": {
+    "DOCUMENTED": "Fonte técnica do fabricante ou distribuidor autorizado.",
+    "PARAMETRIC_BASELINE": "Geometria explicitamente congelada para a bancada, ainda sujeita a verificação da peça fabricada.",
+    "PHYSICAL_CONFIRMED": "Medição repetida na unidade comprada, com lote e evidência fotográfica.",
+    "VENDOR_LOT_PENDING": "Família comercial sem MPN/variante única; não liberar encaixe ou contato elétrico sem fornecedor definido."
+  },
+  "items": [
+    {
+      "reference": "U1",
+      "manufacturer": "Espressif Systems",
+      "mpn": "ESP32-S3-DevKitC-1-N8R8",
+      "revision": "v1.1",
+      "dimensionsMm": { "width": 25.5, "length": 68.0, "height": null },
+      "interface": "2x22 headers, 2.54 mm; USB-C; GPIO 3.3 V",
+      "footprint": "Connector_PinSocket_2.54mm:PinSocket_1x22_P2.54mm_Vertical x2",
+      "evidence": "DOCUMENTED",
+      "sourceUrls": ["https://documentation.espressif.com/api/resource/path/docs/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide.html", "https://dl.espressif.com/dl/schematics/SCH_ESP32-S3-DevKitC-1_V1.1_20221130.pdf", "https://dl.espressif.com/dl/schematics/PCB_ESP32-S3-DevKitC-1_V1.1_20220429.pdf", "https://dl.espressif.com/dl/schematics/DXF_ESP32-S3-DevKitC-1_V1.1_20220429.pdf"],
+      "releaseGate": "Confirmar revisão v1.1, altura dos headers, posição dos USB e keepouts na unidade comprada."
+    },
+    {
+      "reference": "RFID1",
+      "manufacturer": "ELECHOUSE",
+      "mpn": "NFC-PN532_V4",
+      "dimensionsMm": { "width": 42.7, "length": 40.4, "height": 4.0 },
+      "interface": "Header 1x8, 2.54 mm; SPI TTL 3.3 V",
+      "headerPinout": ["SCK", "MISO", "MOSI", "SS", "VCC", "GND", "IRQ", "RSTO"],
+      "footprint": "PENDING_MATING_CONNECTOR_1X08_P2.54",
+      "evidence": "DOCUMENTED",
+      "sourceUrls": ["https://www.elechouse.com/product/pn532-nfc-rfid-module-v4/", "https://www.elechouse.com/docs/pn532-v4/", "https://www.elechouse.com/elechouse/images/product/PN532_MANUAL_V3.pdf"],
+      "releaseGate": "Confirmar lote V4, gênero/altura do header, furos e região de keepout da antena."
+    },
+    {
+      "reference": "SEN1",
+      "manufacturer": "DFRobot",
+      "mpn": "A02YYUW / SEN0311",
+      "dimensionsMm": null,
+      "interface": "UART TTL 9600 8N1; VCC, GND, RX seleção processado/tempo real, TX saída",
+      "electricalRange": "3.3–5 V; operar em 3.3 V na bancada para manter TX compatível com ESP32",
+      "measurementRange": "30–4500 mm para objeto plano; zona cega nominal 30 mm",
+      "environment": "IP67; 40 kHz ±1 kHz; ângulo de detecção 60°; resposta 100 ms",
+      "footprint": "PENDING_PHYSICAL_ENVELOPE_VENDOR_CABLE",
+      "evidence": "DOCUMENTED",
+      "sourceUrls": ["https://wiki.dfrobot.com/sen0311/", "https://wiki.dfrobot.com/sen0311/docs/21651"],
+      "releaseGate": "Registrar comprimento do cabo, diâmetro do probe, saída do chicote e suporte real antes de liberar corte da tampa."
+    },
+    {
+      "reference": "SW1",
+      "manufacturer": "Fornecedor a selecionar",
+      "mpn": "MC-38 / variante e lote a congelar",
+      "dimensionsMm": null,
+      "interface": "Contato magnético com ímã; topologia NO/NC depende da variante comprada",
+      "footprint": "PENDING_VENDOR_LOT",
+      "evidence": "VENDOR_LOT_PENDING",
+      "sourceUrls": ["https://robu.in/wp-content/uploads/2017/04/Datasheet-MC-38-final-1.pdf"],
+      "releaseGate": "Fixar vendedor, código da variante, NO/NC, envelope do corpo, furação e gap de atuação antes do suporte da tampa."
+    },
+    {
+      "reference": "D1",
+      "manufacturer": "Kingbright",
+      "mpn": "WP7113GD",
+      "dimensionsMm": { "width": 5.0, "length": 5.0, "height": 8.6 },
+      "interface": "LED verde difuso T-1 3/4",
+      "footprint": "LED_THT:LED_D5.0mm",
+      "evidence": "DOCUMENTED",
+      "sourceUrls": ["https://www.kingbrightusa.com/images/catalog/SPEC/WP7113GD.pdf"],
+      "releaseGate": "Usar R3 de 220 Ω e confirmar corrente/brilho no ensaio da unidade."
+    },
+    {
+      "reference": "BZ1",
+      "manufacturer": "Same Sky (formerly CUI Devices)",
+      "mpn": "CMI-1295IC-0385T",
+      "dimensionsMm": { "width": 12.0, "length": 12.0, "height": 9.5 },
+      "interface": "Indicador magnético ativo, internamente acionado, 2–5 V, 30 mA máx., 85 dB a 3 V",
+      "footprint": "PENDING_THT_TWO_PIN_12MM_PER_DATASHEET",
+      "evidence": "DOCUMENTED",
+      "sourceUrls": ["https://jp.sameskydevices.com/product/resource/cmi-1295ic-0385t.pdf", "https://www.sameskydevices.com/product/audio/buzzers/audio-indicators/cmi-1295ic-0385t"],
+      "releaseGate": "Confirmar polaridade, passo dos terminais e corrente medida antes de definir driver ou ligação ao GPIO."
+    },
+    {
+      "reference": "BB1",
+      "manufacturer": "Vendor-lot-specific",
+      "mpn": "MB-102 830-point",
+      "dimensionsMm": { "width": 165.0, "length": 55.0, "height": 8.5 },
+      "interface": "Matriz solderless 2.54 mm; barramentos de alimentação",
+      "footprint": "NOT_A_PCB",
+      "evidence": "VENDOR_LOT_PENDING",
+      "sourceUrls": ["https://handsontec.com/dataspecs/m102-830-bread-board.pdf", "https://static6.arrow.com/aropdfconversion/79d9433ffb0c5a29aa070b5ccf9a3e7212992abd/mb102.pdf"],
+      "releaseGate": "Medir a unidade recebida antes de congelar folgas e posição da bancada 3D."
+    },
+    {
+      "reference": "PS1",
+      "manufacturer": "Fonte certificada a selecionar",
+      "mpn": "USB-C 5 V / 3 A",
+      "dimensionsMm": null,
+      "interface": "Entrada AC isolada e saída USB-C 5 V; somente baixa tensão na bancada",
+      "footprint": "EXTERNAL_POWER_SUPPLY",
+      "evidence": "VENDOR_LOT_PENDING",
+      "sourceUrls": [],
+      "releaseGate": "Registrar fabricante, certificação aplicável, corrente nominal e cabo usado."
+    },
+    {
+      "reference": "TK1/LID1",
+      "manufacturer": "FuelGuard bench design",
+      "mpn": "FG-TANK-6L-R1",
+      "dimensionsMm": { "width": 206.0, "length": 206.0, "height": 168.0 },
+      "internalDimensionsMm": { "width": 200.0, "length": 200.0, "height": 160.0 },
+      "interface": "Acrílico transparente: paredes 3 mm, tampa 5 mm; 4x M3; suporte A02YYUW; prensa-cabo; MC-38 + ímã",
+      "operationalVolumeLiters": { "min": 1.0, "max": 5.0 },
+      "nominalCapacityLiters": 6.4,
+      "footprint": "PARAMETRIC_BENCH_ASSEMBLY",
+      "evidence": "PARAMETRIC_BASELINE",
+      "sourceUrls": ["user-approved bench baseline; parametric design input"],
+      "releaseGate": "Fabricar, medir paredes/tampa/posição dos M3 e aferir volume com água antes de declarar calibração."
+    }
+  ]
+}

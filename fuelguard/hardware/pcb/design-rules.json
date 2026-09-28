@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "status": "DEPRECATED_UNVALIDATED",
+  "purpose": "Registro de que um ruleset conceitual anterior não é uma regra de fabricação do FuelGuard.",
+  "replacedBy": [
+    "docs/adr/0002-adapter-pcb-input-freeze.md",
+    "hardware/pcb/fuelguard-adapter/design-inputs.json",
+    "hardware/measurements/measurement-register.json"
+  ],
+  "prohibitedUse": [
+    "contorno de PCB",
+    "largura/folga de cobre",
+    "furação",
+    "seleção de fabricante",
+    "geração de Gerber"
+  ],
+  "reason": "O tamanho da placa, conectores, stackup e regras dependem de peças físicas e fabricante ainda não congelados."
+}

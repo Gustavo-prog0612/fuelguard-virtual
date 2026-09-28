@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "reference": "SW1",
+  "name": "MC-38 Reed Switch + ímã",
+  "manufacturer": "Fornecedor a selecionar",
+  "model": "MC-38-VENDOR-LOT-PENDING",
+  "revision": "Variante comercial pendente de compra e medição",
+  "sourceUrl": "https://robu.in/wp-content/uploads/2017/04/Datasheet-MC-38-final-1.pdf",
+  "license": "vendor-reference; geometria, ímã, gap e estado NO/NC ainda não definidos",
+  "format": "Representação paramétrica vendor-lot-specific",
+  "sourceUnit": "mm",
+  "dimensionsMm": {
+    "width": 0,
+    "height": 0,
+    "depth": 0
+  },
+  "scale": [1.0, 1.0, 1.0],
+  "transforms": {
+    "positionOffsetMm": [0.0, 0.0, 0.0],
+    "rotationDeg": [0, 0, 0]
+  },
+  "fidelityClass": "D",
+  "confidenceRationale": "MC-38 é uma família comercial, não um MPN único. Confirmar corpo, cabo, ímã, gap, estado NO/NC e resposta na unidade comprada.",
+  "disclaimerNote": "Não usar este envelope para fabricar o suporte. Medir a unidade comprada e registrar fotos, gap, estado NO/NC e lote.",
+  "verificationDate": "2026-09-28",
+  "mounting": {
+    "reedSwitch": "MOUNTED_ON_LID_SIDE_SUPPORT",
+    "magnet": "MOUNTED_ON_FIXED_TANK_SIDE",
+    "triggerDistanceMm": null
+  }
+}

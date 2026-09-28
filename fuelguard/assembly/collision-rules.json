@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "collisionChecks": [
+    {
+      "ruleId": "COL-01",
+      "name": "Zero Cable Penetration through Rigid Solids",
+      "description": "Fios flexíveis e cabos não podem penetrar a carcaça de acrílico do galão, a superfície da bancada ou os corpos dos circuitos integrados.",
+      "minClearanceMm": 2.0
+    },
+    {
+      "ruleId": "COL-02",
+      "name": "Breadboard Hole Alignment and Zero Floating",
+      "description": "Todo módulo montado na protoboard deve ter coordenadas Z/X coincidentes com os furos de passo 2.54mm e coordenada Y de apoio exatamente na face superior da protoboard (Y = 8.5mm).",
+      "toleranceMm": 0.2
+    },
+    {
+      "ruleId": "COL-03",
+      "name": "Water Volume Boundary Containment",
+      "description": "O volume de água retangular deve permanecer dentro da caixa interna 200 x 200 x 160 mm, com margem de respingo e sem atravessar as paredes de acrílico de 3 mm.",
+      "boundaryMm": { "width": 200, "depth": 200, "height": 160 },
+      "wallMarginMm": 3.0
+    },
+    {
+      "ruleId": "COL-04",
+      "name": "Ultrasonic Line-of-Sight Clearance",
+      "description": "A visada do probe A02YYUW/SEN0311 deve permanecer centralizada e perpendicular à superfície da água; cabos e suporte não podem entrar no caminho.",
+      "coneDivergenceDeg": 60.0
+    }
+  ]
+}

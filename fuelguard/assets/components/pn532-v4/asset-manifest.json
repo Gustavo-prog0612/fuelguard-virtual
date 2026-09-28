@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "reference": "RFID1",
+  "name": "Módulo ELECHOUSE PN532 NFC/RFID V4",
+  "manufacturer": "ELECHOUSE",
+  "model": "NFC-PN532_V4",
+  "revision": "V4; modo SPI e mating connector pendentes de confirmação física",
+  "sourceUrl": "https://www.elechouse.com/product/pn532-nfc-rfid-module-v4/",
+  "license": "manufacturer-reference; licença de modelo 3D não confirmada",
+  "format": "Representação paramétrica documentada; não é um modelo de fabricação",
+  "sourceUnit": "mm",
+  "dimensionsMm": {
+    "width": 42.7,
+    "height": 40.4,
+    "depth": 4.0
+  },
+  "scale": [1.0, 1.0, 1.0],
+  "transforms": {
+    "positionOffsetMm": [0.0, 0.0, 0.0],
+    "rotationDeg": [0, 0, 0]
+  },
+  "fidelityClass": "C",
+  "confidenceRationale": "A documentação da ELECHOUSE confirma as opções de interface e informa que o V4 mantém forma/furação do V3; o envelope nominal usa o manual V3. A revisão, a furação, o header e a geometria da antena da unidade do projeto ainda não foram medidos.",
+  "disclaimerNote": "Não usar esta geometria para footprint, furação, espaçadores ou keepout de antena até concluir MEAS-PN532-01 e MEAS-PN532-02.",
+  "verificationStatus": "PENDING_PHYSICAL_EVIDENCE",
+  "verificationDate": null,
+  "mounting": {
+    "type": "STANDOFF_MOUNTED",
+    "screwType": "PENDING_MEAS-PN532-01",
+    "holeDistanceMm": null,
+    "cableInterface": "PENDING_MEAS-PN532-02"
+  }
+}

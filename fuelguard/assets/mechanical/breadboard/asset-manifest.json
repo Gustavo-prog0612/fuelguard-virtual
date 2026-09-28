@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "reference": "BB1",
+  "name": "Protoboard MB-102 830 Pontos",
+  "manufacturer": "Vendor-lot-specific",
+  "model": "MB-102-830",
+  "revision": "Variante comercial a confirmar na unidade recebida",
+  "sourceUrl": "https://handsontec.com/dataspecs/m102-830-bread-board.pdf",
+  "license": "vendor-reference",
+  "format": "Referência paramétrica de bancada (Classe C)",
+  "sourceUnit": "mm",
+  "dimensionsMm": {
+    "width": 165.0,
+    "height": 8.5,
+    "depth": 55.0
+  },
+  "scale": [1.0, 1.0, 1.0],
+  "transforms": {
+    "positionOffsetMm": [-30.0, 4.25, 0.0],
+    "rotationDeg": [0, 0, 0]
+  },
+  "fidelityClass": "C",
+  "confidenceRationale": "MB-102 é uma família comercial; dimensões, trilhos, furos, pés e altura do exemplar devem ser confirmados antes de congelar o suporte.",
+  "disclaimerNote": "Dimensões de referência não liberam fabricação; medir largura, comprimento, altura, trilhos e pontos de fixação da unidade recebida.",
+  "verificationDate": "2026-09-28",
+  "support": {
+    "type": "RESTING_ON_BENCH_SURFACE",
+    "frictionFeetCount": 4,
+    "hasAdhesiveBacking": true
+  }
+}

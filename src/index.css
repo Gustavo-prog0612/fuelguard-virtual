@@ -1,0 +1,125 @@
+@import "./styles/fonts.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Padrão Inicial: Combinação A (Space Grotesk + IBM Plex Sans + IBM Plex Mono) */
+    --font-display: 'Space Grotesk', system-ui, sans-serif;
+    --font-ui: 'IBM Plex Sans', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    color-scheme: light;
+
+    /* Paleta Laboratório Sereno (Claro) */
+    --color-canvas: #f8f9fa;
+    --color-surface: #ffffff;
+    --color-subtle: #f1f3f5;
+    --color-inset: #eaedf0;
+    --color-primary: #111827;
+    --color-secondary: #4b5563;
+    --color-muted: #6b7280;
+    --color-border: #e5e7eb;
+    --color-border-strong: #d1d5db;
+    --color-warning: #b45309;
+    --color-danger: #b91c1c;
+    --color-info: #0369a1;
+
+    --fuelguard-green: #0f5132;
+    --fuelguard-green-hover: #14532d;
+    --fuelguard-green-light: #f0fdf4;
+    --fuelguard-green-border: #86efac;
+  }
+
+  .dark {
+    color-scheme: dark;
+
+    /* Paleta Instrumento Obsidiana (Escuro) — Alta fidelidade à referência */
+    --color-canvas: #0c0d10;
+    --color-surface: #14161b;
+    --color-subtle: #1c1f26;
+    --color-inset: #0e0f13;
+    --color-primary: #f8fafc;
+    --color-secondary: #94a3b8;
+    --color-muted: #64748b;
+    --color-border: #222631;
+    --color-border-strong: #333a4a;
+    --color-warning: #f59e0b;
+    --color-danger: #ef4444;
+    --color-info: #38bdf8;
+
+    --fuelguard-green: #10b981;
+    --fuelguard-green-hover: #059669;
+    --fuelguard-green-light: #064e3b;
+    --fuelguard-green-border: #059669;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-primary);
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Scrollbar fina instrumental */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-subtle);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border-strong);
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-muted);
+  }
+
+  /* Foco acessível uniforme de alta visibilidade */
+  *:focus-visible {
+    outline: 2px solid var(--fuelguard-green);
+    outline-offset: 2px;
+  }
+
+  /* React Flow Instrument Styling */
+  .react-flow__controls {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid #30363d !important;
+    border-radius: 4px !important;
+    overflow: hidden;
+    background: #161b22 !important;
+  }
+  .react-flow__controls button,
+  .react-flow__controls-button {
+    background: #161b22 !important;
+    border-bottom: 1px solid #30363d !important;
+    fill: #c9d1d9 !important;
+    color: #c9d1d9 !important;
+    transition: background 0.15s ease, fill 0.15s ease;
+  }
+  .react-flow__controls button:last-child,
+  .react-flow__controls-button:last-child {
+    border-bottom: none !important;
+  }
+  .react-flow__controls button:hover,
+  .react-flow__controls-button:hover {
+    background: #21262d !important;
+    fill: #58a6ff !important;
+    color: #58a6ff !important;
+  }
+  .react-flow__controls button svg,
+  .react-flow__controls-button svg {
+    fill: currentColor !important;
+    max-width: 14px;
+    max-height: 14px;
+  }
+  .react-flow__attribution {
+    display: none !important;
+  }
+}
+

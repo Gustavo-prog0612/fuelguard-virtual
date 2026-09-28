@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "reference": "BZ1",
+  "name": "Buzzer ativo Same Sky CMI-1295IC-0385T",
+  "manufacturer": "Same Sky (formerly CUI Devices)",
+  "model": "CMI-1295IC-0385T",
+  "revision": "Internally driven; 2–5 V; 30 mA max",
+  "sourceUrl": "https://jp.sameskydevices.com/product/resource/cmi-1295ic-0385t.pdf",
+  "license": "manufacturer-reference; passo/polaridade a confirmar",
+  "format": "Representação paramétrica documentada",
+  "sourceUnit": "mm",
+  "dimensionsMm": {
+    "width": 12.0,
+    "height": 9.5,
+    "depth": 12.0
+  },
+  "scale": [1.0, 1.0, 1.0],
+  "transforms": {
+    "positionOffsetMm": [0.0, 0.0, 0.0],
+    "rotationDeg": [0, 0, 0]
+  },
+  "fidelityClass": "B",
+  "confidenceRationale": "O MPN ativo, a faixa 2–5 V, 30 mA, 85 dB a 3 V e o envelope de 12 x 9,5 mm vêm do datasheet Same Sky. A unidade recebida deve confirmar passo e polaridade.",
+  "verificationStatus": "PENDING_PHYSICAL_EVIDENCE",
+  "verificationDate": null,
+  "disclaimerNote": "O modelo é de um buzzer ativo; confirmar passo e polaridade da unidade e não adicionar driver externo sem nova revisão elétrica.",
+  "mounting": {
+    "type": "THT_INSERTION",
+    "targetHost": "BB1",
+    "pinPitchMm": null
+  }
+}
