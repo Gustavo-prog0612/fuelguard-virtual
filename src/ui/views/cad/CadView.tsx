@@ -35,6 +35,7 @@ import { KiCadExporter } from '@/circuit-cad/kicad-exporter';
 import { SchematicCanvas } from './SchematicCanvas';
 import { PcbCanvas } from './PcbCanvas';
 import { DrcReportPanel } from './DrcReportPanel';
+import ErrorBoundary from '@/ui/components/ErrorBoundary';
 import { AgentSessionPanel } from './AgentSessionPanel';
 import { CadOverviewTab } from './CadOverviewTab';
 import { CadConnectionsTab } from './CadConnectionsTab';
@@ -247,9 +248,11 @@ export const CadView: React.FC = () => {
 
           {/* Estação 2: Bancada Física 3D */}
           {activeTab === 'assembly' && (
-            <Suspense fallback={<CadViewerLoading />}>
-              <BenchAssemblyCanvas onSelectTab={handleNavigateTab} />
-            </Suspense>
+            <ErrorBoundary fallbackMessage="Erro ao carregar estação CAD. Verifique se seu navegador suporta WebGL.">
+              <Suspense fallback={<CadViewerLoading />}>
+                <BenchAssemblyCanvas onSelectTab={handleNavigateTab} />
+              </Suspense>
+            </ErrorBoundary>
           )}
 
           {/* Estação 3: Esquemático Elétrico */}
@@ -279,9 +282,11 @@ export const CadView: React.FC = () => {
 
           {/* Estação 5: Placa PCB 3D */}
           {activeTab === '3d' && (
-            <Suspense fallback={<CadViewerLoading />}>
-              <Pcb3DCanvas onSelectTab={handleNavigateTab} />
-            </Suspense>
+            <ErrorBoundary fallbackMessage="Erro ao carregar estação CAD. Verifique se seu navegador suporta WebGL.">
+              <Suspense fallback={<CadViewerLoading />}>
+                <Pcb3DCanvas onSelectTab={handleNavigateTab} />
+              </Suspense>
+            </ErrorBoundary>
           )}
 
           {/* Estação 6: Conexões, Chicote & Pinagem */}

@@ -1,8 +1,8 @@
 # ELECHOUSE PN532 V4 model provenance
 
 - Manufacturer documentation: https://www.elechouse.com/docs/pn532-v4/
-- Manufacturer 3D archive: https://www.elechouse.com/wp-content/uploads/2022/04/ELECHOUSE_PN532_V4_3D.zip
-- Local source: `source/3D_NFC_EASY_SHIELD_V4.1_2025-12-13.step`
+- Manufacturer 3D archive: `../../../../../hardware/vendor-sources/elechouse-pn532-v4/ELECHOUSE_PN532_V4_3D.zip`
+- Local source: `../../../../../hardware/vendor-sources/elechouse-pn532-v4/3D_NFC_EASY_SHIELD_V4.1_2025-12-13.step`
 - Runtime asset: `/models/official/elechouse-pn532-v4.glb`
 - Conversion: `node scripts/convert-step-to-glb.mjs <input.step> <output.glb>`
 - Converter: `occt-import-js@0.0.23` with millimetre units and a 0.1 mm deflection.

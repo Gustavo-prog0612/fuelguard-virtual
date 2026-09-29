@@ -148,6 +148,9 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
   const isSensorModeRef = useRef<boolean>(false);
   isSensorModeRef.current = benchMode === 'sensores';
 
+  const showCalipersRef = useRef<boolean>(false);
+  showCalipersRef.current = showCalipers;
+
   const updateRotation = useCallback((newX: number, newY: number) => {
     rotRef.current = { rotX: newX, rotY: newY };
     setRotX(newX);
@@ -1474,7 +1477,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     caliperGroup.add(createCaliperLine([-80, 2, 60], [-80, 8, 60]));
     caliperGroup.add(createCaliperLine([85, 2, 60], [85, 8, 60]));
 
-    caliperGroup.visible = showCalipers;
+    caliperGroup.visible = showCalipersRef.current;
 
     // =========================================================================
     // 14. INTERAÇÃO ORBITAL E RAYCASTING
@@ -1770,7 +1773,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       const curGrp = activeGroupRef.current;
 
       cableRootGroup.visible = isVisible;
-      caliperGroup.visible = showCalipers;
+      caliperGroup.visible = showCalipersRef.current;
 
       if (isVisible) {
         cableMeshes.forEach((item) => {
@@ -1820,23 +1823,20 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
         mount.removeChild(renderer.domElement);
       }
 
-      if (nfcAssetRoot) {
-        nfcAssetRoot.traverse((node) => {
-          if (node instanceof THREE.Mesh) {
-            node.geometry.dispose();
-            const materials = Array.isArray(node.material) ? node.material : [node.material];
-            materials.forEach((material) => material.dispose());
+      scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh) {
+          obj.geometry?.dispose();
+          if (Array.isArray(obj.material)) {
+            obj.material.forEach(m => m.dispose());
+          } else if (obj.material) {
+            obj.material.dispose();
           }
-        });
-      }
+        }
+      });
       renderer.dispose();
-      tankShellGeo.dispose();
-      innerShellMesh.geometry.dispose();
-      waterGeo.dispose();
-      matGeo.dispose();
-      bbBody.geometry.dispose();
+      renderer.forceContextLoss();
     };
-  }, [updateRotation, enableShadows, lowPowerMode, showCalipers]);
+  }, [enableShadows, lowPowerMode]);
 
   return (
     <div

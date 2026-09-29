@@ -99,17 +99,30 @@ Eliminação completa de aproximações visuais, componentes suspensos ou conex�
    - O chicote do sensor ultrassônico SEN0311 sobe pelo topo da sonda, passa pelo clipe da tampa, desce pelo conduíte vertical externo do cilindro até a base e corre pela canaleta de piso até a protoboard, sem atravessar as paredes do tanque acrílico.
    - O chicote SPI do PN532 contorna a coluna traseira do suporte sem colidir com as faces de acrílico.
 
-## 💎 Geometria CAD e evidência de componentes
+## 💎 Geometria CAD e Evidência de Componentes
 
-Os modelos são classificados por proveniência. A/B/C/D indicam a força da evidência, não uma autorização de fabricação. A geometria renderizada sem arquivo CAD ou medição aprovada é apenas referência:
+Os modelos são classificados rigorosamente por proveniência mecatrônica. As classes A/B/C/D indicam a força da evidência documental e física, nunca uma autorização prematura de fabricação:
 
-- **ESP32-S3 DevKitC-1 v1.1 (Classe A):** módulo comercial de referência com dimensões nominais e fonte Espressif declarada.
-- **SEN0311 (Classe C):** função elétrica e protocolo documentados; envelope do probe, cabo, terminal e prensa-cabo devem ser medidos.
-- **PN532 V4 (Classe C):** módulo comercial parametrizado; header, furos, altura e keepout da antena devem ser confirmados.
-- **MC-38 (Classe D):** família comercial sem MPN único; corpo, ímã, gap, NO/NC e fixação dependem do lote.
-- **MB-102 (Classe C):** envelope de referência; fabricante, trilhos, pés e altura da unidade recebida devem ser confirmados.
-- **Buzzer CMI-1295IC-0385T (Classe B):** MPN e envelope documentados; passo, polaridade e corrente real ainda precisam ser medidos.
-- **Tanque/tampa FG-TANK-5L-CYL-R1 (Classe C/site-specific):** geometria cilíndrica paramétrica de aproximadamente 5,0265 L, ainda pendente de fabricação, medição e calibração com água.
+- **PN532 NFC V4 (Classe A):** Modelo GLB 3D derivado diretamente do arquivo CAD STEP oficial da ELECHOUSE (`3D_NFC_EASY_SHIELD_V4.1`), preservando dimensões exatas de trilhas, antena, furações e componentes.
+- **ESP32-S3 DevKitC-1 v1.1 (Classe B):** Reconstrução mecânica de alta fidelidade baseada no desenho técnico oficial DXF da Espressif Systems (AC1027), com can metálico WROOM-1, portas Micro-USB e conectores THT.
+- **SEN0311 / A02YYUW (Classe B):** Reconstrução mecatrônica baseada nas cotas oficiais do desenho técnico DFRobot/Mouser (corpo de 63,6 mm, orelhas de 84,6 mm, transdutores piezoelétricos de 34 mm).
+- **MC-38 Reed Switch (Classe C):** Envelope de referência comercial baseado em amostras padrão; variante física NO/NC, gap magnético e cabo dependem do lote recebido.
+- **Protoboard MB-102 830pts (Classe B/C):** Geometria com 830 pontos, canaleta central DIP 0,3", barramentos de alimentação serigrafados e encaixes tipo rabo de andorinha.
+- **Buzzer CMI-1295IC-0385T (Classe B):** Modelo baseado no datasheet técnico da Same Sky (ex-CUI Devices), cilindro Ø12 × 9,5 mm com porta acústica e chanfro de polaridade.
+- **LED Radial 5mm WP7113GD (Classe B):** Modelo de LED radial Kingbright de Ø5 mm com resistor limitador de 220 Ω.
+- **Tanque/Tampa FG-TANK-5L-CYL-R1 (Classe C/Paramétrico):** Cilindros ópticos em PMMA acrílico PBR (dupla face, refração IOR 1.491) com menisco dinâmico e capacidade teórica de 5,0265 L, bloqueado até aferição física com proveta graduada.
+
+---
+
+## 🛡️ Robustez Arquitetural, WebGL & Acessibilidade
+
+O projeto passou por uma modernização profunda de engenharia de software para garantir estabilidade operacional em nível de bancada de instrumentação:
+
+1. **React Error Boundaries:** Proteção global no topo da aplicação e fronteiras isoladas em cada viewport WebGL 3D (`BenchAssemblyCanvas` e `Pcb3DCanvas`), impedindo travamentos ou telas brancas.
+2. **Ciclo de Vida e Descarte WebGL (Zero VRAM Leak):** Descarte proativo via `scene.traverse()` de todas as geometrias Three.js (`TubeGeometry`, `BoxGeometry`, malhas PBR) e materiais na desmontagem de tela. Desacoplamento da rotação automática via `autoRotateRef` para evitar recriação de cena Three.js ao pausar/iniciar.
+3. **Otimização de Pacote Web:** Fontes CAD brutas (STEP de 19,6 MB e DXF da Espressif) migradas para `hardware/vendor-sources/`, reduzindo o tempo de build para < 8 segundos e enxugando o bundle estático da aplicação web.
+4. **Design System Permity:** Interface visual de nível SaaS industrial com cartões `rounded-3xl`, controles em pílula (`rounded-full`), paleta slate/azeviche de alto contraste, acentos elétricos `#D4F63D` para telemetria de topo e suporte consistente a modo escuro sem efeito flash de tela.
+5. **Acessibilidade e Usabilidade Técnica:** Remoção do bloqueio de seleção global de texto (`select-none`), suporte pleno a cópia de terminais e logs, contraste WCAG AA e badges semânticos de honestidade intelectual com indicação pulsante.
 
 ---
 

@@ -36,6 +36,10 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
 
   // Estados de navegação 3D no visualizador isolado
   const [isAutoRotate, setIsAutoRotate] = useState<boolean>(true);
+  const autoRotateRef = useRef<boolean>(isAutoRotate);
+  useEffect(() => {
+    autoRotateRef.current = isAutoRotate;
+  }, [isAutoRotate]);
   const [activeTab, setActiveTab] = useState<InspectorTab>('demo');
   const [isLoadingModel, setIsLoadingModel] = useState<boolean>(true);
   const [zoomLevel, setZoomLevel] = useState<number>(1.0);
@@ -258,7 +262,7 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
       const delta = (time - lastTime) / 1000;
       lastTime = time;
 
-      if (modelGroupRef.current && isAutoRotate) {
+      if (modelGroupRef.current && autoRotateRef.current) {
         modelGroupRef.current.rotation.y += 0.8 * delta;
       }
 
@@ -283,7 +287,7 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
     };
-  }, [component.id, component.dimensionsMm, modelPath, isAutoRotate]);
+  }, [component.id, component.dimensionsMm, modelPath]);
 
   // Controles de mouse para Orbit manual
   const handleMouseDown = (e: React.MouseEvent) => {

@@ -111,7 +111,9 @@ export const AppLayoutContent: React.FC = () => {
           isCollapsed={isSidebarCollapsed}
         />
         <section className="flex-1 min-w-0 min-h-0 overflow-hidden">
-          {renderActiveView()}
+          <Suspense fallback={<div className="h-full flex items-center justify-center bg-inst-canvas text-slate-500 font-mono text-xs">Carregando...</div>}>
+            {renderActiveView()}
+          </Suspense>
         </section>
       </main>
 
