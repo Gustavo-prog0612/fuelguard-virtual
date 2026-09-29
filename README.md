@@ -3,9 +3,9 @@
 > **Referência de engenharia de hardware real & estação de verificação CAD/EDA**  
 > Gêmeo digital auditável do FuelGuard, com peças comerciais identificadas, evidência de medidas e gates explícitos para a PCB adaptadora.
 
-[![Vitest Tests](https://img.shields.io/badge/Vitest-79%20Passed%20(15%20Suites)-brightgreen.svg)](#su%C3%ADte-de-testes-automatizados)
+[![Vitest Tests](https://img.shields.io/badge/Vitest-83%20Passed%20(16%20Suites)-brightgreen.svg)](#su%C3%ADte-de-testes-automatizados)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict%20Checked-blue.svg)](#tecnologias-e-stack)
-[![Three.js](https://img.shields.io/badge/3D%20Graphics-Three.js%20engineering%20reference-orange.svg)](#tanque-tampa-e-metrologia)
+[![Three.js](https://img.shields.io/badge/3D%20Graphics-Three.js%20360%C2%B0%20Inspector-orange.svg)](#-inspecionador-360-dedicado--simuladores-interativos)
 [![tscircuit](https://img.shields.io/badge/EDA-tscircuit%20Core-purple.svg)](#pipeline-de-engenharia-eletr%C3%B4nica--circuit-json)
 
 ---
@@ -58,6 +58,46 @@ A suíte de projeto CAD & Eletrônica conta com 10 estações integradas de enge
 | **10. Auditoria DRC** | Verificador de regras de projeto elétricas e mecânicas (DRC/ERC) com detecção de falhas e avisos didáticos. |
 
 ---
+
+## 🔬 Inspecionador 360° Dedicado & Simuladores Interativos
+
+Ao clicar em qualquer placa ou sensor na montagem 3D da bancada (ou através dos atalhos rápidos da interface), o ambiente de fundo recebe um desfoque óptico profundo (`backdrop-blur-2xl bg-slate-950/80`) e o componente é isolado num **estúdio Three.js fotorealista** com iluminação *Three-Point* (Key, Fill, Rim Light), mesa giratória com anéis concêntricos graduados, sombra de contato de solo e rotação contínua 360° com controles de órbita manual (drag) e aproximação (zoom):
+
+- **ESP32-S3 DevKitC-1 v1.1:**
+  - Visualizador dinâmico de carga das tarefas FreeRTOS nos dois núcleos (Core 0 e Core 1 @ 240 MHz).
+  - Gatilhos interativos para simular recepção de frame UART de nível (300 mm), autenticação de tag NFC autorizada, alarme de violação de tampa (Reed Switch) e soft reset do microcontrolador.
+  - Console serial virtual em tempo real com logs formatados de eventos do firmware.
+- **PN532 V4 NFC/RFID:**
+  - Slider dinâmico de aproximação de transponder RFID 13.56 MHz (0 a 50 mm).
+  - Decodificação de UID ISO/IEC 14443A (`04:E2:89:1A:4C:5B:80`) e identificação de caminhão da frota autorizada ("Caminhão Tanque #402").
+  - Sniffer de tráfego de barramento SPI exibindo frames de comando e resposta em hexadecimal.
+- **DFRobot SEN0311 / A02YYUW:**
+  - Transdutor ultrassônico com controle deslizante de lâmina d'água (15 a 160 mm).
+  - Cálculo analítico do pulso acústico *Time-of-Flight* em microssegundos ($t = \frac{2 \cdot d}{v}$), volume útil em mL e alarme de saturação na zona cega (< 30 mm).
+  - Montador e gerador de pacotes seriais binários UART de 4 bytes (`0xFF + Data_H + Data_L + Checksum`).
+- **MC-38 Reed Switch:**
+  - Sensor de intertravamento de segurança magnética com aproximação do ímã da tampa (0 a 25 mm).
+  - Leitor analógico de densidade de fluxo magnético em Gauss, chaveamento elétrico (GND vs Pull-up 3.3V) e disparo imediato de alerta de adulteração.
+- **Protoboard MB-102:**
+  - Inspetor dos barramentos de distribuição de energia (+5V USB, +3.3V LDO e plano de terra equipotencial GND).
+  - Medição de continuidade e resistência de contato entre trilhas.
+
+---
+
+## 🗜️ Mecatrônica de Bancada & Cabeamento Realista
+
+Eliminação completa de aproximações visuais, componentes suspensos ou conexões que cruzam materiais sólidos:
+
+1. **Apoio e Fixação Mecânica Estrutural:**
+   - **Módulo PN532 V4:** Apoiado sobre base usinada (`48 x 2 x 48 mm`) com **4 pés de borracha de silicone anti-derrapante** diretamente sobre a manta antiestática ESD (`y = 3.0 mm`). A placa de acrílico frontal é ancorada à base por **4 pilares stanchion cilíndricos em alumínio anodizado** ($\varnothing 5 \text{ mm}$, $16.25 \text{ mm}$) com porcas recartilhadas M3.
+   - **Protoboard MB-102 e Tanque:** Nivelados rigorosamente no plano de trabalho sem folgas ou penetração.
+2. **Chicotes em Curvas Elásticas Catmull-Rom:**
+   - Todo o cabeamento utiliza splines centripetais contínuas de 64 segmentos (`CatmullRomCurve3`), reproduzindo o raio mínimo de curvatura e o caimento gravítico elástico de fios flexíveis de cobre 24 AWG.
+3. **Terminações DuPont Verticais:**
+   - Os conectores DuPont fêmea e pinos macho entram com orientação estritamente perpendicular `(0, 1, 0)` nos orifícios da protoboard e nos pin headers dos módulos, eliminando inclinações espúrias a 45°.
+4. **Roteamento por Canaletas e Eletrodutos:**
+   - O chicote do sensor ultrassônico SEN0311 sobe pelo topo da sonda, passa pelo clipe da tampa, desce pelo conduíte vertical externo do cilindro até a base e corre pela canaleta de piso até a protoboard, sem atravessar as paredes do tanque acrílico.
+   - O chicote SPI do PN532 contorna a coluna traseira do suporte sem colidir com as faces de acrílico.
 
 ## 💎 Geometria CAD e evidência de componentes
 
@@ -129,23 +169,26 @@ npm run build
 
 ---
 
-## 🧪 Suíte de Testes Automatizados (79 testes)
+## 🧪 Suíte de Testes Automatizados (83 testes em 16 suítes)
 
-O projeto conta com 15 suítes de testes unitários, mecânicos e elétricos. A interface de CAD não transforma pendências de fabricação em PASS:
+O projeto conta com 16 suítes de testes unitários, mecânicos e elétricos executadas pelo Vitest com 100% de aprovação. A interface de CAD não transforma pendências de fabricação em PASS:
 
-- `tests/unit/circuit-validator.test.ts` (5 testes) — Proteção contra sobretensão e casamento de impedâncias.
-- `tests/unit/persistence.test.ts` (5 testes) — Persistência e exportação de dados em IndexedDB.
-- `tests/mechanical/bench-assembly.test.ts` (5 testes) — Ponto de apoio, ausência de componentes flutuantes e regras de folga mecânica.
-- `tests/unit/assembly-auditor.test.ts` (8 testes) — Regras de montagem mecânica da bancada.
-- `tests/electrical/netlist-consistency.test.ts` (6 testes) — Paridade de netlists e conexões elétricas.
-- `tests/unit/cad-circuit-json.test.ts` (6 testes) — Esquema Circuit JSON, classes A/B/C/D e exportações EDA.
+- `tests/mechanical/bench-assembly.test.ts` (6 testes) — Ponto de apoio, fixação mecatrônica, pés de silicone e ausência de componentes flutuantes.
+- `tests/unit/assembly-auditor.test.ts` (8 testes) — Regras de montagem mecânica da bancada e integridade da fiação.
+- `tests/electrical/netlist-consistency.test.ts` (6 testes) — Paridade de netlists e conexões elétricas de pinos.
+- `tests/unit/cad-circuit-json.test.ts` (8 testes) — Esquema Circuit JSON, classes A/B/C/D e exportações EDA.
+- `tests/assets/model-registry.test.ts` (4 testes) — Integridade do registro de modelos 3D e carregamento de GLBs.
 - `tests/assets/asset-manifests.test.ts` (4 testes) — Auditoria de rastreabilidade e integridade dos manifestos CAD 3D.
-- `tests/unit/m4-integration.test.ts` (3 testes) — Integração mecatrônica.
+- `tests/unit/scene-object-registry.test.ts` (2 testes) — Registro e identificação de objetos e componentes da cena 3D.
+- `tests/unit/circuit-validator.test.ts` (4 testes) — Proteção contra sobretensão e casamento de impedâncias.
+- `tests/hardware/adapter-inputs.test.ts` (3 testes) — Validação de sinais e barramentos da placa adaptadora.
+- `tests/unit/persistence.test.ts` (5 testes) — Persistência e exportação de dados em IndexedDB.
+- `tests/unit/m4-integration.test.ts` (3 testes) — Integração e interoperabilidade mecatrônica.
 - `tests/unit/core-simulation.test.ts` (16 testes) — Motor acústico, física do líquido, filtro de mediana e máquina de estados.
 - `tests/fluid/water-sensor-consistency.test.ts` (2 testes) — Consistência física entre nível de água, distância e volume.
-- `tests/unit/shell-navigation.test.tsx` (8 testes) — Roteamento das abas principais e das estações CAD.
-- `tests/unit/mesh-collision.test.ts` (2 testes) — Consultas de interseção com `three-mesh-bvh`.
+- `tests/unit/mesh-collision.test.ts` (2 testes) — Consultas de colisão e proximidade geométrica.
 - `tests/unit/engineering-verification.test.ts` (2 testes) — Estados PASS/PENDING e rastreabilidade do painel de engenharia.
+- `tests/unit/shell-navigation.test.tsx` (8 testes) — Roteamento das abas principais e das estações CAD.
 
 ---
 
