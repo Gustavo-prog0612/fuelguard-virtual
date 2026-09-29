@@ -4,8 +4,8 @@
  * 1. Visão Geral (Overview do Gêmeo Digital, Limites A/B/C, Taxonomia de Proveniência)
  * 2. Bancada Física (Montagem 3D de referência, protoboard MB-102, fiação tubular)
  * 3. Esquemático (Esquema elétrico tscircuit/KiCad, isolamento 3.3V/5V)
- * 4. PCB 2D (Layout 2D com banner de especificação da Carrier / 4 camadas na RP2040)
- * 5. PCB 3D (Renderização bloqueada até existir PCB FuelGuard revisada e modelos aprovados)
+ * 4. PCB 2D (layout atual de referência da FuelGuard)
+ * 5. PCB 3D (gate explícito até existir PCB FuelGuard fabricável)
  * 6. Conexões (Programação de chicote DuPont/JST, AWG e waypoints)
  * 7. Sensor & Água (Metrologia bloqueada até lote, recipiente e tampa reais)
  * 8. BOM & Assets (BOM rastreável, estados de evidência e gates de fabricação)
@@ -13,7 +13,7 @@
  * 10. Auditoria (Auditoria DRC e conformidade mecânica de contato/suporte)
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { lazy, Suspense, useState, useMemo } from 'react';
 import { 
   Cpu, 
   Box, 
@@ -32,15 +32,8 @@ import { HonestyBadge } from '@/ui/components/badges/HonestyBadge';
 import { CircuitJsonBuilder, CircuitJsonPackage } from '@/circuit-cad/circuit-json-builder';
 import { DrcChecker } from '@/circuit-cad/drc-checker';
 import { KiCadExporter } from '@/circuit-cad/kicad-exporter';
-import {
-  getRp2040CircuitPackage,
-  getRp2040DrcViolations,
-  RP2040_METADATA,
-} from '@/circuit-cad/rp2040-circuit-provider';
 import { SchematicCanvas } from './SchematicCanvas';
 import { PcbCanvas } from './PcbCanvas';
-import { Pcb3DCanvas } from './Pcb3DCanvas';
-import { BenchAssemblyCanvas } from './BenchAssemblyCanvas';
 import { DrcReportPanel } from './DrcReportPanel';
 import { AgentSessionPanel } from './AgentSessionPanel';
 import { CadOverviewTab } from './CadOverviewTab';
@@ -49,7 +42,15 @@ import { CadSensorsWaterTab } from './CadSensorsWaterTab';
 import { CadBomAssetsTab } from './CadBomAssetsTab';
 import { CadTestsTab } from './CadTestsTab';
 
-export type ActiveCadBoard = 'fuelguard-carrier' | 'rp2040-motor-controller';
+const BenchAssemblyCanvas = lazy(() => import('./BenchAssemblyCanvas').then((module) => ({ default: module.BenchAssemblyCanvas })));
+const Pcb3DCanvas = lazy(() => import('./Pcb3DCanvas').then((module) => ({ default: module.Pcb3DCanvas })));
+
+const CadViewerLoading: React.FC = () => (
+  <div className="h-full flex items-center justify-center rounded-2xl bg-[#0a0f18] text-slate-300 font-mono text-xs">
+    Carregando viewer técnico…
+  </div>
+);
+
 export type CadSubTab = 
   | 'overview' 
   | 'assembly' 
@@ -64,30 +65,23 @@ export type CadSubTab =
 
 export const CadView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<CadSubTab>('overview');
-  const [activeBoard, setActiveBoard] = useState<ActiveCadBoard>('fuelguard-carrier');
   const [isFaultActive, setIsFaultActive] = useState<boolean>(false);
   const [isAgentCollapsed, setIsAgentCollapsed] = useState<boolean>(true); // Painel de agente retrátil (fechado por padrão)
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const builder = useMemo(() => new CircuitJsonBuilder(), []);
 
-  // Circuito canônico atual em Circuit JSON (Carrier Board FuelGuard vs RP2040 Stepper Controller)
+  // Circuito canônico atual em Circuit JSON da FuelGuard.
   const circuitPkg: CircuitJsonPackage = useMemo(() => {
-    if (activeBoard === 'rp2040-motor-controller') {
-      return getRp2040CircuitPackage();
-    }
     return isFaultActive
       ? builder.buildFaultyBenchCircuit()
       : builder.buildNominalBenchCircuit();
-  }, [activeBoard, isFaultActive, builder]);
+  }, [isFaultActive, builder]);
 
   // Auditoria DRC em tempo real
   const drcViolations = useMemo(() => {
-    if (activeBoard === 'rp2040-motor-controller') {
-      return getRp2040DrcViolations();
-    }
     return DrcChecker.runChecks(circuitPkg.circuit_elements);
-  }, [activeBoard, circuitPkg]);
+  }, [circuitPkg]);
 
   const errorCount = drcViolations.filter((v) => v.severity === 'ERROR').length;
 
@@ -97,15 +91,13 @@ export const CadView: React.FC = () => {
   };
 
   const handleDownloadCircuitJson = () => {
-    const filename = activeBoard === 'rp2040-motor-controller'
-      ? `rp2040_motor_controller_${Date.now()}.circuit.json`
-      : `fuelguard_circuit_${Date.now()}.circuit.json`;
+    const filename = `fuelguard_circuit_${Date.now()}.circuit.json`;
     KiCadExporter.triggerDownload(
       filename,
       JSON.stringify(circuitPkg, null, 2),
       'application/json'
     );
-    showToast(`Pacote Circuit JSON (${activeBoard === 'rp2040-motor-controller' ? 'RP2040' : 'FuelGuard'}) baixado com sucesso!`);
+    showToast('Pacote Circuit JSON FuelGuard baixado com sucesso!');
   };
 
   const handleDownloadKiCadSch = () => {
@@ -156,9 +148,9 @@ export const CadView: React.FC = () => {
       />
 
       {/* 2. Área Central de Engenharia CAD (10 Áreas Técnicas) */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden p-3 md:p-4 space-y-2.5">
+      <div className="flex-1 flex flex-col h-full overflow-hidden p-4 md:p-6 space-y-4">
         {/* Topo: Cabeçalho com Metadados, Dual-Board Switcher e Exportação */}
-        <div className="bg-inst-surface border border-inst-border p-3 rounded-md shadow-xs flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+        <div className="apple-surface p-5 rounded-2xl flex flex-col xl:flex-row xl:items-center justify-between gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <div>
               <div className="flex items-center space-x-2">
@@ -169,44 +161,8 @@ export const CadView: React.FC = () => {
                 <HonestyBadge level="simulado" />
               </div>
               <p className="text-[11px] text-inst-secondary mt-0.5">
-                {activeBoard === 'rp2040-motor-controller' ? (
-                  <span>
-                    <strong>{RP2040_METADATA.name}</strong> • {RP2040_METADATA.description}
-                  </span>
-                ) : (
-                  <span>
-                    Gêmeo digital verificável: peças comerciais, evidência de medidas e fiação de referência.
-                  </span>
-                )}
+                <span>Gêmeo digital FuelGuard: bancada, placas, sensores, assets rastreáveis e fiação de referência.</span>
               </p>
-            </div>
-
-            {/* Dual-Board Switcher */}
-            <div className="flex items-center space-x-1.5 bg-inst-canvas p-1 rounded-sm border border-inst-border shrink-0">
-              <button
-                onClick={() => setActiveBoard('fuelguard-carrier')}
-                className={`px-2.5 py-1 text-xs font-mono rounded-xs transition flex items-center gap-1.5 ${
-                  activeBoard === 'fuelguard-carrier'
-                    ? 'bg-fuelguard-green text-white font-bold shadow-xs'
-                    : 'text-inst-secondary hover:text-inst-primary hover:bg-inst-subtle'
-                }`}
-                title="Bancada Didática FuelGuard ESP32-S3 com Sensores"
-              >
-                <Cpu className="w-3.5 h-3.5" />
-                <span>FuelGuard Engineering Reference</span>
-              </button>
-              <button
-                onClick={() => setActiveBoard('rp2040-motor-controller')}
-                className={`px-2.5 py-1 text-xs font-mono rounded-xs transition flex items-center gap-1.5 ${
-                  activeBoard === 'rp2040-motor-controller'
-                    ? 'bg-purple-600 text-white font-bold shadow-xs'
-                    : 'text-inst-secondary hover:text-inst-primary hover:bg-inst-subtle'
-                }`}
-                title="Placa 4 Camadas Roteada: RP2040 Dual Stepper Controller (imrishabh18)"
-              >
-                <Box className="w-3.5 h-3.5" />
-                <span>RP2040 Controller (4L)</span>
-              </button>
             </div>
           </div>
 
@@ -241,8 +197,8 @@ export const CadView: React.FC = () => {
         </div>
 
         {/* 10 Sub-Abas Técnicas de Engenharia */}
-        <div className="flex flex-wrap items-center justify-between border-b border-inst-border pb-1.5 text-xs font-mono gap-1.5">
-          <div className="flex flex-wrap items-center gap-1 bg-inst-canvas p-1 rounded-sm border border-inst-border">
+        <div className="flex flex-wrap items-center justify-between border-b border-inst-border pb-2 text-xs font-mono gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 bg-inst-canvas p-1.5 rounded-xl border border-inst-border">
             {[
               { id: 'overview', label: '1. Visão Geral', icon: Compass },
               { id: 'assembly', label: '2. Bancada Física', icon: Box },
@@ -263,7 +219,7 @@ export const CadView: React.FC = () => {
                   onClick={() => setActiveTab(tab.id as CadSubTab)}
                   className={`px-2.5 py-1 rounded-xs transition flex items-center gap-1.5 text-[11px] ${
                     isActive
-                      ? 'bg-inst-surface text-inst-primary font-bold shadow-xs border border-inst-border-strong text-fuelguard-green'
+                    ? 'bg-inst-surface text-inst-primary font-bold shadow-sm border border-inst-border-strong text-fuelguard-green'
                       : 'text-inst-secondary hover:text-inst-primary hover:bg-inst-subtle'
                   }`}
                 >
@@ -275,7 +231,7 @@ export const CadView: React.FC = () => {
           </div>
 
           <div className="text-[10px] text-inst-muted hidden md:block">
-            Modelo: <strong className="text-inst-primary">{activeBoard === 'rp2040-motor-controller' ? 'RP2040 Motor Controller (4L)' : 'FuelGuard Engineering Reference'}</strong>
+            Projeto: <strong className="text-inst-primary">FuelGuard Digital Twin</strong>
           </div>
         </div>
 
@@ -291,7 +247,9 @@ export const CadView: React.FC = () => {
 
           {/* Estação 2: Bancada Física 3D */}
           {activeTab === 'assembly' && (
-            <BenchAssemblyCanvas onSelectTab={handleNavigateTab} />
+            <Suspense fallback={<CadViewerLoading />}>
+              <BenchAssemblyCanvas onSelectTab={handleNavigateTab} />
+            </Suspense>
           )}
 
           {/* Estação 3: Esquemático Elétrico */}
@@ -302,7 +260,6 @@ export const CadView: React.FC = () => {
           {/* Estação 4: PCB 2D */}
           {activeTab === 'pcb' && (
             <div className="h-full flex flex-col overflow-hidden">
-              {activeBoard === 'fuelguard-carrier' && (
                 <div className="bg-amber-950/40 border border-amber-600/70 p-2.5 rounded-sm mb-2 text-xs font-mono text-amber-200 flex items-center justify-between gap-2 shrink-0">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
@@ -314,7 +271,6 @@ export const CadView: React.FC = () => {
                     [IPC-2221A / JLCPCB Class 2]
                   </span>
                 </div>
-              )}
               <div className="flex-1 overflow-hidden">
                 <PcbCanvas circuitPkg={circuitPkg} />
               </div>
@@ -323,7 +279,9 @@ export const CadView: React.FC = () => {
 
           {/* Estação 5: Placa PCB 3D */}
           {activeTab === '3d' && (
-            <Pcb3DCanvas activeBoard={activeBoard} onSelectTab={handleNavigateTab} />
+            <Suspense fallback={<CadViewerLoading />}>
+              <Pcb3DCanvas onSelectTab={handleNavigateTab} />
+            </Suspense>
           )}
 
           {/* Estação 6: Conexões, Chicote & Pinagem */}
@@ -338,10 +296,7 @@ export const CadView: React.FC = () => {
 
           {/* Estação 8: BOM & Catálogo de Assets */}
           {activeTab === 'bom' && (
-            <CadBomAssetsTab
-              activeBoard={activeBoard}
-              onSelectTab={handleNavigateTab}
-            />
+            <CadBomAssetsTab onSelectTab={handleNavigateTab} />
           )}
 
           {/* Estação 9: Testes Automatizados */}

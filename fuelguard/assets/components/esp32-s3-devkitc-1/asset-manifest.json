@@ -5,9 +5,9 @@
   "manufacturer": "Espressif Systems",
   "model": "ESP32-S3-DevKitC-1-N8R8",
   "revision": "v1.1 (PCB Rev 2023)",
-  "sourceUrl": "https://github.com/espressif/kicad-libraries",
-  "license": "CC-BY-SA-4.0",
-  "format": "Referência paramétrica documentada (Classe A)",
+  "sourceUrl": "https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide_v1.1.html",
+  "license": "FuelGuard reconstruction from manufacturer reference",
+  "format": "GLB detalhado reconstruído (Classe B)",
   "sourceUnit": "mm",
   "dimensionsMm": {
     "width": 25.5,
@@ -19,8 +19,8 @@
     "positionOffsetMm": [0.0, 0.0, 0.0],
     "rotationDeg": [0, 0, 0]
   },
-  "fidelityClass": "A",
-  "confidenceRationale": "Envelope nominal documentado pelo guia oficial da Espressif. A unidade comprada ainda precisa confirmar altura, headers, USB e keepouts antes de furação.",
+  "fidelityClass": "B",
+  "confidenceRationale": "GLB detalhado reconstruído a partir do guia, DXF e desenho oficial da Espressif. Não é exportação CAD oficial; a unidade comprada ainda precisa confirmar altura, headers, USB e keepouts antes de furação.",
   "verificationDate": "2026-09-28",
   "mounting": {
     "type": "THT_INSERTION",

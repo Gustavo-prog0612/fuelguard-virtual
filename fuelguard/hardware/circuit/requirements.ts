@@ -30,13 +30,13 @@ export const HARDWARE_REQUIREMENTS: HardwareRequirement[] = [
     condition: 'V_GND_OFFSET <= 0.05V', nominalValue: '0.00', minTolerance: 0.00, maxTolerance: 0.05, unit: 'V', status: 'ACTIVE_AUDIT',
   },
   {
-    id: 'REQ-MECH-01', category: 'MECHANICAL', title: 'Tanque FG-TANK-6L-R1 paramétrico',
-    description: 'A bancada usa tanque retangular de acrílico com dimensões internas de 200 x 200 x 160 mm, paredes de 3 mm, tampa de 5 mm e quatro fixações M3.',
-    condition: 'INNER == 200x200x160mm', nominalValue: '6.4', minTolerance: 0.0, maxTolerance: 6.4, unit: 'L geométricos', status: 'ACTIVE_AUDIT',
+    id: 'REQ-MECH-01', category: 'MECHANICAL', title: 'Tanque FG-TANK-5L-CYL-R1 paramétrico',
+    description: 'A bancada usa tanque cilíndrico de acrílico com dimensões internas de Ø200 x 160 mm, paredes de 3 mm, tampa circular de 5 mm e quatro fixações M3.',
+    condition: 'INNER == DIAMETER_200xHEIGHT_160mm', nominalValue: '5.0265', minTolerance: 0.0, maxTolerance: 5.0265, unit: 'L geométricos', status: 'ACTIVE_AUDIT',
   },
   {
     id: 'REQ-ACOU-01', category: 'ACOUSTIC', title: 'Faixa útil do A02YYUW/SEN0311 no tanque',
-    description: 'Com sensor alinhado no teto interno, 1–5 L produz aproximadamente 35–135 mm de distância água-sensor. O ensaio deve respeitar a zona cega nominal de 30 mm e confirmar a calibração com água.',
-    condition: '30mm <= DIST_SENSOR_WATER <= 4500mm && ANG <= 5deg', nominalValue: '35–135', minTolerance: 30, maxTolerance: 4500, unit: 'mm', status: 'ACTIVE_AUDIT',
+    description: 'Com sensor alinhado no teto interno, 1–4,084 L produz aproximadamente 30–128 mm de distância água-sensor. O ensaio deve respeitar a zona cega nominal de 30 mm e confirmar a calibração com água.',
+    condition: '30mm <= DIST_SENSOR_WATER <= 4500mm && ANG <= 5deg', nominalValue: '30–128', minTolerance: 30, maxTolerance: 4500, unit: 'mm', status: 'ACTIVE_AUDIT',
   },
 ];

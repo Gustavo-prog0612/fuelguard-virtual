@@ -1,16 +1,16 @@
 /**
  * FuelGuard Virtual Test Bench — Estação de Metrologia Ultrassônica
- * Preparação do ensaio com a baseline FG-TANK-6L-R1; calibração física continua separada.
+ * Preparação do ensaio com a baseline FG-TANK-5L-CYL-R1; calibração física continua separada.
  */
 
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
 import {
   Radio,
   Info,
   Waves,
   Layers,
 } from 'lucide-react';
-import { BenchAssemblyCanvas } from './BenchAssemblyCanvas';
+const BenchAssemblyCanvas = lazy(() => import('./BenchAssemblyCanvas').then((module) => ({ default: module.BenchAssemblyCanvas })));
 
 interface CadSensorsWaterTabProps {
   onSelectTab?: (tabId: string) => void;
@@ -34,7 +34,7 @@ export const CadSensorsWaterTab: React.FC<CadSensorsWaterTabProps> = ({ onSelect
             </span>
           </div>
           <p className="text-xs text-inst-secondary mt-1">
-            Baseline paramétrica: tanque interno 200 × 200 × 160 mm, tampa 5 mm, sensor central. A geometria orienta o desenho; a calibração exige peça fabricada e medida.
+            Baseline paramétrica: tanque cilíndrico interno Ø200 × 160 mm, tampa circular 5 mm, sensor central. A geometria orienta o desenho; a calibração exige peça fabricada e medida.
           </p>
         </div>
 
@@ -67,7 +67,9 @@ export const CadSensorsWaterTab: React.FC<CadSensorsWaterTabProps> = ({ onSelect
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 overflow-hidden">
         {/* Viewport 3D Interativo da Bancada */}
         <div className="lg:col-span-8 bg-inst-surface border border-inst-border rounded-md shadow-xs overflow-hidden relative">
-          <BenchAssemblyCanvas onSelectTab={onSelectTab as any} />
+          <Suspense fallback={<div className="h-full flex items-center justify-center bg-[#0a0f18] text-slate-300 font-mono text-xs">Carregando metrologia 3D…</div>}>
+            <BenchAssemblyCanvas onSelectTab={onSelectTab as any} />
+          </Suspense>
         </div>
 
         {/* Painel Lateral com Equações e Parâmetros PBR */}
@@ -85,7 +87,7 @@ export const CadSensorsWaterTab: React.FC<CadSensorsWaterTabProps> = ({ onSelect
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between">
                 <span className="text-inst-muted font-ui">Distância à Água (d):</span>
-                <strong className="text-sky-300">35–135 mm nominal (1–5 L)</strong>
+                <strong className="text-sky-300">30–128 mm nominal (1–4,084 L)</strong>
               </div>
               <div className="flex justify-between">
                 <span className="text-inst-muted font-ui">Tempo de Voo (ToF):</span>
@@ -93,11 +95,11 @@ export const CadSensorsWaterTab: React.FC<CadSensorsWaterTabProps> = ({ onSelect
               </div>
               <div className="flex justify-between">
                 <span className="text-inst-muted font-ui">Volume de Água:</span>
-                <strong className="text-amber-300">6,4 L geométrico; não calibrado</strong>
+                <strong className="text-amber-300">5,0265 L geométrico; não calibrado</strong>
               </div>
               <div className="flex justify-between">
                 <span className="text-inst-muted font-ui">Altura da Coluna:</span>
-                <strong className="text-sky-300">25–125 mm nominal</strong>
+                <strong className="text-sky-300">32–130 mm nominal</strong>
               </div>
             </div>
 
@@ -127,11 +129,11 @@ export const CadSensorsWaterTab: React.FC<CadSensorsWaterTabProps> = ({ onSelect
               </div>
               <div className="flex justify-between">
                 <span>Volume operacional:</span>
-                <strong className="text-sky-300">1,0–5,0 L</strong>
+                <strong className="text-sky-300">1,0–4,084 L</strong>
               </div>
               <div className="flex justify-between">
                 <span>Capacidade geométrica:</span>
-                <strong className="text-amber-300">6,4 L nominal</strong>
+                <strong className="text-amber-300">5,0265 L nominal</strong>
               </div>
             </div>
           </div>
@@ -143,7 +145,7 @@ export const CadSensorsWaterTab: React.FC<CadSensorsWaterTabProps> = ({ onSelect
               <span>Pipeline 3D paramétrico [REFERÊNCIA]</span>
             </div>
             <div className="text-[10px] text-amber-300">
-              A cena 3D usa a caixa FG-TANK-6L-R1 e mostra a coluna d'água nominal. Não usar o render para liberar corte, vedação ou calibração sem a peça fabricada e medida.
+              A cena 3D usa o cilindro FG-TANK-5L-CYL-R1 e mostra a coluna d'água nominal. Não usar o render para liberar corte, vedação ou calibração sem a peça fabricada e medida.
             </div>
           </div>
         </div>

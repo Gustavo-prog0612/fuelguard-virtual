@@ -2,11 +2,11 @@
  * FuelGuard Virtual Test Bench — Cena 3D de Montagem da Bancada Física (Assembly View)
  * Renderiza o arranjo tridimensional da referência de engenharia, com proveniência explícita:
  * - Tapete ESD e Protoboard MB-102 com furação e barramentos
- * - ESP32-S3 DevKitC-1 v1.1 com WROOM-1, pinagem 2x22, portas USB-C e botões (Classe A)
- * - A02YYUW / SEN0311 com probe centralizado na tampa (função documentada, envelope pendente)
- * - Módulo PN532 na tampa com suporte acrílico e antena espiral plana (Classe C)
+ * - ESP32-S3 DevKitC-1 v1.1 com WROOM-1, pinagem 2x22, duas portas Micro-USB e botões (GLB documentado Classe B)
+ * - A02YYUW / SEN0311 com GLB reconstruído a partir do desenho mecânico documentado (Classe B)
+ * - Módulo PN532 em suporte frontal seco, fora do tanque, com antena espiral plana (Classe A no GLB)
  * - Reed Switch em ampola de vidro e ímã de neodímio na tampa (Classe C)
- * - Tanque paramétrico FG-TANK-6L-R1 com tampa 4x M3 (baseline ainda não fabricada)
+ * - Tanque cilíndrico paramétrico FG-TANK-5L-CYL-R1 com tampa 4x M3
  * - Chicote tubular físico com terminais DuPont e rotas respeitando conectores
  * - Auditoria Automática Mecânica & Elétrica integrada (Assembly Auditor)
  * - Linhas de guia axiais na vista explodida, réguas e sincronização com telemetria
@@ -14,6 +14,7 @@
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import {
   Box,
   Sparkles,
@@ -39,6 +40,10 @@ import {
   Layers,
   Grid3X3,
   Waves,
+  SlidersHorizontal,
+  Play,
+  Pause,
+  Focus,
 } from 'lucide-react';
 import { ViewCube } from './ViewCube';
 import {
@@ -52,7 +57,10 @@ import {
   CableSignalGroup,
 } from '@/circuit-cad/wiring-registry';
 import { AssemblyAuditor, AssemblyAuditReport } from '@/circuit-cad/assembly-auditor';
+import { getSceneObject, TANK_SPEC } from '@/circuit-cad/assembly-source';
+import { SceneObjectRegistry, CollisionStatus } from '@/geometry/scene-object-registry';
 import { useSimulation } from '@/core/worker/use-simulation';
+import { COMPONENT_FUNCTION_CATALOG } from '@/circuit-cad/component-function-catalog';
 
 interface BenchAssemblyCanvasProps {
   onSelectTab?: (tab: 'schematic' | 'pcb' | '3d' | 'assembly' | 'drc' | 'catalog') => void;
@@ -83,7 +91,15 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
   const [isExploded, setIsExploded] = useState<boolean>(false);
   const [selectedComp, setSelectedComp] = useState<CadComponentMetadata | null>(null);
   const [selectedCable, setSelectedCable] = useState<PhysicalCable | null>(null);
+  const [isInspectionAutoRotate, setIsInspectionAutoRotate] = useState<boolean>(false);
+  const [selectedFunctionalDetail, setSelectedFunctionalDetail] = useState<string | null>(null);
   const [isAuditModalOpen, setIsAuditModalOpen] = useState<boolean>(false);
+  const [collisionStatus, setCollisionStatus] = useState<CollisionStatus>('PENDING_PHYSICAL_EVIDENCE');
+  const focusTargetRef = useRef<{ object: THREE.Object3D; distance: number } | null>(null);
+  const inspectionObjectRef = useRef<THREE.Object3D | null>(null);
+  const inspectionBaseRotationRef = useRef<THREE.Euler | null>(null);
+  const inspectionAngleRef = useRef(0);
+  const inspectionVisibilityRef = useRef<Array<{ object: THREE.Object3D; visible: boolean }>>([]);
 
   // Filtros de cabos e ferramentas visuais
   const [activeCableGroup, setActiveCableGroup] = useState<CableSignalGroup | 'all'>('all');
@@ -93,6 +109,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
   const [lowPowerMode, setLowPowerMode] = useState<boolean>(false);
   const [showGrid, setShowGrid] = useState<boolean>(false); // Grade de piso discreta desligada por padrão
   const [enableRipples, setEnableRipples] = useState<boolean>(true);
+  const [isControlPanelOpen, setIsControlPanelOpen] = useState<boolean>(false);
 
   // Executa auditoria automática mecatrônica & elétrica
   const auditReport: AssemblyAuditReport = useMemo(() => AssemblyAuditor.runAudit(), []);
@@ -119,6 +136,9 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
   const selectedCableIdRef = useRef<string | null>(null);
   selectedCableIdRef.current = selectedCable ? selectedCable.id : null;
 
+  const inspectionAutoRotateRef = useRef<boolean>(false);
+  inspectionAutoRotateRef.current = isInspectionAutoRotate;
+
   const showCablesRef = useRef<boolean>(true);
   showCablesRef.current = showCables;
 
@@ -141,35 +161,39 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
   }, []);
 
   const handleSelectView = useCallback((targetRotX: number, targetRotY: number) => {
+    focusTargetRef.current = null;
+    setIsInspectionAutoRotate(false);
     animTargetRef.current = { targetX: targetRotX, targetY: targetRotY };
   }, []);
 
   const setPresetView = (preset: ViewPreset) => {
+    focusTargetRef.current = null;
+    setIsInspectionAutoRotate(false);
     switch (preset) {
       case 'iso':
-        animTargetRef.current = { targetX: 0.38, targetY: -0.65, targetCamZ: 310 };
+        animTargetRef.current = { targetX: 0.38, targetY: -0.65, targetCamZ: 560 };
         setIsExploded(false);
         break;
       case 'top':
-        animTargetRef.current = { targetX: Math.PI / 2 - 0.04, targetY: 0, targetCamZ: 320 };
+        animTargetRef.current = { targetX: Math.PI / 2 - 0.04, targetY: 0, targetCamZ: 580 };
         break;
       case 'front':
-        animTargetRef.current = { targetX: 0.08, targetY: 0, targetCamZ: 280 };
+        animTargetRef.current = { targetX: 0.08, targetY: 0, targetCamZ: 520 };
         break;
       case 'right':
-        animTargetRef.current = { targetX: 0.15, targetY: -Math.PI / 2, targetCamZ: 290 };
+        animTargetRef.current = { targetX: 0.15, targetY: -Math.PI / 2, targetCamZ: 520 };
         break;
       case 'left':
-        animTargetRef.current = { targetX: 0.15, targetY: Math.PI / 2, targetCamZ: 290 };
+        animTargetRef.current = { targetX: 0.15, targetY: Math.PI / 2, targetCamZ: 520 };
         break;
       case 'wiring':
-        animTargetRef.current = { targetX: 0.52, targetY: -0.35, targetCamZ: 240 };
+        animTargetRef.current = { targetX: 0.52, targetY: -0.35, targetCamZ: 460 };
         setActiveCableGroup('all');
         setShowCables(true);
         break;
       case 'exploded':
         setIsExploded(true);
-        animTargetRef.current = { targetX: 0.42, targetY: -0.75, targetCamZ: 350 };
+        animTargetRef.current = { targetX: 0.42, targetY: -0.75, targetCamZ: 620 };
         break;
     }
   };
@@ -193,6 +217,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
         break;
       case 'sensores':
         setIsExploded(false);
+        focusTargetRef.current = null;
         animTargetRef.current = { targetX: 0.22, targetY: -0.75, targetCamZ: 260 };
         break;
     }
@@ -201,6 +226,36 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
   const handleFitToView = useCallback(() => {
     setPresetView('iso');
   }, []);
+
+  const restoreInspectionVisibility = useCallback(() => {
+    inspectionVisibilityRef.current.forEach(({ object, visible }) => {
+      object.visible = visible;
+    });
+    inspectionVisibilityRef.current = [];
+  }, []);
+
+  const closeComponentInspection = useCallback(() => {
+    if (inspectionObjectRef.current && inspectionBaseRotationRef.current) {
+      inspectionObjectRef.current.rotation.copy(inspectionBaseRotationRef.current);
+    }
+    restoreInspectionVisibility();
+    inspectionAngleRef.current = 0;
+    inspectionObjectRef.current = null;
+    inspectionBaseRotationRef.current = null;
+    setIsInspectionAutoRotate(false);
+    setSelectedFunctionalDetail(null);
+    setSelectedComp(null);
+  }, [restoreInspectionVisibility]);
+
+  // O foco 3D é modal: ESC fecha a inspeção e devolve o foco ao canvas.
+  useEffect(() => {
+    if (!selectedComp) return undefined;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeComponentInspection();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selectedComp, closeComponentInspection]);
 
   const handleToggleFullscreen = () => {
     if (!containerRef.current) return;
@@ -256,14 +311,26 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     scene.background = new THREE.Color(0x06090d);
 
     const camera = new THREE.PerspectiveCamera(40, width / height, 1, 3500);
-    camera.position.set(0, 175, 310);
-    camera.lookAt(0, 25, 0);
+    camera.position.set(0, 235, 560);
+    const defaultCameraTarget = new THREE.Vector3(0, 70, 0);
+    camera.lookAt(defaultCameraTarget);
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: !lowPowerMode,
-      alpha: true,
-      powerPreference: 'high-performance',
-    });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: !lowPowerMode,
+        alpha: true,
+        powerPreference: 'high-performance',
+      });
+    } catch {
+      const fallback = document.createElement('div');
+      fallback.className = 'h-full grid place-items-center bg-[#06090d] text-slate-300 font-mono text-xs p-6 text-center';
+      fallback.textContent = 'Viewer 3D indisponível neste ambiente: WebGL não foi inicializado.';
+      mount.appendChild(fallback);
+      return () => {
+        if (mount.contains(fallback)) mount.removeChild(fallback);
+      };
+    }
     renderer.setSize(width, height);
     renderer.setPixelRatio(lowPowerMode ? 1.0 : Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = enableShadows;
@@ -305,9 +372,77 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     // Grupo Raiz
     const benchGroup = new THREE.Group();
     scene.add(benchGroup);
+    const sceneRegistry = new SceneObjectRegistry();
+    let sceneDisposed = false;
+    const bbPosition = getSceneObject('BB1')?.positionMm ?? [-105, 4.25, -50];
+    const u1Position = getSceneObject('U1')?.positionMm ?? [-128, 11.5, -50];
+    const ledPosition = getSceneObject('D1')?.positionMm ?? [-65, 12, -65];
+    const buzzerPosition = getSceneObject('BZ1')?.positionMm ?? [-45, 13.25, -45];
+    const pn532Position = getSceneObject('RFID1')?.positionMm ?? [-5, 28, -105];
+
+    // Zona seca explícita: toda a eletrônica permanece fora do tanque e da tampa.
+    const dryBayGroup = new THREE.Group();
+    dryBayGroup.name = 'DRY_ELECTRONICS_BAY — electronics outside water';
+    dryBayGroup.position.set(-105, 2.8, -50);
+    const dryBayBase = new THREE.Mesh(
+      new THREE.BoxGeometry(190, 2.2, 104),
+      new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.72, metalness: 0.12 }),
+    );
+    dryBayBase.name = 'Baia seca de eletrônica';
+    dryBayGroup.add(dryBayBase);
+    benchGroup.add(dryBayGroup);
 
     // Dicionário de objetos clicáveis para Raycasting
     const pickableObjects: { mesh: THREE.Object3D; compKey?: string; cableId?: string }[] = [];
+
+    // Assets de referência carregados sob demanda. Cada callback oculta a
+    // geometria didática somente depois que o GLB chega, mantendo a cena
+    // utilizável quando o servidor não servir um asset público.
+    const referenceLoader = new GLTFLoader();
+    const loadReferenceAsset = (
+      path: string,
+      targetGroup: THREE.Group,
+      designator: string,
+      componentKey: string,
+      fallbackNodes: THREE.Object3D[],
+      options: {
+        registryId?: string;
+        position?: [number, number, number];
+        rotation?: [number, number, number];
+        onLoaded?: (root: THREE.Object3D) => void;
+      } = {},
+    ) => {
+      referenceLoader.load(
+        path,
+        (gltf) => {
+          if (sceneDisposed) {
+            gltf.scene.traverse((node) => {
+              if (node instanceof THREE.Mesh) node.geometry.dispose();
+            });
+            return;
+          }
+          fallbackNodes.forEach((node) => { node.visible = false; });
+          gltf.scene.name = `${designator} — documented reference GLB`;
+          if (options.position) gltf.scene.position.set(...options.position);
+          if (options.rotation) gltf.scene.rotation.set(...options.rotation);
+          gltf.scene.traverse((node) => {
+            if (node instanceof THREE.Mesh) {
+              node.castShadow = enableShadows;
+              node.receiveShadow = true;
+              node.userData.componentKey = componentKey;
+            }
+          });
+          targetGroup.add(gltf.scene);
+          sceneRegistry.register(options.registryId ?? designator, gltf.scene, { designator, collisionClass: 'DOCUMENTED_REFERENCE_ASSET', verified: false });
+          pickableObjects.push({ mesh: gltf.scene, compKey: componentKey });
+          options.onLoaded?.(gltf.scene);
+        },
+        undefined,
+        () => {
+          // O fallback continua sendo a referência visual quando o GLB não estiver disponível.
+        },
+      );
+    };
 
     // =========================================================================
     // 4. TAPETE ESD PROFISSIONAL COM RÉGUA MILIMÉTRICA E TERMINAL DE TERRA (0, 1.5, 0)
@@ -361,7 +496,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     // 5. PROTOBOARD SOLDERLESS MB-102 830 PONTOS (-80, 7.5, 20) — CLASSE B
     // =========================================================================
     const bbGroup = new THREE.Group();
-    bbGroup.position.set(-80, 7.5, 20);
+    bbGroup.position.set(bbPosition[0], bbPosition[1], bbPosition[2]);
 
     const bbBody = new THREE.Mesh(
       new THREE.BoxGeometry(165, 8.5, 55),
@@ -416,13 +551,16 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     });
 
     benchGroup.add(bbGroup);
+    sceneRegistry.register('BB1', bbGroup, { designator: 'BB1', collisionClass: 'SOLID_BASE' });
     pickableObjects.push({ mesh: bbBody, compKey: 'breadboard_830' });
+    loadReferenceAsset('/models/reference/mb102-830-reference.glb', bbGroup, 'BB1', 'breadboard_830', [...bbGroup.children]);
 
     // =========================================================================
-    // 6. ESP32-S3 DevKitC-1 v1.1 MONTADO NA PROTOBOARD (-110, 14, 20) — CLASSE A
+    // 6. ESP32-S3 DevKitC-1 v1.1 na baia seca — GLB detalhado Classe B
     // =========================================================================
     const espGroup = new THREE.Group();
-    espGroup.position.set(-110, 14, 20);
+    espGroup.position.set(u1Position[0], u1Position[1], u1Position[2]);
+    espGroup.name = 'ESP32 fallback detailed procedural reference';
 
     const espPcb = new THREE.Mesh(
       new THREE.BoxGeometry(25.5, 1.6, 68.0),
@@ -449,11 +587,17 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     espCan.castShadow = enableShadows;
     espGroup.add(espCan);
 
-    // Portas USB Type-C duplas (UART/PROG e OTG)
+    // Fallback: duas portas Micro-USB (UART/PROG e OTG), caso o GLB não carregue.
     const usbMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.92, roughness: 0.2 });
-    const usbProg = new THREE.Mesh(new THREE.BoxGeometry(8.8, 3.2, 7.5), usbMat);
+    const usbProg = new THREE.Mesh(new THREE.BoxGeometry(8.8, 3.2, 7.2), usbMat);
     usbProg.position.set(0, 2.0, 33);
-    espGroup.add(usbProg);
+    const usbProgCavity = new THREE.Mesh(new THREE.BoxGeometry(5.8, 1.2, 0.9), new THREE.MeshStandardMaterial({ color: 0x111318, roughness: 0.45 }));
+    usbProgCavity.position.set(0, 2.1, 36.65);
+    const usbOtg = new THREE.Mesh(new THREE.BoxGeometry(8.8, 3.2, 7.2), usbMat);
+    usbOtg.position.set(0, 2.0, -33);
+    const usbOtgCavity = new THREE.Mesh(new THREE.BoxGeometry(5.8, 1.2, 0.9), new THREE.MeshStandardMaterial({ color: 0x111318, roughness: 0.45 }));
+    usbOtgCavity.position.set(0, 2.1, -36.65);
+    espGroup.add(usbProg, usbProgCavity, usbOtg, usbOtgCavity);
 
     // Botões táteis BOOT e RESET (SMD)
     const btnMat = new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.4 });
@@ -492,25 +636,78 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     espGroup.add(headerStripLeft, headerStripRight, pinPinsLeft, pinPinsRight);
 
     benchGroup.add(espGroup);
+    sceneRegistry.register('U1', espGroup, { designator: 'U1', collisionClass: 'ACTIVE_MODULE' });
     pickableObjects.push({ mesh: espCan, compKey: 'esp32_s3_devkit' });
     pickableObjects.push({ mesh: espPcb, compKey: 'esp32_s3_devkit' });
 
-    // Plugue e Cabo USB-C injetado
+    // GLB detalhado reconstruído a partir da documentação oficial Espressif.
+    let espAssetRoot: THREE.Object3D | null = null;
+    const espLoader = new GLTFLoader();
+    espLoader.load(
+      '/models/official/espressif-esp32-s3-devkitc-1-v1.1.glb',
+      (gltf) => {
+        if (sceneDisposed) {
+          gltf.scene.traverse((node) => {
+            if (node instanceof THREE.Mesh) node.geometry.dispose();
+          });
+          return;
+        }
+        espAssetRoot = gltf.scene;
+        espAssetRoot.name = 'ESP32-S3-DevKitC-1-N8R8 v1.1 — detailed reference GLB';
+        espAssetRoot.position.set(u1Position[0], u1Position[1], u1Position[2]);
+        espAssetRoot.traverse((node) => {
+          if (node instanceof THREE.Mesh) {
+            node.castShadow = enableShadows;
+            node.receiveShadow = true;
+            node.userData.componentKey = 'esp32_s3_devkit';
+          }
+        });
+        espGroup.visible = false;
+        benchGroup.add(espAssetRoot);
+        sceneRegistry.register('U1', espAssetRoot, { designator: 'U1', collisionClass: 'ACTIVE_MODULE', verified: false });
+        pickableObjects.push({ mesh: espAssetRoot, compKey: 'esp32_s3_devkit' });
+      },
+      undefined,
+      () => {
+        // Mantém o fallback geométrico apenas se o GLB local não estiver disponível.
+      },
+    );
+
+    // Plugue e cabo externo USB-C da fonte/host; as portas da DevKitC são Micro-USB.
     const usbPlug = new THREE.Mesh(
       new THREE.BoxGeometry(11, 5.5, 22),
       new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.7 })
     );
-    usbPlug.position.set(-110, 16, 65);
+    usbPlug.position.set(u1Position[0], u1Position[1] + 4.5, u1Position[2] + 45);
     usbPlug.castShadow = enableShadows;
     benchGroup.add(usbPlug);
     pickableObjects.push({ mesh: usbPlug, compKey: 'usb_cable_assembly' });
+
+    // Origem física do cabo USB: o cabo não começa em um ponto abstrato no
+    // espaço; ele sai de um bloco de host/fonte fixado na borda da bancada.
+    const externalHostGroup = new THREE.Group();
+    externalHostGroup.name = 'EXTERNAL_USB_HOST — fixed bench edge source';
+    externalHostGroup.position.set(-170, 8, -5);
+    const externalHostBody = new THREE.Mesh(
+      new THREE.BoxGeometry(22, 12, 20),
+      new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.62, metalness: 0.18 }),
+    );
+    externalHostBody.position.x = -10;
+    const externalHostPort = new THREE.Mesh(
+      new THREE.BoxGeometry(4.5, 5.5, 8),
+      new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.75, roughness: 0.28 }),
+    );
+    externalHostPort.position.x = 0;
+    externalHostGroup.add(externalHostBody, externalHostPort);
+    benchGroup.add(externalHostGroup);
+    sceneRegistry.register('EXT_USB', externalHostGroup, { designator: 'HOST', collisionClass: 'POWER_SOURCE' });
 
     // =========================================================================
     // 7. INDICADORES NA PROTOBOARD: LED STATUS D1 & BUZZER ATIVO BZ1
     // =========================================================================
     // LED Verde 5mm + Resistor 220Ω no GPIO4 (-20, 11.5, 22)
     const ledIndicatorGroup = new THREE.Group();
-    ledIndicatorGroup.position.set(-20, 11.5, 22);
+    ledIndicatorGroup.position.set(ledPosition[0], ledPosition[1], ledPosition[2]);
     const rLeadMat = new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.9, roughness: 0.2 });
 
     const rLed = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 5.5, 12), new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.6 }));
@@ -542,12 +739,14 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     ledIndicatorGroup.add(ledBody, ledDome, ledLead1, ledLead2);
 
     benchGroup.add(ledIndicatorGroup);
+    sceneRegistry.register('D1', ledIndicatorGroup, { designator: 'D1', collisionClass: 'PASSIVE_COMPONENT' });
     pickableObjects.push({ mesh: ledBody, compKey: 'led_indicator' });
     pickableObjects.push({ mesh: ledDome, compKey: 'led_indicator' });
+    loadReferenceAsset('/models/reference/kingbright-wp7113gd-reference.glb', ledIndicatorGroup, 'D1', 'led_indicator', [...ledIndicatorGroup.children]);
 
     // Buzzer ativo Same Sky CMI-1295IC-0385T THT 12mm (-5, 11.5, 20)
     const buzzerGroup = new THREE.Group();
-    buzzerGroup.position.set(-5, 11.5, 20);
+    buzzerGroup.position.set(buzzerPosition[0], buzzerPosition[1], buzzerPosition[2]);
 
     const bzBodyMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.4 });
     const bzBody = new THREE.Mesh(new THREE.CylinderGeometry(6.0, 6.0, 9.5, 24), bzBodyMat);
@@ -574,40 +773,43 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     buzzerGroup.add(bzBody, bzHole, bzPlus, bzPin1, bzPin2);
 
     benchGroup.add(buzzerGroup);
+    sceneRegistry.register('BZ1', buzzerGroup, { designator: 'BZ1', collisionClass: 'ACTIVE_MODULE' });
     pickableObjects.push({ mesh: bzBody, compKey: 'buzzer_active' });
+    loadReferenceAsset('/models/reference/samesky-cmi-1295ic-0385t-reference.glb', buzzerGroup, 'BZ1', 'buzzer_active', [...buzzerGroup.children]);
 
     // =========================================================================
-    // 8. PROBE A02YYUW / SEN0311 — geometria externa pendente de medição
+    // 8. SEN0311 / A02YYUW — asset documentado, centralizado na tampa
     // =========================================================================
-    const levelProbeGroup = new THREE.Group();
-    levelProbeGroup.position.set(85, 165, -10);
-    const levelProbe = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 20, 24), new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.75, roughness: 0.25 }));
-    levelProbe.rotation.x = Math.PI / 2;
-    levelProbe.castShadow = enableShadows;
-    levelProbeGroup.add(levelProbe);
-    benchGroup.add(levelProbeGroup);
-    pickableObjects.push({ mesh: levelProbe, compKey: 'a02yyuw_sen0311' });
+    const tankDefinition = getSceneObject('TK1');
+    const tankPosition = tankDefinition?.positionMm ?? [85, 84, -10];
 
     const TANK_GEOMETRY_RELEASED = true;
     // =========================================================================
     // 9. TANQUE E TAMPA REAIS (somente após gate de geometria)
     // =========================================================================
     const tankGroup = new THREE.Group();
-    tankGroup.position.set(85, 3.5, -10);
+    tankGroup.position.set(tankPosition[0], tankPosition[1] - TANK_SPEC.outerHeightMm / 2, tankPosition[2]);
 
-    const tankWidth = 206;
-    const tankDepth = 206;
-    const tankWallThickness = 3;
-    const innerWidth = 200;
-    const innerDepth = 200;
-    const innerHeight = 160;
-    const tankHeight = 168;
-    const tankBottomThickness = 3;
+    const tankOuterDiameter = TANK_SPEC.outerDiameterMm;
+    const tankInnerDiameter = TANK_SPEC.innerDiameterMm;
+    const tankOuterRadius = tankOuterDiameter / 2;
+    const tankInnerRadius = tankInnerDiameter / 2;
+    const tankWallThickness = TANK_SPEC.wallMm;
+    const innerHeight = TANK_SPEC.innerHeightMm;
+    const tankBottomThickness = TANK_SPEC.wallMm;
+    const tankBodyHeight = innerHeight + tankBottomThickness;
+    const tankHeight = tankBodyHeight;
 
-    // Paredes retangulares do envelope FG-TANK-6L-R1 (206 x 206 x 168 mm).
-    // A capacidade é geométrica; a calibração da peça fabricada permanece pendente.
-    const outerWallGeo = new THREE.BoxGeometry(tankWidth, innerHeight, tankWallThickness);
-    const sideWallGeo = new THREE.BoxGeometry(tankWallThickness, innerHeight, innerDepth);
+    // Geometria cilíndrica FG-TANK-5L-CYL-R1. A capacidade geométrica é
+    // calculada por πr²h; a calibração da peça fabricada permanece pendente.
+    const tankShellGeo = new THREE.CylinderGeometry(
+      tankOuterRadius,
+      tankOuterRadius,
+      tankBodyHeight,
+      96,
+      1,
+      true,
+    );
 
     // Materiais ópticos de referência para acrílico transparente.
     const outerPmmaMatBack = new THREE.MeshPhysicalMaterial({
@@ -630,16 +832,6 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       side: THREE.FrontSide,
       depthWrite: false,
     });
-    const innerPmmaMatBack = new THREE.MeshPhysicalMaterial({
-      color: 0xf1f5f9,
-      transmission: tankOpacityRef.current,
-      opacity: 1.0,
-      transparent: true,
-      roughness: 0.05,
-      ior: 1.491,
-      side: THREE.BackSide,
-      depthWrite: false,
-    });
     const innerPmmaMatFront = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
       transmission: tankOpacityRef.current,
@@ -651,37 +843,41 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       depthWrite: false,
     });
 
-    // 1. Parede traseira
-    const outerBackMesh = new THREE.Mesh(outerWallGeo, outerPmmaMatBack);
-    outerBackMesh.position.set(0, tankBottomThickness + innerHeight / 2, -tankDepth / 2 + tankWallThickness / 2);
-    outerBackMesh.renderOrder = 1;
-    tankGroup.add(outerBackMesh);
+    // Parede cilíndrica transparente aberta no topo para não ocultar o volume.
+    const outerShellMesh = new THREE.Mesh(tankShellGeo, outerPmmaMatBack);
+    outerShellMesh.position.y = tankBodyHeight / 2;
+    outerShellMesh.renderOrder = 1;
+    tankGroup.add(outerShellMesh);
+
+    const innerShellMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(tankInnerRadius, tankInnerRadius, innerHeight, 96, 1, true),
+      innerPmmaMatFront,
+    );
+    innerShellMesh.position.y = tankBottomThickness + innerHeight / 2;
+    innerShellMesh.renderOrder = 2;
+    tankGroup.add(innerShellMesh);
 
     // Fundo espesso do tanque em acrílico (renderOrder: 1)
-    const bottomMesh = new THREE.Mesh(new THREE.BoxGeometry(tankWidth, tankBottomThickness, tankDepth), outerPmmaMatFront);
+    const bottomMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(tankOuterRadius, tankOuterRadius, tankBottomThickness, 96),
+      outerPmmaMatFront,
+    );
     bottomMesh.position.y = tankBottomThickness / 2;
     bottomMesh.renderOrder = 1;
     tankGroup.add(bottomMesh);
 
-    // 2. Parede frontal
-    const innerBackMesh = new THREE.Mesh(outerWallGeo, innerPmmaMatBack);
-    innerBackMesh.position.set(0, tankBottomThickness + innerHeight / 2, tankDepth / 2 - tankWallThickness / 2);
-    innerBackMesh.renderOrder = 2;
-    tankGroup.add(innerBackMesh);
-
-    // 3. Coluna de água retangular da baseline (volume nominal, não calibração)
-    const waterGeo = new THREE.BoxGeometry(innerWidth, 1, innerDepth);
-    const waterMat = new THREE.MeshPhysicalMaterial({
-      color: 0x0284c7, // Azul ciano de absorção espectral natural
-      transmission: 0.86,
-      opacity: 0.95,
+    // Coluna de água cilíndrica da baseline (volume nominal, não calibração).
+    const waterGeo = new THREE.CylinderGeometry(tankInnerRadius, tankInnerRadius, 1, 96);
+    // Material estável para WebGL: a refração transmissiva do MeshPhysical
+    // cria artefatos radiais em alguns drivers e faz a água parecer um feixe
+    // de cabos. A transparência PBR mantém volume, cor e contraste sem
+    // desenhar linhas internas que não existem na bancada.
+    const waterMat = new THREE.MeshStandardMaterial({
+      color: 0x0284c7,
+      opacity: 0.78,
       transparent: true,
-      roughness: 0.03,
+      roughness: 0.12,
       metalness: 0.02,
-      ior: 1.333, // Índice de refração real da água potável
-      thickness: 50.0,
-      attenuationColor: new THREE.Color(0x0284c7),
-      attenuationDistance: 120,
       side: THREE.DoubleSide,
       depthWrite: false,
     });
@@ -689,9 +885,9 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     waterMesh.renderOrder = 3;
     tankGroup.add(waterMesh);
 
-    // 4. Menisco superior da água e anel de tensão superficial (renderOrder: 4)
+    // Menisco superior da água e anel de tensão superficial (renderOrder: 4)
     const waterSurface = new THREE.Mesh(
-      new THREE.PlaneGeometry(innerWidth, innerDepth),
+      new THREE.CircleGeometry(tankInnerRadius, 96),
       new THREE.MeshStandardMaterial({
         color: 0x38bdf8,
         roughness: 0.06,
@@ -703,7 +899,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     tankGroup.add(waterSurface);
 
     const meniscusRing = new THREE.Mesh(
-      new THREE.EdgesGeometry(new THREE.BoxGeometry(innerWidth, 0.2, innerDepth)),
+      new THREE.RingGeometry(tankInnerRadius - 1.2, tankInnerRadius, 96),
       new THREE.MeshStandardMaterial({
         color: 0x0369a1,
         roughness: 0.08,
@@ -715,45 +911,52 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     meniscusRing.renderOrder = 4;
     tankGroup.add(meniscusRing);
 
-    // 5. Paredes laterais
-    const innerFrontMesh = new THREE.Mesh(sideWallGeo, innerPmmaMatFront);
-    innerFrontMesh.position.set(-tankWidth / 2 + tankWallThickness / 2, tankBottomThickness + innerHeight / 2, 0);
-    innerFrontMesh.renderOrder = 5;
-    tankGroup.add(innerFrontMesh);
-
-    // Escala do tanque real (a graduação não é assumida)
-    const gradGroup = new THREE.Group();
-    for (let l = 1; l <= 5; l++) {
-      const gradLine = new THREE.Mesh(
-        new THREE.PlaneGeometry(14, 1.0),
-        new THREE.MeshBasicMaterial({ color: 0x94a3b8, side: THREE.DoubleSide })
-      );
-        gradLine.position.set(0, tankBottomThickness + (innerHeight / 6) * l, tankDepth / 2 + 0.3);
-      gradGroup.add(gradLine);
-    }
-    tankGroup.add(gradGroup);
-
-    // 6. Parede lateral direita
-    const outerFrontMesh = new THREE.Mesh(sideWallGeo, outerPmmaMatFront);
-    outerFrontMesh.position.set(tankWidth / 2 - tankWallThickness / 2, tankBottomThickness + innerHeight / 2, 0);
-    outerFrontMesh.renderOrder = 6;
-    tankGroup.add(outerFrontMesh);
+    // Borda física mínima: apenas a espessura do acrílico, sem graduação
+    // decorativa. A leitura de volume fica no painel e na superfície da água,
+    // mantendo o tanque legível sem transformar o recipiente em uma gaiola de linhas.
+    const rimMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0xffffff,
+      transmission: tankOpacityRef.current,
+      opacity: 0.34,
+      transparent: true,
+      roughness: 0.16,
+      ior: 1.491,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    const rimTubeRadius = Math.max(0.28, tankWallThickness / 6);
+    const rimRadius = tankInnerRadius + tankWallThickness / 2;
+    const bottomRim = new THREE.Mesh(new THREE.TorusGeometry(rimRadius, rimTubeRadius, 8, 96), rimMaterial);
+    bottomRim.position.y = tankBottomThickness;
+    tankGroup.add(bottomRim);
+    const topRim = new THREE.Mesh(new THREE.TorusGeometry(rimRadius, rimTubeRadius, 8, 96), rimMaterial);
+    topRim.position.y = tankBodyHeight;
+    tankGroup.add(topRim);
 
     // =========================================================================
-    // 10. TAMPA FG-TANK-6L-R1, SUPORTE, PN532 E PROBE SEN0311 — MONTAGEM EXPLODIDA
+    // 10. TAMPA FG-TANK-5L-CYL-R1, SUPORTE, PN532 E PROBE SEN0311
     // =========================================================================
     const lidAssemblyGroup = new THREE.Group();
     lidAssemblyGroup.position.y = tankHeight;
 
     const lidMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(tankWidth, 5, tankDepth),
-      new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.55 })
+      new THREE.CylinderGeometry(tankOuterRadius, tankOuterRadius, 5, 96),
+      new THREE.MeshPhysicalMaterial({
+        color: 0xe2e8f0,
+        transmission: 0.62,
+        opacity: 0.54,
+        transparent: true,
+        roughness: 0.14,
+        ior: 1.491,
+        depthWrite: false,
+      })
     );
     lidMesh.position.y = 2.5;
     lidMesh.castShadow = enableShadows;
     lidAssemblyGroup.add(lidMesh);
 
-    // Probe A02YYUW/SEN0311 apontando perpendicular à água. Envelope externo aguarda medição.
+    // Fallback visual do probe A02YYUW/SEN0311. O GLB documentado abaixo o
+    // substitui quando carregado; o fallback permanece para modo offline.
     const probeGeo = new THREE.CylinderGeometry(5, 5, 20, 24);
     const probeMat = new THREE.MeshStandardMaterial({
       color: 0x94a3b8,
@@ -810,13 +1013,28 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     cableGland.position.set(0, 12.0, 0);
     probeMesh.add(cableGland);
 
+    let sensorAssetRoot: THREE.Object3D | null = null;
+    loadReferenceAsset(
+      '/models/reference/dfrobot-sen0311-a02yyuw-reference.glb',
+      lidAssemblyGroup,
+      'SEN1',
+      'a02yyuw_sen0311',
+      [probeMesh],
+      { registryId: 'SEN1_PROBE', onLoaded: (root) => { sensorAssetRoot = root; } },
+    );
+
     // Suporte acrílico transparente para o PN532
+    const pn532DryGroup = new THREE.Group();
+    pn532DryGroup.name = 'PN532 V4 — dry external front support';
+    pn532DryGroup.position.set(pn532Position[0], pn532Position[1] - 15.5, pn532Position[2]);
+    benchGroup.add(pn532DryGroup);
+
     const nfcBracket = new THREE.Mesh(
       new THREE.BoxGeometry(46, 2.5, 46),
       new THREE.MeshPhysicalMaterial({ color: 0xffffff, transmission: 0.85, roughness: 0.15 })
     );
     nfcBracket.position.set(0, 10, 0);
-    lidAssemblyGroup.add(nfcBracket);
+    pn532DryGroup.add(nfcBracket);
 
     // 4 espaçadores de nylon M3 nos cantos da placa
     const standoffMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.4 });
@@ -829,7 +1047,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     ].forEach(([sx, sy, sz]) => {
       const so = new THREE.Mesh(standoffGeo, standoffMat);
       so.position.set(sx, sy, sz);
-      lidAssemblyGroup.add(so);
+      pn532DryGroup.add(so);
     });
 
     // Módulo PN532 Breakout PCB (Classe C)
@@ -839,7 +1057,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     );
     nfcPcb.position.set(0, 15.5, 0);
     nfcPcb.castShadow = enableShadows;
-    lidAssemblyGroup.add(nfcPcb);
+    pn532DryGroup.add(nfcPcb);
 
     // 4 Furos de fixação M3 com anéis metalizados em ouro ENIG nos vértices
     const nfcEnigMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.95, roughness: 0.2 });
@@ -903,31 +1121,72 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     const slider1 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.2), sliderMat);
     slider1.position.set(1.4, 0.7, 0.6);
     dipSwitchNfc.add(slider0, slider1);
-    lidAssemblyGroup.add(dipSwitchNfc);
+    pn532DryGroup.add(dipSwitchNfc);
 
     const nfcHeader = new THREE.Mesh(
       new THREE.BoxGeometry(15, 3.5, 2.5),
       new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.5 })
     );
     nfcHeader.position.set(-18, 17.0, -10);
-    lidAssemblyGroup.add(nfcHeader);
+    pn532DryGroup.add(nfcHeader);
+
+    // Asset real do fabricante: o STEP oficial do ELECHOUSE PN532 V4 foi
+    // convertido para GLB offline e só substitui a geometria didática quando
+    // o arquivo termina de carregar. Assim a bancada continua utilizável se
+    // um servidor local for iniciado sem os assets públicos.
+    let nfcAssetRoot: THREE.Object3D | null = null;
+    const nfcLoader = new GLTFLoader();
+    nfcLoader.load(
+      '/models/official/elechouse-pn532-v4.glb',
+      (gltf) => {
+        if (sceneDisposed) {
+          gltf.scene.traverse((node) => {
+            if (node instanceof THREE.Mesh) node.geometry.dispose();
+          });
+          return;
+        }
+        nfcAssetRoot = gltf.scene;
+        nfcAssetRoot.name = 'PN532 V4 — ELECHOUSE / official GLB';
+        nfcAssetRoot.rotation.x = -Math.PI / 2;
+        nfcAssetRoot.position.set(19.35, 17.4, 0);
+        nfcAssetRoot.traverse((node) => {
+          if (node instanceof THREE.Mesh) {
+            node.castShadow = enableShadows;
+            node.receiveShadow = true;
+            node.userData.componentKey = 'pn532_breakout';
+          }
+        });
+        // Os elementos abaixo são fallback visual e não ficam duplicados no
+        // estado normal da cena quando o modelo oficial está disponível.
+        nfcPcb.visible = false;
+        dipSwitchNfc.visible = false;
+        nfcHeader.visible = false;
+        pn532DryGroup.add(nfcAssetRoot);
+        sceneRegistry.register('RFID1', nfcAssetRoot, { designator: 'RFID1', collisionClass: 'STANDALONE_MODULE', verified: true });
+        pickableObjects.push({ mesh: nfcAssetRoot, compKey: 'pn532_breakout' });
+      },
+      undefined,
+      () => {
+        // Mantém o fallback nominal quando o GLB não estiver acessível.
+      },
+    );
 
     // Ímã de neodímio N35 com polos identificados (Norte vermelho / Sul azul)
     const magnetNorth = new THREE.Mesh(
       new THREE.CylinderGeometry(5, 5, 1.25, 20),
       new THREE.MeshStandardMaterial({ color: 0xef4444, metalness: 0.6, roughness: 0.3 })
     );
-    magnetNorth.position.set(tankWidth / 2 - 5, 5.125, 0);
+    magnetNorth.position.set(tankOuterRadius - 5, 5.125, 0);
     const magnetSouth = new THREE.Mesh(
       new THREE.CylinderGeometry(5, 5, 1.25, 20),
       new THREE.MeshStandardMaterial({ color: 0x3b82f6, metalness: 0.6, roughness: 0.3 })
     );
-    magnetSouth.position.set(tankWidth / 2 - 5, 3.875, 0);
+    magnetSouth.position.set(tankOuterRadius - 5, 3.875, 0);
     lidAssemblyGroup.add(magnetNorth, magnetSouth);
 
     // Reed Switch na lateral superior do recipiente (Classe C)
     const reedGroup = new THREE.Group();
-    reedGroup.position.set(tankWidth / 2 - 5, tankHeight - 10, 0);
+    reedGroup.position.set(tankOuterRadius - 5, tankHeight - 10, 0);
 
     const reedGlass = new THREE.Mesh(
       new THREE.CylinderGeometry(1.6, 1.6, 12, 16),
@@ -958,6 +1217,14 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
 
     reedGroup.add(reedGlass, glassCap1, glassCap2, bladeLeft, bladeRight, lead1, lead2);
     tankGroup.add(reedGroup);
+    loadReferenceAsset(
+      '/models/reference/mc-38-reed-switch-magnet-reference.glb',
+      tankGroup,
+      'SW1',
+      'reed_switch',
+      [reedGroup, magnetNorth, magnetSouth],
+      { registryId: 'SW1', position: [tankOuterRadius - 5, tankHeight - 10, 0] },
+    );
 
     // =========================================================================
     // 10.1 FEIXE ACÚSTICO ULTRASSÔNICO & ZONA CEGA (MODO SENSORES)
@@ -985,12 +1252,21 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     pulseRing.rotation.x = -Math.PI / 2;
     acousticGroup.add(pulseRing);
 
+    // Halo de emissão no transdutor: indica o instante de disparo sem
+    // transformar o recipiente inteiro em uma sobreposição permanente.
+    const sensorEmitterRing = new THREE.Mesh(
+      new THREE.RingGeometry(7, 10, 32),
+      new THREE.MeshBasicMaterial({ color: 0x67e8f9, side: THREE.DoubleSide, transparent: true, opacity: 0.72, depthWrite: false }),
+    );
+    sensorEmitterRing.rotation.x = -Math.PI / 2;
+    acousticGroup.add(sensorEmitterRing);
+
     // Cilindro delimitador da Zona Cega do Sensor (0 a 200mm nominais, proporcional a 22mm no topo)
     const blindZoneMesh = new THREE.Mesh(
       new THREE.CylinderGeometry(18, 18, 22, 24, 1, true),
       new THREE.MeshBasicMaterial({ color: 0xf43f5e, side: THREE.DoubleSide, transparent: true, opacity: 0.38, depthWrite: false })
     );
-    blindZoneMesh.position.set(0, 144 - 11, 0);
+    blindZoneMesh.position.set(0, tankBodyHeight - 30 - 11, 0);
     acousticGroup.add(blindZoneMesh);
 
     // Anel de aviso de limite inferior da Zona Cega
@@ -999,7 +1275,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       new THREE.MeshBasicMaterial({ color: 0xf43f5e, side: THREE.DoubleSide, transparent: true, opacity: 0.75 })
     );
     blindRing.rotation.x = -Math.PI / 2;
-    blindRing.position.set(0, 144 - 22, 0);
+    blindRing.position.set(0, tankBodyHeight - 30 - 22, 0);
     acousticGroup.add(blindRing);
 
     acousticGroup.visible = false;
@@ -1007,8 +1283,13 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     tankGroup.add(lidAssemblyGroup);
     tankGroup.visible = TANK_GEOMETRY_RELEASED;
     benchGroup.add(tankGroup);
+    sceneRegistry.register('TK1', tankGroup, { designator: 'TK1', collisionClass: 'TRANSPARENT_FLUID_CONTAINER' });
+    sceneRegistry.register('LID1', lidAssemblyGroup, { designator: 'LID1', collisionClass: 'LID_ASSEMBLY' });
+    sceneRegistry.register('SEN1_PROBE', probeMesh, { designator: 'SEN1', collisionClass: 'SENSOR_PROBE' });
+    sceneRegistry.register('WATER_VOLUME', waterMesh, { collisionClass: 'FLUID_VOLUME' });
+    sceneRegistry.register('RFID1', pn532DryGroup, { designator: 'RFID1', collisionClass: 'STANDALONE_MODULE' });
 
-    pickableObjects.push({ mesh: outerFrontMesh, compKey: 'tank_cylinder' });
+    pickableObjects.push({ mesh: outerShellMesh, compKey: 'tank_cylinder' });
     pickableObjects.push({ mesh: probeMesh, compKey: 'a02yyuw_sen0311' });
     pickableObjects.push({ mesh: nfcPcb, compKey: 'pn532_breakout' });
     pickableObjects.push({ mesh: reedGlass, compKey: 'reed_switch' });
@@ -1034,22 +1315,22 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       return l;
     };
 
-    // Guias dos 4 furos M3 do PN532 na tampa
+    // Guias dos 4 furos M3 do PN532 no suporte frontal seco
     [
-      [85 - 18, 150 + 10, -10 - 17],
-      [85 + 18, 150 + 10, -10 - 17],
-      [85 - 18, 150 + 10, -10 + 17],
-      [85 + 18, 150 + 10, -10 + 17],
+      [pn532Position[0] - 18, pn532Position[1] + 10, pn532Position[2] - 17],
+      [pn532Position[0] + 18, pn532Position[1] + 10, pn532Position[2] - 17],
+      [pn532Position[0] - 18, pn532Position[1] + 10, pn532Position[2] + 17],
+      [pn532Position[0] + 18, pn532Position[1] + 10, pn532Position[2] + 17],
     ].forEach(([gx, gy, gz]) => {
       explodeGuidesGroup.add(createDashedGuide([gx, gy, gz], [gx, gy + 65, gz]));
     });
 
     // Guia central da sonda ultrassônica
-    explodeGuidesGroup.add(createDashedGuide([85, 140, -10], [85, 150 + 65 + 30, -10]));
+    explodeGuidesGroup.add(createDashedGuide([tankPosition[0], tankPosition[1] + 56, tankPosition[2]], [tankPosition[0], tankPosition[1] + 251, tankPosition[2]]));
 
     // Guias das barras de pinos do ESP32 para a protoboard
-    explodeGuidesGroup.add(createDashedGuide([-110 - 11.43, 11, 22], [-110 - 11.43, 14 + 25, 22]));
-    explodeGuidesGroup.add(createDashedGuide([-110 + 11.43, 11, 22], [-110 + 11.43, 14 + 25, 22]));
+    explodeGuidesGroup.add(createDashedGuide([u1Position[0] - 11.43, u1Position[1] - 0.5, u1Position[2]], [u1Position[0] - 11.43, u1Position[1] + 25, u1Position[2]]));
+    explodeGuidesGroup.add(createDashedGuide([u1Position[0] + 11.43, u1Position[1] - 0.5, u1Position[2]], [u1Position[0] + 11.43, u1Position[1] + 25, u1Position[2]]));
 
     // =========================================================================
     // 12. CABOS COM ROTA FÍSICA E TERMINAIS DUPONT (TUBEGEOMETRY)
@@ -1067,8 +1348,17 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     benchGroup.add(cableRootGroup);
 
     PHYSICAL_WIRING_REGISTRY.forEach((cable) => {
-      const vectors = cable.waypoints.map((p) => new THREE.Vector3(...p));
-      const curve = new THREE.CatmullRomCurve3(vectors, false, 'centripetal', 0.25);
+      // A rota é resolvida pelo ID do cabo no registro físico. Nunca usar
+      // netName aqui: GND e 3V3 podem ter múltiplos condutores distintos.
+      const waypoints = cable.waypoints;
+      const vectors = waypoints.map((p) => new THREE.Vector3(...p));
+      // Rotas de chicote não podem "cortar caminho" por interpolação spline:
+      // uma curva suave poderia atravessar o tanque mesmo com waypoints seguros.
+      // CurvePath linear preserva cada corredor mecânico e cada endpoint.
+      const curve = new THREE.CurvePath<THREE.Vector3>();
+      vectors.slice(1).forEach((end, index) => {
+        curve.add(new THREE.LineCurve3(vectors[index], end));
+      });
 
       const segments = lowPowerMode ? 24 : 40;
       const radius = cable.diameterMm / 2;
@@ -1104,8 +1394,19 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
 
       const d1 = new THREE.Mesh(dupontGeo, dupontMat);
       d1.position.copy(vectors[0]);
+      d1.name = `${cable.id} terminal ${cable.fromTerminal ?? 'origem'}`;
+      d1.userData.cableId = cable.id;
       const d2 = new THREE.Mesh(dupontGeo, dupontMat);
       d2.position.copy(vectors[vectors.length - 1]);
+      d2.name = `${cable.id} terminal ${cable.toTerminal ?? 'destino'}`;
+      d2.userData.cableId = cable.id;
+      const terminalAxis = new THREE.Vector3(0, 1, 0);
+      const orientTerminal = (terminal: THREE.Mesh, origin: THREE.Vector3, next: THREE.Vector3) => {
+        const direction = next.clone().sub(origin).normalize();
+        terminal.quaternion.setFromUnitVectors(terminalAxis, direction);
+      };
+      orientTerminal(d1, vectors[0], vectors[1]);
+      orientTerminal(d2, vectors[vectors.length - 1], vectors[vectors.length - 2]);
       cableRootGroup.add(d1, d2);
 
       cableMeshes.push({
@@ -1116,6 +1417,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
         highlightMat,
         dimMat,
       });
+      sceneRegistry.register(cable.id, tubeMesh, { collisionClass: 'FLEXIBLE_CABLE' });
 
       pickableObjects.push({ mesh: tubeMesh, cableId: cable.id });
     });
@@ -1153,12 +1455,16 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     const raycaster = new THREE.Raycaster();
     const mouseCoord = new THREE.Vector2();
     let isMouseDown = false;
+    let startedOnCanvas = false;
     let prevMouseX = 0;
     let prevMouseY = 0;
     let totalDragDistance = 0;
 
     const onMouseDown = (e: MouseEvent) => {
+      if (e.button !== 0) return;
       isMouseDown = true;
+      startedOnCanvas = true;
+      focusTargetRef.current = null;
       prevMouseX = e.clientX;
       prevMouseY = e.clientY;
       totalDragDistance = 0;
@@ -1189,12 +1495,44 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       return false;
     };
 
+    const inspectionRootFor = (componentKey: string, fallback: THREE.Object3D): THREE.Object3D => {
+      switch (componentKey) {
+        case 'esp32_s3_devkit': return espAssetRoot ?? espGroup;
+        case 'pn532_breakout': return nfcAssetRoot ?? pn532DryGroup;
+        case 'a02yyuw_sen0311': return sensorAssetRoot ?? probeMesh;
+        case 'reed_switch': return reedGroup;
+        case 'led_indicator': return ledIndicatorGroup;
+        case 'buzzer_active': return buzzerGroup;
+        default: return fallback;
+      }
+    };
+
+    const isolateForInspection = (target: THREE.Object3D) => {
+      inspectionVisibilityRef.current = [];
+      benchGroup.traverse((object) => {
+        inspectionVisibilityRef.current.push({ object, visible: object.visible });
+      });
+
+      // Keep only the selected object and its ancestor path. This makes the
+      // component appear alone while the UI overlay blurs the rest of the CAD
+      // stage; the original visibility is restored on close/Escape.
+      const keepPath = (object: THREE.Object3D): boolean => {
+        const containsTarget = object === target || object.children.some(keepPath);
+        if (object !== benchGroup && !containsTarget) object.visible = false;
+        return containsTarget;
+      };
+      keepPath(benchGroup);
+    };
+
     const onMouseUp = (e: MouseEvent) => {
       if (!isMouseDown) return;
       isMouseDown = false;
 
-      // Ignora raycaster se o clique/soltura foi em botões UI ou fora do elemento canvas
-      if (e.target !== dom) return;
+      // O mouseup pode chegar ao window com target=body mesmo quando o gesto
+      // começou no canvas. A origem do gesto é a autoridade para distinguir
+      // uma seleção 3D de um clique em controles HTML.
+      if (!startedOnCanvas) return;
+      startedOnCanvas = false;
 
       if (totalDragDistance < 5 && mount) {
         const rect = mount.getBoundingClientRect();
@@ -1202,7 +1540,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
         mouseCoord.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
         raycaster.setFromCamera(mouseCoord, camera);
-        const meshesToTest = pickableObjects.map((p) => p.mesh);
+        const meshesToTest = pickableObjects.filter((p) => p.mesh.visible).map((p) => p.mesh);
         const intersects = raycaster.intersectObjects(meshesToTest, true);
 
         if (intersects.length > 0) {
@@ -1214,12 +1552,32 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
             if (found.cableId) {
               const cb = PHYSICAL_WIRING_REGISTRY.find((c) => c.id === found.cableId);
               if (cb) {
+                restoreInspectionVisibility();
                 setSelectedCable(cb);
                 setSelectedComp(null);
               }
             } else if (found.compKey && FUELGUARD_CAD_LIBRARY[found.compKey]) {
+              restoreInspectionVisibility();
+              const inspectionRoot = inspectionRootFor(found.compKey, found.mesh);
+              isolateForInspection(inspectionRoot);
+              // A inspeção sempre parte da montagem nominal: o componente
+              // não pode parecer solto por herdar uma vista explodida.
+              setIsExploded(false);
+              isExplodedTargetRef.current = 0;
               setSelectedComp(FUELGUARD_CAD_LIBRARY[found.compKey]);
+              const functionDetails = COMPONENT_FUNCTION_CATALOG[found.compKey] ?? [];
+              setSelectedFunctionalDetail(functionDetails[0]?.id ?? null);
+              setIsInspectionAutoRotate(true);
+              inspectionObjectRef.current = inspectionRoot;
+              inspectionBaseRotationRef.current = inspectionRoot.rotation.clone();
+              inspectionAngleRef.current = 0;
               setSelectedCable(null);
+              const bounds = new THREE.Box3().setFromObject(inspectionRoot);
+              const sphere = bounds.getBoundingSphere(new THREE.Sphere());
+              focusTargetRef.current = {
+                object: inspectionRoot,
+                distance: Math.min(520, Math.max(125, sphere.radius * 4.2)),
+              };
             }
           }
         }
@@ -1229,7 +1587,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       camera.position.z += e.deltaY * 0.22;
-      camera.position.z = Math.max(160, Math.min(580, camera.position.z));
+      camera.position.z = Math.max(220, Math.min(800, camera.position.z));
     };
 
     const dom = renderer.domElement;
@@ -1243,6 +1601,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     // =========================================================================
     let animId: number;
     let curExplode = 0;
+    let collisionFrame = 0;
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
@@ -1271,6 +1630,44 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       benchGroup.rotation.y = rotRef.current.rotY;
       benchGroup.rotation.x = rotRef.current.rotX;
 
+      const focus = focusTargetRef.current;
+      if (focus) {
+        const focusBounds = new THREE.Box3().setFromObject(focus.object);
+        const focusCenter = focusBounds.getCenter(new THREE.Vector3());
+        const focusSphere = focusBounds.getBoundingSphere(new THREE.Sphere());
+        const focusPosition = focusCenter.clone().add(new THREE.Vector3(0, Math.max(42, focusSphere.radius * 0.65), focus.distance));
+        camera.position.lerp(focusPosition, 0.12);
+        camera.lookAt(focusCenter);
+        if (inspectionAutoRotateRef.current && inspectionObjectRef.current === focus.object && inspectionBaseRotationRef.current) {
+          inspectionAngleRef.current = (inspectionAngleRef.current + 0.012) % (Math.PI * 2);
+          const base = inspectionBaseRotationRef.current;
+          focus.object.rotation.set(base.x, base.y + inspectionAngleRef.current, base.z);
+        }
+      } else {
+        camera.lookAt(defaultCameraTarget);
+      }
+
+      collisionFrame += 1;
+      if (collisionFrame % 20 === 0) {
+        const probeLid = sceneRegistry.checkCollision('SEN1_PROBE', 'LID1');
+        const dryBayChecks = [
+          sceneRegistry.checkCollision('U1', 'TK1'),
+          sceneRegistry.checkCollision('BB1', 'TK1'),
+          sceneRegistry.checkCollision('D1', 'TK1'),
+          sceneRegistry.checkCollision('BZ1', 'TK1'),
+          sceneRegistry.checkCollision('RFID1', 'TK1'),
+        ];
+        const checks = [probeLid, ...dryBayChecks];
+        const nextStatus: CollisionStatus = checks.some((check) => check.status === 'FAIL')
+          ? 'FAIL'
+          : checks.some((check) => check.status === 'WARNING')
+            ? 'WARNING'
+            : checks.every((check) => check.status === 'PASS')
+              ? 'PASS'
+              : 'PENDING_PHYSICAL_EVIDENCE';
+        setCollisionStatus(nextStatus);
+      }
+
       // Interpolação suave da Vista Explodida (Exploded View)
       const targetExp = isExplodedTargetRef.current;
       curExplode += (targetExp - curExplode) * 0.12;
@@ -1281,8 +1678,15 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       const espExplodeY = curExplode * 25;
 
       lidAssemblyGroup.position.y = tankHeight + lidExplodeY;
-      probeMesh.position.y = -6 + probeExplodeY;
-      espGroup.position.y = 14 + espExplodeY;
+      const now = Date.now();
+      const sensorMotion = isSensorModeRef.current ? Math.sin(now * 0.009) * 0.16 : 0;
+      probeMesh.position.y = -6 + probeExplodeY + sensorMotion;
+      if (sensorAssetRoot) {
+        sensorAssetRoot.position.y = sensorMotion;
+        sensorAssetRoot.rotation.z = sensorMotion * 0.012;
+      }
+      espGroup.position.y = u1Position[1] + espExplodeY;
+      if (espAssetRoot) espAssetRoot.position.y = u1Position[1] + espExplodeY;
 
       // Linhas de guia visíveis apenas quando explodido
       explodeGuidesGroup.visible = curExplode > 0.04;
@@ -1301,12 +1705,12 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
         meniscusRing.visible = true;
         const curWaterHeight = innerHeight * (currentPct / 100);
         waterMesh.scale.set(1, Math.max(0.001, curWaterHeight), 1);
-        waterMesh.position.y = curWaterHeight / 2 + 2.5;
+        waterMesh.position.y = tankBottomThickness + curWaterHeight / 2;
 
         // Sutil oscilação de menisco (ondulação discreta de líquido)
         const ripple = enableRipplesRef.current ? Math.sin(Date.now() * 0.0025) * 0.3 : 0;
-        waterSurface.position.y = curWaterHeight + 2.5 + ripple;
-        meniscusRing.position.y = curWaterHeight + 2.55 + ripple;
+        waterSurface.position.y = tankBottomThickness + curWaterHeight + ripple;
+        meniscusRing.position.y = tankBottomThickness + curWaterHeight + ripple;
       }
 
       // Modo Sensores: feixe acústico ultrassônico e pulso propagando
@@ -1320,16 +1724,19 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
         acousticCone.scale.set(1, beamSpan, 1);
         acousticCone.position.set(0, probeY - beamSpan / 2, 0);
 
-        const pulseCycle = (Date.now() * 0.0016) % 1.0;
+        const pulseCycle = (now * 0.0016) % 1.0;
         const pulseY = probeY - beamSpan * pulseCycle;
         pulseRing.position.set(0, pulseY, 0);
         pulseRing.scale.setScalar(0.7 + pulseCycle * 1.6);
+        sensorEmitterRing.position.set(0, probeY - 0.8, 0);
+        const emitterPhase = (now * 0.004) % 1.0;
+        sensorEmitterRing.scale.setScalar(0.8 + emitterPhase * 0.9);
+        (sensorEmitterRing.material as THREE.MeshBasicMaterial).opacity = 0.82 - emitterPhase * 0.52;
       }
 
       // Transparência configurável dos cilindros de acrílico PMMA (PBR)
       outerPmmaMatBack.transmission = tankOpacityRef.current;
       outerPmmaMatFront.transmission = tankOpacityRef.current;
-      innerPmmaMatBack.transmission = tankOpacityRef.current;
       innerPmmaMatFront.transmission = tankOpacityRef.current;
 
       // Visibilidade e Destaque de Cabos (Modo Conexões)
@@ -1375,6 +1782,8 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     window.addEventListener('resize', handleResize);
 
     return () => {
+      sceneDisposed = true;
+      sceneRegistry.dispose();
       cancelAnimationFrame(animId);
       dom.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
@@ -1386,19 +1795,34 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
         mount.removeChild(renderer.domElement);
       }
 
+      if (nfcAssetRoot) {
+        nfcAssetRoot.traverse((node) => {
+          if (node instanceof THREE.Mesh) {
+            node.geometry.dispose();
+            const materials = Array.isArray(node.material) ? node.material : [node.material];
+            materials.forEach((material) => material.dispose());
+          }
+        });
+      }
       renderer.dispose();
-      outerWallGeo.dispose();
-      sideWallGeo.dispose();
+      tankShellGeo.dispose();
+      innerShellMesh.geometry.dispose();
       waterGeo.dispose();
       matGeo.dispose();
       bbBody.geometry.dispose();
     };
   }, [updateRotation, enableShadows, lowPowerMode, showCalipers]);
 
+  const selectedFunctionalDetails = selectedComp
+    ? COMPONENT_FUNCTION_CATALOG[selectedComp.id] ?? []
+    : [];
+  const activeFunctionalDetail = selectedFunctionalDetails.find((detail) => detail.id === selectedFunctionalDetail)
+    ?? selectedFunctionalDetails[0];
+
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full bg-[#06090d] rounded-md border border-inst-border overflow-hidden select-none flex flex-col font-mono"
+      className="relative w-full h-full bg-[#06090d] rounded-xl border border-inst-border overflow-hidden select-none flex flex-col font-ui"
     >
       {/* 1. ViewCube Interativo no Canto Superior Esquerdo */}
       <div className="absolute top-3 left-3 z-20 flex flex-col items-center">
@@ -1407,6 +1831,27 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
 
       {/* 2. Barra Superior de Alternância, Auditoria e Presets */}
       <div className="absolute top-3 right-3 z-40 flex flex-wrap items-center gap-2 text-xs">
+        <div className="hidden lg:flex items-center gap-1.5 rounded-md border border-emerald-500/40 bg-emerald-950/80 px-2 py-1 text-[10px] text-emerald-300 shadow-xs" title="Modelo oficial ELECHOUSE convertido de STEP para GLB">
+          <ShieldCheck className="w-3 h-3" />
+          <span>PN532 V4 • GLB oficial</span>
+        </div>
+        <div className="hidden lg:flex items-center gap-1.5 rounded-md border border-sky-500/40 bg-sky-950/80 px-2 py-1 text-[10px] text-sky-300 shadow-xs" title="GLB detalhado reconstruído a partir das dimensões e referências oficiais da Espressif; não é CAD oficial exportado pelo fabricante.">
+          <Cpu className="w-3 h-3" />
+          <span>ESP32-S3 • GLB detalhado</span>
+        </div>
+        <div
+          className={`hidden lg:flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] shadow-xs ${
+            collisionStatus === 'FAIL'
+              ? 'border-rose-500/60 bg-rose-950/80 text-rose-300'
+              : collisionStatus === 'PASS'
+                ? 'border-emerald-500/40 bg-emerald-950/80 text-emerald-300'
+                : 'border-amber-500/50 bg-amber-950/80 text-amber-300'
+          }`}
+          title="Consulta BVH de colisão; assets sem evidência física permanecem pendentes"
+        >
+          <ShieldCheck className="w-3 h-3" />
+          <span>BVH • {collisionStatus}</span>
+        </div>
         {/* Alternador de Vistas Principais */}
         <div className="flex items-center space-x-1 bg-[#0b0f15]/95 backdrop-blur-xs border border-inst-border p-1 rounded-sm shadow-xs">
           <button
@@ -1485,6 +1930,20 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
             <span>Rotas</span>
           </button>
         </div>
+
+        <button
+          onClick={() => setIsControlPanelOpen((open) => !open)}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-sm border shadow-xs text-[11px] transition ${
+            isControlPanelOpen
+              ? 'bg-sky-950/80 border-sky-500 text-sky-300'
+              : 'bg-[#0b0f15]/95 border-inst-border text-inst-secondary hover:text-inst-primary hover:bg-inst-subtle'
+          }`}
+          title="Abrir ou recolher os controles de nível, transparência e fiação"
+          aria-expanded={isControlPanelOpen}
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Controles</span>
+        </button>
 
         {/* 4 Modos Oficiais da Bancada: Montagem | Explodida | Conexões | Sensores */}
         <div className="flex items-center space-x-1 bg-[#0b0f15]/95 backdrop-blur-xs border border-inst-border p-1 rounded-sm shadow-xs">
@@ -1614,7 +2073,8 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       </div>
 
       {/* 3. Controles Flutuantes à Esquerda (Nível de Água, Transparência & Filtro de Fiação) */}
-      <div className="absolute top-28 left-3 z-20 space-y-2 w-64">
+      {isControlPanelOpen && (
+      <div className="absolute top-28 left-3 z-20 space-y-2 w-64 max-w-[calc(100%-1.5rem)]">
         {/* HUD Dedicado do Modo Sensores (Caminho Acústico, Zona Cega e Presets) */}
         {benchMode === 'sensores' && (
           <div className="bg-[#0a0f18]/98 backdrop-blur-md border border-sky-500/80 p-3 rounded-sm shadow-overlay text-xs text-inst-primary space-y-2 animate-in fade-in duration-150">
@@ -1643,7 +2103,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
               </div>
               <div className="flex justify-between">
                 <span className="text-inst-muted font-ui">Tanque:</span>
-                <strong className="text-amber-300">FG-TANK-6L-R1 <span className="text-[8px] text-amber-400/80">[BASELINE]</span></strong>
+                <strong className="text-amber-300">FG-TANK-5L-CYL-R1 <span className="text-[8px] text-amber-400/80">[BASELINE]</span></strong>
               </div>
             </div>
 
@@ -1690,7 +2150,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
           <div className="flex items-center justify-between text-[11px]">
             <span className="flex items-center gap-1 text-sky-400 font-bold">
               <Droplets className="w-3 h-3" />
-              Perfil de nível (FG-TANK-6L-R1)
+              Perfil de nível (FG-TANK-5L-CYL-R1)
             </span>
             <span className="text-inst-primary font-bold">
               {waterLevelPct === 0 ? '0% (Vazio)' : waterLevelPct === 100 ? '100% (Cheio)' : `${waterLevelPct}%`}
@@ -1776,7 +2236,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
                   : 'bg-inst-canvas border-inst-border text-inst-muted hover:text-inst-primary'
               }`}
             >
-              Todos (12)
+              Todos ({PHYSICAL_WIRING_REGISTRY.length})
             </button>
             <button
               onClick={() => setActiveCableGroup('power')}
@@ -1811,6 +2271,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
           </div>
         </div>
       </div>
+      )}
 
       {/* 4. Banner Superior do Modo Conexões (Highlight de Rota Elétrica Ativa) */}
       {selectedCable && (
@@ -1841,11 +2302,11 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       <div className="absolute bottom-3 left-3 z-10 flex flex-wrap gap-2 text-[10px]">
         <div className="px-2.5 py-1 rounded-xs bg-[#0e141c]/90 border border-emerald-800 text-emerald-300 flex items-center gap-1.5 shadow-xs">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-          <span>ESP32-S3 DevKitC-1 v1.1 (documentado) em Protoboard 830</span>
+          <span>ESP32-S3 DevKitC-1 v1.1 • GLB detalhado documentado • baia seca</span>
         </div>
         <div className="px-2.5 py-1 rounded-xs bg-[#0e141c]/90 border border-sky-800 text-sky-300 flex items-center gap-1.5 shadow-xs">
           <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
-          <span>Tanque/tampa: geometria real bloqueada até identificação e medição</span>
+          <span>Tanque/tampa: cilindro Ø206 × 168 mm paramétrico; validação física pendente</span>
         </div>
         <div className="px-2.5 py-1 rounded-xs bg-[#0e141c]/90 border border-purple-800 text-purple-300 flex items-center gap-1.5 shadow-xs">
           <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
@@ -1956,23 +2417,104 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
 
       {/* 8. Cartão de Inspeção de Componente Selecionado (Click-to-Inspect com Classes A/B/C/D) */}
       {selectedComp && (
-        <div className="absolute bottom-3 right-3 z-30 w-96 max-h-[65vh] overflow-y-auto bg-[#0e141c]/98 backdrop-blur-md border border-fuelguard-green p-4 rounded-md shadow-overlay text-xs text-inst-primary animate-in fade-in duration-200 space-y-3">
+        <div
+          className="absolute inset-0 z-30 flex items-center justify-end bg-black/42 backdrop-blur-md p-3 sm:p-5"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.currentTarget === event.target) closeComponentInspection();
+          }}
+        >
+          <div className="absolute inset-x-0 top-4 flex justify-center pointer-events-none">
+            <div className="rounded-full border border-sky-400/50 bg-slate-950/80 px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.16em] text-sky-200 shadow-overlay">
+              Foco de inspeção · componente isolado · rotação 360° ativa
+            </div>
+          </div>
+          <aside
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Inspeção técnica de ${selectedComp.name}`}
+          tabIndex={-1}
+          onMouseDown={(event) => event.stopPropagation()}
+          className="relative z-10 w-[min(36rem,100%)] max-h-[calc(100%-1rem)] overflow-y-auto bg-[#0e141c]/96 backdrop-blur-xl border border-fuelguard-green/70 p-4 sm:p-5 rounded-2xl shadow-overlay text-xs text-inst-primary animate-in fade-in slide-in-from-right-4 duration-200 space-y-3 font-ui"
+        >
           <div className="flex justify-between items-start border-b border-inst-border pb-2.5">
             <div>
-              <div className="text-[10px] text-inst-muted uppercase">Designator: {selectedComp.designatorPrefix}</div>
-              <h2 className="text-sm font-bold text-fuelguard-green flex items-center gap-1.5">
+              <div className="text-[10px] text-inst-muted uppercase tracking-[0.12em]">Designator: {selectedComp.designatorPrefix}</div>
+              <h2 className="text-sm font-bold text-fuelguard-green flex items-center gap-1.5 mt-0.5">
                 <Info className="w-3.5 h-3.5 shrink-0" />
                 {selectedComp.name}
               </h2>
               <div className="text-[11px] text-inst-secondary font-mono">{selectedComp.partNumber} ({selectedComp.revision})</div>
             </div>
             <button
-              onClick={() => setSelectedComp(null)}
-              className="p-1 rounded-xs hover:bg-inst-subtle text-inst-muted hover:text-inst-primary transition"
+              onClick={closeComponentInspection}
+              aria-label="Fechar inspeção técnica"
+              className="p-1.5 rounded-lg hover:bg-inst-subtle text-inst-muted hover:text-inst-primary transition"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
+
+          <div className="grid grid-cols-2 gap-1.5">
+            <button
+              onClick={() => setIsInspectionAutoRotate((value) => !value)}
+              className={`px-2.5 py-2 rounded-lg border text-[10px] font-bold flex items-center justify-center gap-1.5 transition ${
+                isInspectionAutoRotate
+                  ? 'bg-fuelguard-green text-white border-fuelguard-green'
+                  : 'bg-inst-canvas text-inst-secondary border-inst-border hover:text-inst-primary'
+              }`}
+              aria-pressed={isInspectionAutoRotate}
+              title="Girar a peça selecionada continuamente em 360 graus"
+            >
+              {isInspectionAutoRotate ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+              {isInspectionAutoRotate ? 'Parar 360°' : 'Girar 360°'}
+            </button>
+            <button
+              onClick={() => {
+                if (inspectionObjectRef.current && inspectionBaseRotationRef.current) {
+                  inspectionObjectRef.current.rotation.copy(inspectionBaseRotationRef.current);
+                }
+                inspectionAngleRef.current = 0;
+                setIsInspectionAutoRotate(false);
+              }}
+              className="px-2.5 py-2 rounded-lg border border-inst-border bg-inst-canvas text-inst-secondary hover:text-inst-primary text-[10px] font-bold flex items-center justify-center gap-1.5 transition"
+              title="Restaurar a rotação original da peça"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Vista original
+            </button>
+          </div>
+
+          {selectedFunctionalDetails.length > 0 && (
+            <section className="space-y-2">
+              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.12em] text-inst-muted">
+                <Focus className="w-3.5 h-3.5 text-sky-400" />
+                Função e componentes
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {selectedFunctionalDetails.map((detail) => (
+                  <button
+                    key={detail.id}
+                    onClick={() => setSelectedFunctionalDetail(detail.id)}
+                    className={`px-2 py-1 rounded-md border text-[9px] transition ${
+                      activeFunctionalDetail?.id === detail.id
+                        ? 'bg-sky-950/70 border-sky-500 text-sky-200 font-bold'
+                        : 'bg-inst-canvas border-inst-border text-inst-muted hover:text-inst-primary'
+                    }`}
+                  >
+                    {detail.label}
+                  </button>
+                ))}
+              </div>
+              {activeFunctionalDetail && (
+                <div className="rounded-lg border border-sky-800/70 bg-sky-950/30 p-2.5 space-y-1 text-[10px]">
+                  <strong className="text-sky-200 block">{activeFunctionalDetail.role}</strong>
+                  <p className="text-inst-secondary leading-relaxed">{activeFunctionalDetail.behavior}</p>
+                  <p className="text-emerald-300/90 leading-relaxed"><span className="font-bold">Validação:</span> {activeFunctionalDetail.validation}</p>
+                </div>
+              )}
+            </section>
+          )}
 
           {(() => {
             const badge = getConfidenceBadge(selectedComp.confidenceLevel);
@@ -2041,6 +2583,33 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
             </div>
           )}
 
+          {selectedComp.pins.length > 0 && (
+            <section className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-inst-muted uppercase tracking-[0.12em]">Interfaces e pinos</span>
+                <span className="text-[9px] text-inst-muted">{selectedComp.pins.length} pontos</span>
+              </div>
+              <div className="rounded-lg border border-inst-border bg-inst-canvas/70 divide-y divide-inst-border overflow-hidden">
+                {selectedComp.pins.map((pinDef) => (
+                  <div key={pinDef.id} className="grid grid-cols-[2rem_1fr_auto] gap-2 px-2.5 py-2 items-start">
+                    <span className="text-[9px] text-inst-muted font-mono pt-0.5">P{pinDef.pinNumber}</span>
+                    <div className="min-w-0">
+                      <strong className="block text-[10px] text-inst-primary truncate">{pinDef.label}</strong>
+                      <span className="block text-[9px] text-inst-secondary leading-tight">{pinDef.description}</span>
+                    </div>
+                    <span className="text-[9px] text-sky-300 whitespace-nowrap">{pinDef.nominalVoltageV === 0 ? 'GND' : `${pinDef.nominalVoltageV} V`}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section className="grid grid-cols-1 gap-1.5 rounded-lg border border-inst-border bg-inst-canvas/50 p-2.5 text-[9px] text-inst-muted">
+            <div><span className="text-inst-secondary">Proveniência: </span>{selectedComp.sourceReference}</div>
+            <div><span className="text-inst-secondary">Licença: </span>{selectedComp.license}</div>
+            {selectedComp.disclaimerNote && <div className="text-amber-200/80"><span className="text-amber-300">Nota: </span>{selectedComp.disclaimerNote}</div>}
+          </section>
+
           <div className="border-t border-inst-border pt-2 text-[10px] font-ui text-inst-muted space-y-1">
             <strong className="text-inst-secondary block">Substituição por Arquivo CAD Oficial:</strong>
             <p className="leading-tight">{selectedComp.replacementInstructions}</p>
@@ -2051,6 +2620,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
               </a>
             </div>
           </div>
+          </aside>
         </div>
       )}
     </div>

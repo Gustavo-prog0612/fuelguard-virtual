@@ -134,11 +134,12 @@ export const CadOverviewTab: React.FC<CadOverviewTabProps> = ({
             <h4 className="text-xs font-bold text-inst-primary">Hardware Físico de Bancada</h4>
             <ul className="text-[11px] text-inst-secondary space-y-1 list-disc list-inside">
               <li>Protoboard MB-102 830 pontos sobre tapete ESD antiestático</li>
-              <li>ESP32-S3 DevKitC-1 v1.1 comercial oficial</li>
+              <li>ESP32-S3 DevKitC-1 v1.1 comercial; GLB detalhado documentado a partir de referências oficiais</li>
               <li>DFRobot A02YYUW/SEN0311 centralizado na tampa, via UART</li>
+              <li>MC-38 com ímã lateral; GLB de referência documentada</li>
               <li>Módulo ELECHOUSE PN532 V4 com suporte frontal dedicado</li>
               <li>Chicote tubular com terminais DuPont Macho/Fêmea e JST</li>
-              <li>Tanque FG-TANK-6L-R1: 200 × 200 × 160 mm internos, fabricação e medição pendentes</li>
+              <li>Tanque FG-TANK-5L-CYL-R1: Ø200 × 160 mm internos, fabricação e medição pendentes</li>
             </ul>
             <div className="pt-2 border-t border-inst-border text-[10px] text-emerald-400">
               ✓ Base para verificação elétrica e mecânica da bancada

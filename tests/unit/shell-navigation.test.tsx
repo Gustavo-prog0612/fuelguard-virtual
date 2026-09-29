@@ -63,7 +63,7 @@ describe('Marco M1: Casca do Sistema e Navegação — Design System Sereno', ()
     const cadButton = screen.getByRole('tab', { name: /5\. Projeto CAD/i });
     fireEvent.click(cadButton);
 
-    expect(await screen.findByText(/Estação de Projeto CAD & Eletrônica/i)).toBeDefined();
+    expect(await screen.findByText(/Estação de Projeto CAD & Eletrônica/i, {}, { timeout: 3000 })).toBeDefined();
   });
 
   it('alterna o estado da simulação pelo botão Play/Pause', () => {

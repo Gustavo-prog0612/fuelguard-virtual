@@ -2,7 +2,7 @@
 
 ## Escopo
 
-O projeto é uma bancada de engenharia para água, não um módulo instalado em veículo. O software representa e verifica a montagem real: ESP32-S3-DevKitC-1-N8R8 v1.1, PN532 V4, SEN0311, MC-38, indicadores, MB-102 e tanque FG-TANK-6L-R1.
+O projeto é uma bancada de engenharia para água, não um módulo instalado em veículo. O software representa e verifica a montagem real: ESP32-S3-DevKitC-1-N8R8 v1.1, PN532 V4, SEN0311, MC-38, indicadores, MB-102 e tanque FG-TANK-5L-CYL-R1.
 
 ## Fluxo de dados
 

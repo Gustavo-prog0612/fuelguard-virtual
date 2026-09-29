@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { CircuitBoard, AlertTriangle, CheckCircle2, Zap, Info } from 'lucide-react';
+import React, { lazy, Suspense, useState, useEffect } from 'react';
+import { CircuitBoard, AlertTriangle, CheckCircle2, Zap, Info, Box, ShieldCheck, Cable } from 'lucide-react';
 import { HonestyBadge } from '@/ui/components/badges/HonestyBadge';
 import { InteractiveBenchCanvas } from './InteractiveBenchCanvas';
 import { 
@@ -10,10 +10,17 @@ import {
 } from '@/electrical/circuit-validator';
 import { useSimulation } from '@/core/worker/use-simulation';
 
-export const BenchView: React.FC = () => {
+interface BenchViewProps {
+  onOpenCad?: () => void;
+}
+
+const BenchAssemblyCanvas = lazy(() => import('@/ui/views/cad/BenchAssemblyCanvas').then((module) => ({ default: module.BenchAssemblyCanvas })));
+
+export const BenchView: React.FC<BenchViewProps> = ({ onOpenCad }) => {
   const [simulatedFault, setSimulatedFault] = useState<boolean>(false);
   const [connections, setConnections] = useState<CircuitConnection[]>(SAFE_CANONICAL_WIRING);
   const [report, setReport] = useState<CircuitValidationReport>(() => CircuitValidator.evaluate(SAFE_CANONICAL_WIRING));
+  const [workspaceMode, setWorkspaceMode] = useState<'3d' | 'connections'>('3d');
 
   const sim = useSimulation();
 
@@ -45,12 +52,30 @@ export const BenchView: React.FC = () => {
           </span>
           <span className="text-inst-border">|</span>
           <span className="text-[11px] font-mono text-inst-secondary">
-            Canvas Didático Interativo (Foco Central)
+            {workspaceMode === '3d' ? 'Gêmeo digital 3D da bancada física' : 'Topologia elétrica editável'}
           </span>
           <HonestyBadge level="simulado" />
         </div>
 
-        <div className="flex items-center space-x-3 text-xs font-mono">
+        <div className="flex items-center gap-2 text-xs font-mono">
+          <div className="flex items-center gap-1 rounded-lg border border-inst-border bg-inst-canvas p-1" role="tablist" aria-label="Modo da bancada">
+            <button
+              role="tab"
+              aria-selected={workspaceMode === '3d'}
+              onClick={() => setWorkspaceMode('3d')}
+              className={`rounded-md px-2.5 py-1.5 transition ${workspaceMode === '3d' ? 'bg-inst-surface text-fuelguard-green shadow-xs' : 'text-inst-secondary hover:text-inst-primary'}`}
+            >
+              Gêmeo 3D
+            </button>
+            <button
+              role="tab"
+              aria-selected={workspaceMode === 'connections'}
+              onClick={() => setWorkspaceMode('connections')}
+              className={`rounded-md px-2.5 py-1.5 transition ${workspaceMode === 'connections' ? 'bg-inst-surface text-fuelguard-green shadow-xs' : 'text-inst-secondary hover:text-inst-primary'}`}
+            >
+              Conexões 2D
+            </button>
+          </div>
           <span className="text-inst-secondary">
             Conexões Ativas: <strong className="text-inst-primary">{connections.length}</strong>
           </span>
@@ -67,15 +92,51 @@ export const BenchView: React.FC = () => {
         </div>
       </div>
 
+      {/* Resumo primário do gêmeo digital: estado, tanque, assets, colisões e atalhos. */}
+      <section className="grid grid-cols-2 xl:grid-cols-5 gap-px bg-inst-border border-b border-inst-border shrink-0" aria-label="Resumo do gêmeo digital">
+        <div className="bg-inst-surface px-4 py-3">
+          <div className="text-[10px] uppercase tracking-wider text-inst-muted">Gêmeo digital</div>
+          <div className="mt-1 flex items-center gap-2 text-sm font-semibold text-inst-primary"><span className="w-2 h-2 rounded-full bg-fuelguard-green" /> Operacional</div>
+          <div className="text-[10px] text-inst-secondary mt-0.5">Simulação determinística · 50 Hz</div>
+        </div>
+        <div className="bg-inst-surface px-4 py-3">
+          <div className="text-[10px] uppercase tracking-wider text-inst-muted">Tanque</div>
+          <div className="mt-1 flex items-center gap-2 text-sm font-semibold text-inst-primary"><Box className="w-4 h-4 text-sky-600" /> Cilíndrico 5,0265 L</div>
+          <div className="text-[10px] text-inst-secondary mt-0.5">Ø200 × 160 mm interno · nível {Math.round(sim.snapshot.percentage)}%</div>
+        </div>
+        <div className="bg-inst-surface px-4 py-3">
+          <div className="text-[10px] uppercase tracking-wider text-inst-muted">Assets</div>
+          <div className="mt-1 flex items-center gap-2 text-sm font-semibold text-inst-primary"><ShieldCheck className="w-4 h-4 text-fuelguard-green" /> PN532 GLB oficial</div>
+          <div className="text-[10px] text-inst-secondary mt-0.5">ESP32-S3 DevKitC-1 v1.1 · GLB B · SEN0311 GLB B · MC-38 GLB C · tanque paramétrico C</div>
+        </div>
+        <div className="bg-inst-surface px-4 py-3">
+          <div className="text-[10px] uppercase tracking-wider text-inst-muted">Colisões</div>
+          <div className="mt-1 flex items-center gap-2 text-sm font-semibold text-amber-700 dark:text-amber-400"><AlertTriangle className="w-4 h-4" /> Evidência física pendente</div>
+          <div className="text-[10px] text-inst-secondary mt-0.5">BVH disponível no viewer 3D</div>
+        </div>
+        <div className="bg-inst-surface px-4 py-3 flex items-center gap-2 col-span-2 xl:col-span-1">
+          <button onClick={onOpenCad} className="flex-1 min-w-0 text-left rounded-md px-3 py-2 bg-fuelguard-green text-white hover:bg-fuelguard-green-hover transition" aria-label="Abrir gêmeo digital 3D">
+            <div className="flex items-center gap-2 text-xs font-semibold"><Cable className="w-4 h-4" /> Abrir projeto CAD</div>
+            <div className="text-[10px] text-white/75 mt-0.5">3D · PCB 2D · esquemático</div>
+          </button>
+        </div>
+      </section>
+
       {/* Conteúdo Principal: Canvas Focal (Esquerda/Centro) + Painel Lateral do Validador (Direita) */}
       <div className="flex-1 flex overflow-hidden">
         {/* CANVAS INTERATIVO REACT FLOW (75% DA ÁREA) */}
         <div className="flex-1 h-full relative overflow-hidden">
-          <InteractiveBenchCanvas
-            onConnectionsChange={setConnections}
-            isSimulatedFault={simulatedFault}
-            onSetFault={handleSetFault}
-          />
+          {workspaceMode === '3d' ? (
+            <Suspense fallback={<div className="h-full grid place-items-center bg-[#06090d] text-slate-300 font-mono text-xs">Carregando gêmeo digital 3D…</div>}>
+              <BenchAssemblyCanvas />
+            </Suspense>
+          ) : (
+            <InteractiveBenchCanvas
+              onConnectionsChange={setConnections}
+              isSimulatedFault={simulatedFault}
+              onSetFault={handleSetFault}
+            />
+          )}
 
           {/* Legenda Flutuante de Fiação no Rodapé do Canvas */}
           <div className="absolute bottom-4 left-4 z-10 bg-inst-surface/90 backdrop-blur-xs border border-inst-border p-2.5 rounded-sm shadow-xs flex items-center space-x-4 text-[10px] font-mono">
@@ -91,7 +152,7 @@ export const BenchView: React.FC = () => {
         </div>
 
         {/* PAINEL LATERAL: VALIDADOR ELÉTRICO TOPOLÓGICO (25% DA ÁREA) */}
-        <div className="w-80 lg:w-96 bg-inst-surface border-l border-inst-border flex flex-col justify-between flex-shrink-0 z-20 shadow-xs">
+        <div className="w-72 lg:w-80 xl:w-96 bg-inst-surface border-l border-inst-border flex flex-col justify-between flex-shrink-0 z-20 shadow-xs">
           <div className="p-4 space-y-4 overflow-y-auto flex-1">
             {/* Header do Validador */}
             <div className="flex justify-between items-center border-b border-inst-border pb-3">

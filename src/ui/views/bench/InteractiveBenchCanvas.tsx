@@ -19,6 +19,8 @@ import { BuzzerNode } from './nodes/BuzzerNode';
 import { Pn532Node } from './nodes/Pn532Node';
 import { ReedNode } from './nodes/ReedNode';
 import { LedNode } from './nodes/LedNode';
+import { PowerRailNode } from './nodes/PowerRailNode';
+import { ExternalUsbNode } from './nodes/ExternalUsbNode';
 import { WIRE_COLORS } from '@/electrical/pin-definitions';
 import { CircuitConnection, SAFE_CANONICAL_WIRING, FAULT_5V_DIRECT_WIRING } from '@/electrical/circuit-validator';
 
@@ -30,6 +32,13 @@ interface InteractiveBenchCanvasProps {
 
 // Nós Iniciais da Bancada
 const INITIAL_NODES: Node[] = [
+  // Origem física da alimentação e distribuição pelos trilhos da MB-102.
+  {
+    id: 'node_usb',
+    type: 'usb',
+    position: { x: -280, y: 360 },
+    data: {},
+  },
   // 1. ESP32-S3 (Esquerda)
   {
     id: 'node_esp32',
@@ -42,6 +51,12 @@ const INITIAL_NODES: Node[] = [
     id: 'node_level',
     type: 'level',
     position: { x: 380, y: 40 },
+    data: {},
+  },
+  {
+    id: 'node_rails',
+    type: 'rails',
+    position: { x: 380, y: 370 },
     data: {},
   },
   // 3. PN532 Breakout NFC (Direita Meio)
@@ -84,8 +99,8 @@ function convertWiringToEdges(wiring: CircuitConnection[]): Edge[] {
       id: w.id,
       source: getNodeByPin(w.sourcePinId),
       target: getNodeByPin(w.targetPinId),
-      sourceHandle: w.sourcePinId,
-      targetHandle: w.targetPinId,
+      sourceHandle: getVisualHandleId(w.sourcePinId, 'source'),
+      targetHandle: getVisualHandleId(w.targetPinId, 'target'),
       style: {
         stroke: strokeColor,
         strokeWidth,
@@ -96,6 +111,8 @@ function convertWiringToEdges(wiring: CircuitConnection[]): Edge[] {
 }
 
 function getNodeByPin(pinId: string): string {
+  if (pinId.startsWith('rail_')) return 'node_rails';
+  if (pinId === 'external_usb') return 'node_usb';
   if (pinId.startsWith('esp_')) return 'node_esp32';
   if (pinId.startsWith('level_')) return 'node_level';
   if (pinId.startsWith('buzzer_')) return 'node_buzzer';
@@ -105,11 +122,25 @@ function getNodeByPin(pinId: string): string {
   return 'node_esp32';
 }
 
+function getVisualHandleId(pinId: string, direction: 'source' | 'target'): string {
+  if (pinId.startsWith('rail_')) return `${pinId}_${direction === 'source' ? 'out' : 'in'}`;
+  if (pinId === 'external_usb') return 'external_usb_out';
+  if (pinId === 'esp_micro_usb') return 'esp_micro_usb_in';
+  return pinId;
+}
+
+function getCanonicalPinId(handleId: string): string {
+  if (handleId === 'external_usb_out') return 'external_usb';
+  if (handleId === 'esp_micro_usb_in') return 'esp_micro_usb';
+  if (handleId.endsWith('_in') || handleId.endsWith('_out')) return handleId.replace(/_(in|out)$/, '');
+  return handleId;
+}
+
 function convertEdgesToWiring(edges: Edge[]): CircuitConnection[] {
   return edges.map((e) => ({
     id: e.id,
-    sourcePinId: e.sourceHandle || '',
-    targetPinId: e.targetHandle || '',
+    sourcePinId: getCanonicalPinId(e.sourceHandle || ''),
+    targetPinId: getCanonicalPinId(e.targetHandle || ''),
     wireType: e.id.includes('fault') ? 'fault' : 'gnd',
   }));
 }
@@ -132,6 +163,8 @@ export const InteractiveBenchCanvas: React.FC<InteractiveBenchCanvasProps> = ({
       pn532: Pn532Node,
       reed: ReedNode,
       led: LedNode,
+      rails: PowerRailNode,
+      usb: ExternalUsbNode,
     }),
     []
   );

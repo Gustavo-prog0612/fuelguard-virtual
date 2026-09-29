@@ -85,7 +85,7 @@ export class DrcChecker {
       ruleCode: 'DRC-05',
       severity: 'INFO',
       title: 'Modelos paramétricos de bancada ativos',
-      message: 'PN532 V4, SEN0311, MC-38, MB-102 e FG-TANK-6L-R1 têm graus diferentes de confirmação mecânica. A topologia elétrica está congelada, mas suportes e footprints dependem das medições registradas.',
+      message: 'PN532 V4, SEN0311, MC-38, MB-102 e FG-TANK-5L-CYL-R1 têm graus diferentes de confirmação mecânica. A topologia elétrica está congelada, mas suportes e footprints dependem das medições registradas.',
       remedy: 'Consulte o checklist de transição física antes de fabricar placa proprietária.',
     });
 

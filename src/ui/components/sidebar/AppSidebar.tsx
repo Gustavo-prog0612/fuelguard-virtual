@@ -5,6 +5,7 @@ import {
   Terminal, 
   FlaskConical, 
   BookOpenCheck,
+  Cpu,
   ChevronRight,
   HelpCircle
 } from 'lucide-react';
@@ -14,6 +15,7 @@ interface AppSidebarProps {
   currentRoute: AppRoute;
   onRouteChange: (route: AppRoute) => void;
   onOpenHelpModal?: () => void;
+  isCollapsed?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -46,8 +48,15 @@ const NAV_ITEMS: NavItem[] = [
     shortcut: '4',
   },
   {
+    id: 'cad',
+    label: '5. Projeto CAD',
+    iconName: 'Cpu',
+    description: 'Gêmeo 3D, PCB 2D e esquemático',
+    shortcut: '6',
+  },
+  {
     id: 'docs',
-    label: '5. Guia & Design',
+    label: '6. Guia & Design',
     iconName: 'BookOpenCheck',
     description: 'Checklist e laboratório de tipografia',
     shortcut: '5',
@@ -58,6 +67,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   currentRoute,
   onRouteChange,
   onOpenHelpModal,
+  isCollapsed = false,
 }) => {
   const getIcon = (id: AppRoute) => {
     switch (id) {
@@ -69,17 +79,27 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
         return <Terminal className="w-4 h-4" />;
       case 'tests':
         return <FlaskConical className="w-4 h-4" />;
+      case 'cad':
+        return <Cpu className="w-4 h-4" />;
       case 'docs':
         return <BookOpenCheck className="w-4 h-4" />;
     }
   };
 
   return (
-    <aside className="w-56 bg-inst-surface border-r border-inst-border flex flex-col justify-between flex-shrink-0 select-none font-ui">
+    <aside className={`${isCollapsed ? 'w-[4.5rem]' : 'w-60 lg:w-64'} bg-inst-surface/95 border-r border-inst-border flex flex-col justify-between flex-shrink-0 select-none font-ui shadow-sm transition-[width] duration-200`}>
       {/* Navegação Principal */}
       <div className="p-3">
-        <div className="text-[10px] font-mono uppercase tracking-wider text-inst-muted font-bold px-2 py-1.5">
-          Tarefas de Engenharia
+        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-3`}>
+          {!isCollapsed && (
+            <div>
+              <div className="text-[10px] font-mono uppercase tracking-[0.16em] text-inst-muted font-bold px-2">
+                Workspace
+              </div>
+              <div className="text-[11px] text-inst-secondary px-2 mt-0.5">Lab workspace</div>
+            </div>
+          )}
+          {isCollapsed && <div className="w-8 h-8 rounded-lg bg-fuelguard-green text-white grid place-items-center font-mono font-bold text-xs">FG</div>}
         </div>
         <nav className="space-y-1" role="tablist" aria-label="Navegação de Tarefas">
           {NAV_ITEMS.map((item) => {
@@ -90,23 +110,26 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => onRouteChange(item.id)}
-                className={`w-full text-left px-2.5 py-2 rounded-xs flex items-center justify-between text-xs font-medium transition ${
+                title={isCollapsed ? `${item.label}: ${item.description}` : undefined}
+                className={`w-full text-left px-2.5 py-2.5 rounded-lg flex items-center justify-between text-xs font-medium transition ${
                   isActive
                     ? 'bg-inst-subtle text-fuelguard-green font-bold border border-inst-border-strong shadow-xs'
                     : 'text-inst-secondary hover:text-inst-primary hover:bg-inst-canvas border border-transparent'
                 }`}
               >
-                <div className="flex items-center space-x-2 truncate">
+                <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'space-x-2'} truncate`}>
                   <span className={isActive ? 'text-fuelguard-green' : 'text-inst-muted'}>
                     {getIcon(item.id)}
                   </span>
-                  <span className="truncate">{item.label}</span>
+                  {!isCollapsed && <span className="truncate">{item.label}</span>}
                 </div>
 
-                <div className="flex items-center space-x-1 flex-shrink-0 font-mono text-[10px] text-inst-muted">
-                  <span>[{item.shortcut}]</span>
-                  {isActive && <ChevronRight className="w-3 h-3 text-fuelguard-green" />}
-                </div>
+                {!isCollapsed && (
+                  <div className="flex items-center space-x-1 flex-shrink-0 font-mono text-[10px] text-inst-muted">
+                    <span>[{item.shortcut}]</span>
+                    {isActive && <ChevronRight className="w-3 h-3 text-fuelguard-green" />}
+                  </div>
+                )}
               </button>
             );
           })}
@@ -115,24 +138,25 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
 
       {/* Rodapé da Barra Lateral */}
       <div className="p-3 border-t border-inst-border bg-inst-canvas space-y-2">
-        <div className="px-2 py-1 rounded-xs bg-inst-surface border border-inst-border text-[10px] font-mono text-inst-secondary space-y-0.5">
+        {!isCollapsed && <div className="px-3 py-2.5 rounded-lg bg-inst-canvas border border-inst-border text-[10px] font-mono text-inst-secondary space-y-1">
           <div className="flex justify-between">
             <span className="text-inst-muted">MÉTODO:</span>
-            <span className="text-[#166534] font-bold">DETERMINÍSTICO</span>
+            <span className="text-fuelguard-green font-bold">DETERMINÍSTICO</span>
           </div>
           <div className="flex justify-between">
             <span className="text-inst-muted">LOOP:</span>
             <span className="text-fuelguard-green font-bold">WORKER 50Hz</span>
           </div>
-        </div>
+        </div>}
 
         {onOpenHelpModal && (
           <button
             onClick={onOpenHelpModal}
-            className="w-full py-1.5 px-2 rounded-xs flex items-center justify-center space-x-1.5 text-xs text-inst-secondary hover:text-inst-primary hover:bg-inst-surface border border-inst-border transition"
+            title={isCollapsed ? 'Manual do Instrumento' : undefined}
+            className="w-full py-2 px-2 rounded-lg flex items-center justify-center space-x-1.5 text-xs text-inst-secondary hover:text-inst-primary hover:bg-inst-surface border border-inst-border transition"
           >
             <HelpCircle className="w-3.5 h-3.5 text-amber-600" />
-            <span>Manual do Instrumento</span>
+            {!isCollapsed && <span>Manual do Instrumento</span>}
           </button>
         )}
       </div>

@@ -29,7 +29,7 @@ Para garantir integridade de engenharia e transparência técnica, o projeto ado
    - Sensor de abertura de tampa **MC-38 com ímã**; variante, gap e estado NO/NC dependem do lote comprado.
    - Sinalização com **LED verde de 5 mm + resistor de 220 Ω** e buzzer ativo **Same Sky CMI-1295IC-0385T**.
    - Chicote com fiação flexível AWG 20/22/24/26 e conectores DuPont / JST-XH.
-   - Tanque de bancada **FG-TANK-6L-R1**, acrílico de 3 mm, interno 200 × 200 × 160 mm, tampa de 5 mm e quatro fixações M3.
+   - Tanque de bancada **FG-TANK-5L-CYL-R1**, cilíndrico em acrílico de 3 mm, interno Ø200 × 160 mm, tampa circular de 5 mm e quatro fixações M3.
 
 2. **Nível B — Placa adaptadora de engenharia:**
    - Mantida explicitamente em fase de especificação; ainda sem PCB fabricável.
@@ -50,7 +50,7 @@ A suíte de projeto CAD & Eletrônica conta com 10 estações integradas de enge
 | **2. Bancada Física** | Montagem 3D de referência com protoboard MB-102, módulos identificados, fiação auditável e tanque bloqueado até evidência física. |
 | **3. Esquemático** | Esquemático elétrico vetorial com pinagens reais, redes de sinal e nós de alimentação. |
 | **4. PCB 2D** | Estado honesto da placa adaptadora; só desenha cobre/footprints quando há dados reais. |
-| **5. PCB 3D** | Viewer da PCB RP2040 importada; FuelGuard fica bloqueado até existir geometria revisada. |
+| **5. PCB 3D** | Gate honesto da PCB FuelGuard; será habilitado após existir geometria fabricável revisada. |
 | **6. Conexões** | Tabela completa de fiação (*Wiring Schedule*), waypoints 3D, calibres AWG, cores normalizadas e terminações mecânicas. |
 | **7. Sensor & Água** | Estação de metrologia do SEN0311; distância UART, volume, abertura e CAD do recipiente ficam pendentes até lote e medição. |
 | **8. BOM & Assets** | Lista oficial de materiais (BOM), part numbers reais de distribuidores (Mouser, Digi-Key, LCSC), tolerâncias e catálogo CAD. |
@@ -69,7 +69,7 @@ Os modelos são classificados por proveniência. A/B/C/D indicam a força da evi
 - **MC-38 (Classe D):** família comercial sem MPN único; corpo, ímã, gap, NO/NC e fixação dependem do lote.
 - **MB-102 (Classe C):** envelope de referência; fabricante, trilhos, pés e altura da unidade recebida devem ser confirmados.
 - **Buzzer CMI-1295IC-0385T (Classe B):** MPN e envelope documentados; passo, polaridade e corrente real ainda precisam ser medidos.
-- **Tanque/tampa FG-TANK-6L-R1 (Classe C/site-specific):** geometria paramétrica aprovada, ainda pendente de fabricação, medição e calibração com água.
+- **Tanque/tampa FG-TANK-5L-CYL-R1 (Classe C/site-specific):** geometria cilíndrica paramétrica de aproximadamente 5,0265 L, ainda pendente de fabricação, medição e calibração com água.
 
 ---
 
@@ -138,7 +138,6 @@ O projeto conta com 15 suítes de testes unitários, mecânicos e elétricos. A 
 - `tests/mechanical/bench-assembly.test.ts` (5 testes) — Ponto de apoio, ausência de componentes flutuantes e regras de folga mecânica.
 - `tests/unit/assembly-auditor.test.ts` (8 testes) — Regras de montagem mecânica da bancada.
 - `tests/electrical/netlist-consistency.test.ts` (6 testes) — Paridade de netlists e conexões elétricas.
-- `tests/unit/rp2040-integration.test.ts` (5 testes) — Integração e telemetria do controlador RP2040.
 - `tests/unit/cad-circuit-json.test.ts` (6 testes) — Esquema Circuit JSON, classes A/B/C/D e exportações EDA.
 - `tests/assets/asset-manifests.test.ts` (4 testes) — Auditoria de rastreabilidade e integridade dos manifestos CAD 3D.
 - `tests/unit/m4-integration.test.ts` (3 testes) — Integração mecatrônica.
@@ -160,8 +159,7 @@ bancada_dev/
 │   └── assets/                    # Manifestos de assets CAD 3D com proveniência e tolerâncias
 │       ├── components/            # ESP32-S3, PN532 V4, SEN0311, MC-38, LED e buzzer
 │       └── mechanical/            # Protoboard MB-102 e tanque/tampa paramétricos
-├── public/data/                   # Assets públicos e diagramas SVG/GLB
-├── rp2040-motor-controller/       # Módulo tscircuit RP2040 Dual Stepper Motor Controller
+├── public/models/                 # Assets GLB oficiais e manifestos de proveniência
 ├── scripts/                       # Scripts utilitários de captura de evidências e auditoria
 ├── src/
 │   ├── circuit-cad/               # Biblioteca canônica de componentes, Circuit JSON e DRC

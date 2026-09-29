@@ -14,17 +14,18 @@ import { HonestyBadge } from '@/ui/components/badges/HonestyBadge';
 export const TankView: React.FC = () => {
   const [href, setHref] = useState(16.0);
   const [temp, setTemp] = useState(24.8);
-  const [tankShape, setTankShape] = useState<'prism' | 'empirical'>('empirical');
+  const [tankShape, setTankShape] = useState<'cylinder' | 'empirical'>('empirical');
   
   // Tabela empírica padrão de bancada
   const [calibrationPoints, setCalibrationPoints] = useState([
     { h: 0.0, v: 0.0 },
     { h: 20.0, v: 180.0 },
     { h: 40.0, v: 390.0 },
-    { h: 7.5, v: 3.0 },
-    { h: 10.0, v: 4.0 },
-    { h: 12.5, v: 5.0 },
-    { h: 16.0, v: 6.4 },
+    { h: 6.366, v: 2.0 },
+    { h: 9.549, v: 3.0 },
+    { h: 12.732, v: 4.0 },
+    { h: 13.0, v: 4.084 },
+    { h: 16.0, v: 5.0265 },
   ]);
 
   const soundSpeed = (331.3 * Math.sqrt(1 + temp / 273.15)).toFixed(2);
@@ -77,7 +78,7 @@ export const TankView: React.FC = () => {
                 className="w-full accent-sky-500"
               />
               <p className="text-[10px] text-slate-500">
-                Distância vertical entre a face do SEN0311 na tampa e o fundo interno do tanque FG-TANK-6L-R1.
+                Distância vertical entre a face do SEN0311 na tampa e o fundo interno do tanque FG-TANK-5L-CYL-R1.
               </p>
             </div>
 
@@ -109,11 +110,11 @@ export const TankView: React.FC = () => {
               <label className="text-slate-300 font-medium block">Modelo Volumétrico:</label>
               <div className="grid grid-cols-2 gap-2 font-mono text-xs">
                 <button
-                  onClick={() => setTankShape('prism')}
-                  className={`p-2.5 rounded-lg border text-left transition ${tankShape === 'prism' ? 'bg-sky-950/60 border-sky-600 text-sky-200' : 'bg-slate-900 border-slate-800 text-slate-400'}`}
+                  onClick={() => setTankShape('cylinder')}
+                  className={`p-2.5 rounded-lg border text-left transition ${tankShape === 'cylinder' ? 'bg-sky-950/60 border-sky-600 text-sky-200' : 'bg-slate-900 border-slate-800 text-slate-400'}`}
                 >
-                  <div className="font-bold">Prismático</div>
-                  <div className="text-[10px] text-slate-500">V = A · h (Área constante)</div>
+                  <div className="font-bold">Cilíndrico Ø200</div>
+                  <div className="text-[10px] text-slate-500">V = π · r² · h</div>
                 </button>
 
                 <button

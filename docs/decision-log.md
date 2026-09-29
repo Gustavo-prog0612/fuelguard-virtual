@@ -5,7 +5,7 @@
 - Sensor de nível congelado em DFRobot A02YYUW/SEN0311: UART 9600 8N1, 3,3 V, TX em GPIO16 e RX/MODE em nível alto.
 - JSN-SR04T, TRIG/ECHO, buffer AHCT e divisor foram removidos da arquitetura atual.
 - Buzzer congelado em Same Sky CMI-1295IC-0385T ativo; CPE-120 e Q1 foram removidos.
-- Tampa/tanque congelados como FG-TANK-6L-R1 paramétrico: acrílico 3/5 mm, interno 200×200×160 mm, quatro M3, suporte SEN0311, prensa-cabo e MC-38.
+- Tampa/tanque congelados como FG-TANK-5L-CYL-R1 paramétrico: acrílico 3/5 mm, interno Ø200×160 mm, quatro M3, suporte SEN0311, prensa-cabo e MC-38.
 - MC-38 e MB-102 permanecem vendor-lot-specific; não há footprint mecânico final sem unidade comprada.
 - PN532 V4 usa SPI e suporte frontal; header, furos, antena e conectores continuam pendentes.
 

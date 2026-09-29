@@ -56,7 +56,7 @@ export const SignalsView: React.FC = () => {
             <HonestyBadge level="simulado" />
           </div>
           <p className="text-xs text-inst-secondary mt-1 max-w-3xl">
-            Sensoriamento ultrassônico DFRobot A02YYUW/SEN0311 via UART TTL 9600 8N1, geometria do FG-TANK-6L-R1, ondas de slosh e filtro mediano de 5 amostras.
+            Sensoriamento ultrassônico DFRobot A02YYUW/SEN0311 via UART TTL 9600 8N1, geometria do FG-TANK-5L-CYL-R1, ondas de slosh e filtro mediano de 5 amostras.
           </p>
         </div>
 

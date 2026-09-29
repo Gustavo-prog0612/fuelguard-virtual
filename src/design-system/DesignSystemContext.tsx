@@ -16,7 +16,9 @@ const DesignSystemContext = createContext<DesignSystemContextValue | undefined>(
 
 export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [preset, setPresetState] = useState<TypographyPreset>('A');
-  const [themeMode, setThemeModeState] = useState<ThemeMode>('dark'); // Padrão escuro obsidian inspirado na referência
+  const [themeMode, setThemeModeState] = useState<ThemeMode>('light');
+
+  const THEME_STORAGE_KEY = 'fuelguard.theme-mode';
 
   const setPreset = (newPreset: TypographyPreset) => {
     setPresetState(newPreset);
@@ -35,6 +37,11 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } else {
       root.classList.remove('dark');
     }
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, mode);
+    } catch {
+      // Persistência é opcional em ambientes de preview/teste.
+    }
   };
 
   const toggleTheme = () => {
@@ -44,7 +51,14 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     // Inicializa variáveis CSS e tema
     setPreset('A');
-    setThemeMode('dark');
+    let storedMode: ThemeMode = 'light';
+    try {
+      const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+      if (stored === 'dark' || stored === 'light') storedMode = stored;
+    } catch {
+      // Mantém o padrão claro quando storage não estiver disponível.
+    }
+    setThemeMode(storedMode);
   }, []);
 
   return (

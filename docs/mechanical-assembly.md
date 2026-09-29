@@ -1,11 +1,11 @@
-# Montagem mecânica da bancada FG-TANK-6L-R1
+# Montagem mecânica da bancada FG-TANK-5L-CYL-R1
 
 ## Geometria de referência
 
-- Caixa em acrílico transparente de 3 mm: 206 × 206 × 168 mm externos.
-- Volume interno nominal: 200 × 200 × 160 mm = 6,4 L geométricos.
-- Operação demonstrável: 1–5 L; para essa faixa, a altura de água é aproximadamente 25–125 mm e a distância do sensor é 135–35 mm.
-- Tampa em acrílico de 5 mm, quatro fixações M3.
+- Cilindro em acrílico transparente de 3 mm: Ø206 × 168 mm externo.
+- Volume interno nominal: Ø200 × 160 mm = 5,0265 L geométricos.
+- Operação demonstrável recomendada: 1–4,084 L; a distância do sensor permanece aproximadamente entre 30–128 mm.
+- Tampa circular em acrílico de 5 mm, quatro fixações M3.
 
 ## Componentes
 

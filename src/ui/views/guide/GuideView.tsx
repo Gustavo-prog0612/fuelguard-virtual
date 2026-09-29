@@ -13,7 +13,7 @@ export const GuideView: React.FC = () => {
   const handleDownloadFirmwareIno = () => {
     // Busca o código do firmware ou gera dinamicamente para download
     const firmwareCode = `/**
- * FuelGuard — Firmware de Bancada ESP32-S3 (FG-TANK-6L-R1 com água)
+ * FuelGuard — Firmware de Bancada ESP32-S3 (FG-TANK-5L-CYL-R1 com água)
  * Microcontrolador: ESP32-S3 DevKitC-1 (Xtensa Dual-Core 240 MHz, 3.3V CMOS)
  */
 #include <Arduino.h>
@@ -197,7 +197,7 @@ void loop() {
             <li className="p-2.5 rounded-xs bg-rose-950/20 border border-rose-900/40 space-y-0.5">
               <strong className="text-rose-400 block font-mono">Reflexão em Paredes Laterais:</strong>
               <p className="text-inst-secondary">
-                O cone de detecção documentado do SEN0311 e a posição central devem ser validados no tanque de 200 × 200 mm; não liberar o suporte apenas pelo render.
+                O cone de detecção documentado do SEN0311 e a posição central devem ser validados no tanque cilíndrico Ø200 mm; não liberar o suporte apenas pelo render.
               </p>
             </li>
 

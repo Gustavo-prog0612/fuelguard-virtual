@@ -9,8 +9,8 @@ export interface CalibrationPoint {
 }
 
 export class TankGeometry {
-  public static readonly DEFAULT_H_REF_CM = 16.0; // FG-TANK-6L-R1: 160 mm internos
-  public static readonly DEFAULT_BASE_AREA_M2 = 0.04; // 200 x 200 mm internos
+  public static readonly DEFAULT_H_REF_CM = 16.0; // FG-TANK-5L-CYL-R1: 160 mm internos
+  public static readonly DEFAULT_BASE_AREA_M2 = Math.PI * 0.1 * 0.1; // Ø200 mm interno
 
   private hrefCm: number;
   private baseAreaM2: number;
@@ -25,12 +25,12 @@ export class TankGeometry {
     this.baseAreaM2 = baseAreaM2;
     this.calibrationCurve = customPoints || [
       { hCm: 0, volL: 0 },
-      { hCm: 2.5, volL: 1.0 },
-      { hCm: 5.0, volL: 2.0 },
-      { hCm: 7.5, volL: 3.0 },
-      { hCm: 10.0, volL: 4.0 },
-      { hCm: 12.5, volL: 5.0 },
-      { hCm: 16.0, volL: 6.4 },
+      { hCm: 3.183, volL: 1.0 },
+      { hCm: 6.366, volL: 2.0 },
+      { hCm: 9.549, volL: 3.0 },
+      { hCm: 12.732, volL: 4.0 },
+      { hCm: 13.0, volL: 4.084 },
+      { hCm: 16.0, volL: 5.0265 },
     ];
   }
 
@@ -61,7 +61,7 @@ export class TankGeometry {
   }
 
   /**
-   * Calcula o volume de água em Litros por geometria prismática:
+   * Calcula o volume de água em Litros pela área constante do cilindro:
    * V(L) = Area(m²) * h(m) * 1000 L/m³
    */
   public calculateTheoreticalVolume(waterHeightCm: number): number {

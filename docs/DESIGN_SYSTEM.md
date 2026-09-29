@@ -27,7 +27,7 @@
 
 | Princípio | Aplicação Prática na Interface |
 | :--- | :--- |
-| **1. A Bancada é o Altar (Foco Primário)** | O canvas de montagem, os componentes (ESP32-S3, SEN0311, PN532 V4, tanque FG-TANK-6L-R1) e as conexões elétricas têm prioridade visual máxima. Painéis de controle são compactos e orbitam a bancada. |
+| **1. A Bancada é o Altar (Foco Primário)** | O canvas de montagem, os componentes (ESP32-S3, SEN0311, PN532 V4, tanque FG-TANK-5L-CYL-R1) e as conexões elétricas têm prioridade visual máxima. Painéis de controle são compactos e orbitam a bancada. |
 | **2. Densidade Serena** | Informações técnicas (GPIOs, tensões DC, microsegundos de eco, taxa de baud) são apresentadas de forma compacta e legível, sem sensação de aperto ou poluição. |
 | **3. Contenção Cromática** | O fundo é um cinza muito claro e quente (`#f8f9fa` / `#f1f3f5`). Superfícies são brancas puras com divisores neutros. Cores saturadas são reservadas exclusivamente para estados elétricos e de segurança. |
 | **4. Tipografia Funcional** | Famílias tipográficas com desenho sóbrio, excelente suporte a diacríticos do português, numerais tabulares que alinham com perfeição e fonte monoespaçada dedicada para nós, portas e telemetria. |

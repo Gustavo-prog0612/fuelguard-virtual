@@ -8,14 +8,15 @@ import {
   WifiOff, 
   ShieldAlert,
   Sun,
-  Moon
+  Moon,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { AppRoute } from '@/types/navigation';
 import { useDesignSystem } from '@/design-system/DesignSystemContext';
 
 interface TopNavBarProps {
   currentRoute: AppRoute;
-  onRouteChange: (route: AppRoute) => void;
   isRunning: boolean;
   simTimeFormatted: string;
   speed: number;
@@ -26,6 +27,8 @@ interface TopNavBarProps {
   onSetSpeed: (speed: number) => void;
   onToggleOnline: () => void;
   onOpenHelpModal: () => void;
+  isSidebarCollapsed: boolean;
+  onToggleSidebar: () => void;
 }
 
 const NAV_TABS: { id: AppRoute; label: string; shortcut: string }[] = [
@@ -39,7 +42,6 @@ const NAV_TABS: { id: AppRoute; label: string; shortcut: string }[] = [
 
 export const TopNavBar: React.FC<TopNavBarProps> = ({
   currentRoute,
-  onRouteChange,
   isRunning,
   simTimeFormatted,
   speed,
@@ -50,59 +52,57 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   onSetSpeed,
   onToggleOnline,
   onOpenHelpModal,
+  isSidebarCollapsed,
+  onToggleSidebar,
 }) => {
   const { themeMode, toggleTheme } = useDesignSystem();
 
   return (
-    <header className="h-14 bg-inst-surface border-b border-inst-border px-4 flex items-center justify-between z-30 select-none shadow-xs font-ui">
+    <header className="h-16 bg-inst-surface/95 border-b border-inst-border px-4 lg:px-5 flex items-center justify-between gap-4 z-30 select-none shadow-xs font-ui backdrop-blur-xl">
       {/* 1. Esquerda: Logo Oficial FuelGuard & Badge de Versão */}
-      <div className="flex items-center space-x-3 flex-shrink-0">
-        <div className="w-8 h-8 rounded-xs bg-[#0f5132] flex items-center justify-center text-white font-mono font-bold text-xs tracking-tighter shadow-xs">
+      <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
+        <button
+          onClick={onToggleSidebar}
+          className="w-9 h-9 rounded-lg bg-inst-canvas border border-inst-border text-inst-secondary hover:text-inst-primary hover:bg-inst-subtle transition grid place-items-center"
+          title={isSidebarCollapsed ? 'Expandir navegação' : 'Recolher navegação'}
+          aria-label={isSidebarCollapsed ? 'Expandir navegação' : 'Recolher navegação'}
+        >
+          {isSidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+        </button>
+        <div className="w-9 h-9 rounded-xl bg-[#0f5132] flex items-center justify-center text-white font-mono font-bold text-xs tracking-tighter shadow-xs">
           FG
         </div>
-        <div>
-          <div className="flex items-center space-x-2">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
             <span className="text-sm font-display font-bold tracking-tight text-inst-primary">
               FuelGuard <span className="text-inst-secondary font-normal text-xs">Real Hardware Reference</span>
             </span>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-xs bg-inst-subtle text-inst-secondary border border-inst-border">
+            <span className="hidden sm:inline-flex text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-inst-subtle text-inst-secondary border border-inst-border">
               v1.0
             </span>
           </div>
-          <div className="text-[10px] font-mono text-inst-muted flex items-center gap-1">
+          <div className="hidden md:flex text-[10px] font-mono text-inst-muted items-center gap-1 truncate">
             <span className="w-1.5 h-1.5 rounded-full bg-[#166534]" />
             ESP32-S3 v1.1 • PN532 V4 • SEN0311 UART • PCB sob gate
           </div>
         </div>
       </div>
 
-      {/* 2. Centro: Navegação por Tarefas de Engenharia */}
-      <nav className="hidden md:flex items-center space-x-1 bg-inst-canvas p-1 rounded-sm border border-inst-border" role="tablist">
-        {NAV_TABS.map((tab) => {
-          const isActive = currentRoute === tab.id;
-          return (
-            <button
-              key={tab.id}
-              role="tab"
-              aria-selected={isActive}
-              onClick={() => onRouteChange(tab.id)}
-              className={`px-3 py-1 rounded-xs text-xs font-medium transition flex items-center gap-1.5 ${
-                isActive
-                  ? 'bg-inst-surface text-inst-primary font-bold shadow-xs border border-inst-border-strong text-fuelguard-green'
-                  : 'text-inst-secondary hover:text-inst-primary hover:bg-inst-subtle'
-              }`}
-            >
-              <span>{tab.label}</span>
-              <span className="text-[9px] font-mono opacity-50">[{tab.shortcut}]</span>
-            </button>
-          );
-        })}
-      </nav>
+      {/* 2. Centro: contexto da área aberta; a navegação vive na sidebar. */}
+      <div className="hidden lg:flex items-center gap-3 min-w-0 px-4 flex-1">
+        <span className="h-7 w-px bg-inst-border" />
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-inst-muted">Workspace ativo</div>
+          <div className="text-sm font-semibold text-inst-primary truncate">
+            {NAV_TABS.find((tab) => tab.id === currentRoute)?.label.replace(/^\d+\.\s*/, '') ?? 'Bancada'}
+          </div>
+        </div>
+      </div>
 
       {/* 3. Direita: Controles de Relógio de Instrumento & Conectividade */}
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center gap-2 flex-shrink-0">
         {/* Bloco do Relógio Virtual */}
-        <div className="flex items-center space-x-2 bg-inst-canvas border border-inst-border px-2.5 py-1 rounded-sm text-xs font-mono">
+        <div className="hidden sm:flex items-center gap-2 bg-inst-canvas border border-inst-border px-2.5 py-1.5 rounded-xl text-xs font-mono">
           <div className="flex items-center space-x-1.5 pr-2 border-r border-inst-border">
             <span className={`w-2 h-2 rounded-full ${isRunning ? 'bg-[#166534] animate-pulse' : 'bg-[#b45309]'}`} />
             <span className="font-bold text-inst-primary">{simTimeFormatted}</span>
@@ -112,7 +112,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           <div className="flex items-center space-x-0.5">
             <button
               onClick={onTogglePlay}
-              className={`p-1 rounded-xs transition ${
+              className={`p-1.5 rounded-lg transition ${
                 isRunning 
                   ? 'text-[#b45309] hover:bg-amber-100 dark:hover:bg-amber-950' 
                   : 'text-[#166534] hover:bg-emerald-100 dark:hover:bg-emerald-950'
@@ -125,7 +125,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             <button
               onClick={onStep}
               disabled={isRunning}
-              className="p-1 rounded-xs text-inst-secondary hover:text-inst-primary disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1.5 rounded-lg text-inst-secondary hover:text-inst-primary disabled:opacity-30 disabled:cursor-not-allowed"
               title="Passo Único (20ms)"
               aria-label="Avançar Passo Único"
             >
@@ -133,7 +133,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             </button>
             <button
               onClick={onReset}
-              className="p-1 rounded-xs text-inst-secondary hover:text-inst-primary"
+              className="p-1.5 rounded-lg text-inst-secondary hover:text-inst-primary"
               title="Reiniciar Relógio"
               aria-label="Reiniciar Relógio"
             >
@@ -147,7 +147,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
               <button
                 key={s}
                 onClick={() => onSetSpeed(s)}
-                className={`text-[10px] px-1 rounded-xs transition ${
+                className={`text-[10px] px-1.5 py-0.5 rounded-md transition ${
                   speed === s
                     ? 'bg-fuelguard-green text-white font-bold'
                     : 'text-inst-secondary hover:text-inst-primary'
@@ -162,7 +162,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
         {/* Toggle de Rede */}
         <button
           onClick={onToggleOnline}
-          className={`flex items-center space-x-1.5 px-2 py-1 rounded-sm text-xs font-mono border transition ${
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-mono border transition ${
             isOnline
               ? 'bg-emerald-50 dark:bg-emerald-950/60 text-[#166534] dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100'
               : 'bg-rose-50 dark:bg-rose-950/60 text-[#b91c1c] dark:text-rose-400 border-rose-200 dark:border-rose-800 hover:bg-rose-100'
@@ -176,7 +176,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
         {/* Alternador de Tema Claro / Escuro (Obsidiana) */}
         <button
           onClick={toggleTheme}
-          className="p-1.5 rounded-sm text-inst-secondary hover:text-inst-primary hover:bg-inst-subtle border border-inst-border transition"
+          className="p-2 rounded-xl text-inst-secondary hover:text-inst-primary hover:bg-inst-subtle border border-inst-border transition"
           title={themeMode === 'dark' ? 'Mudar para Modo Laboratório Claro' : 'Mudar para Modo Instrumento Obsidiana (Escuro)'}
           aria-label="Alternar Tema"
         >
@@ -186,7 +186,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
         {/* Botão Sobre / Ajuda */}
         <button
           onClick={onOpenHelpModal}
-          className="p-1.5 rounded-sm text-inst-secondary hover:text-inst-primary hover:bg-inst-subtle border border-inst-border transition"
+          className="p-2 rounded-xl text-inst-secondary hover:text-inst-primary hover:bg-inst-subtle border border-inst-border transition"
           title="Manual do Instrumento & Limites Físicos"
           aria-label="Manual e Ajuda"
         >

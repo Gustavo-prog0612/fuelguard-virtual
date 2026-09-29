@@ -16,8 +16,9 @@
     {
       "ruleId": "COL-03",
       "name": "Water Volume Boundary Containment",
-      "description": "O volume de água retangular deve permanecer dentro da caixa interna 200 x 200 x 160 mm, com margem de respingo e sem atravessar as paredes de acrílico de 3 mm.",
-      "boundaryMm": { "width": 200, "depth": 200, "height": 160 },
+      "description": "O volume de água cilíndrico deve permanecer dentro do tanque interno Ø200 x 160 mm, com margem de respingo e sem atravessar a parede de acrílico de 3 mm.",
+      "boundaryShape": "cylinder",
+      "boundaryMm": { "diameter": 200, "height": 160 },
       "wallMarginMm": 3.0
     },
     {
@@ -25,6 +26,22 @@
       "name": "Ultrasonic Line-of-Sight Clearance",
       "description": "A visada do probe A02YYUW/SEN0311 deve permanecer centralizada e perpendicular à superfície da água; cabos e suporte não podem entrar no caminho.",
       "coneDivergenceDeg": 60.0
+    },
+    {
+      "ruleId": "COL-05",
+      "name": "Dry Electronics Bay Separation",
+      "description": "ESP32-S3, MB-102, PN532, LED, buzzer e seus cabos de conexão devem permanecer na baia seca lateral; nenhum volume eletrônico pode ser colocado dentro do tanque ou sob a tampa.",
+      "zonePair": ["dry", "wet"],
+      "minClearanceMm": 2.0,
+      "enforcedBy": ["U1", "BB1", "RFID1", "D1", "BZ1", "TK1", "LID1"]
+    },
+    {
+      "ruleId": "COL-06",
+      "name": "External PN532 Front Support",
+      "description": "O PN532 V4 deve ficar em suporte frontal externo, com a antena orientada para o operador e sem atravessar a parede cilíndrica.",
+      "zone": "dry",
+      "assetRef": "RFID1",
+      "support": "PN532_FRONT_DRY_SUPPORT"
     }
   ]
 }

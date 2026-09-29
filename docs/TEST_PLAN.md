@@ -4,7 +4,7 @@
 
 - Parser SEN0311: frame `FF DATA_H DATA_L checksum`, UART 9600 8N1.
 - Zona cega: distância menor que 30 mm deve ser inválida; acima dela deve ser válida até 4500 mm.
-- Tanque: `h = 160 mm - d`; volume geométrico `0,04 m² × h`; operação nominal 1–5 L.
+- Tanque: `h = 160 mm - d`; volume geométrico `π · (100 mm)² · h`; operação nominal 1–4,084 L.
 - Segurança: linha de 5 V injetada em GPIO16 gera DRC fatal.
 - SPI: CS/MOSI/SCK/MISO do PN532 permanecem em GPIO10–13.
 - Interlock: MC-38 e debounce de 50 ms.

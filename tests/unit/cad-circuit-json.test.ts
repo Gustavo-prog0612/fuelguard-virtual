@@ -11,10 +11,10 @@ describe('CAD & Circuit JSON Pipeline (tscircuit Integration)', () => {
     expect(esp32.partNumber).toBe('ESP32-S3-DevKitC-1-N8R8');
     expect(esp32.dimensionsMm).toEqual({ width: 25.5, height: 68.0, depth: 12.0 });
     expect(esp32.validationStatus).toBe('documented_reference');
-    expect(esp32.license).toBe('CC-BY-SA-4.0');
+    expect(esp32.license).toContain('FuelGuard reconstruction from manufacturer reference');
 
     const level = FUELGUARD_CAD_LIBRARY['a02yyuw_sen0311'];
-    expect(level.validationStatus).toBe('vendor_lot_specific');
+    expect(level.validationStatus).toBe('documented_reference');
     expect(level.partNumber).toBe('SEN0311');
     expect(level.pins.map((pin) => pin.label)).toEqual(['VCC (3V3)', 'GND', 'RX (MODE)', 'TX (UART)']);
 
@@ -81,11 +81,11 @@ describe('CAD & Circuit JSON Pipeline (tscircuit Integration)', () => {
   });
 
   it('deve classificar rigorosamente os componentes em Classes A, B, C e D com rastreabilidade', () => {
-    // Classe A: Modelo oficial do fabricante (Espressif)
+    // Classe B: reconstrução detalhada baseada em referências oficiais; o GLB não é exportação CAD do fabricante.
     const esp32 = FUELGUARD_CAD_LIBRARY['esp32_s3_devkit'];
-    expect(esp32.confidenceLevel).toBe('A');
-    expect(esp32.inferredDimensions.length).toBe(0);
-    expect(esp32.sourceUrl).toContain('espressif/kicad-libraries');
+    expect(esp32.confidenceLevel).toBe('B');
+    expect(esp32.inferredDimensions.length).toBeGreaterThan(0);
+    expect(esp32.sourceUrl).toContain('docs.espressif.com');
 
     // Classe B: buzzer ativo com MPN e datasheet do fabricante
     const buzzer = FUELGUARD_CAD_LIBRARY['buzzer_active'];
@@ -93,7 +93,7 @@ describe('CAD & Circuit JSON Pipeline (tscircuit Integration)', () => {
     expect(buzzer.partNumber).toBe('CMI-1295IC-0385T');
 
     const level = FUELGUARD_CAD_LIBRARY['a02yyuw_sen0311'];
-    expect(level.confidenceLevel).toBe('C');
+    expect(level.confidenceLevel).toBe('B');
     expect(level.inferredDimensions.length).toBeGreaterThan(0);
     expect(level.replacementInstructions).toBeDefined();
 
@@ -104,8 +104,8 @@ describe('CAD & Circuit JSON Pipeline (tscircuit Integration)', () => {
 
     // MC-38: família comercial sem variante única
     const reed = FUELGUARD_CAD_LIBRARY['reed_switch'];
-    expect(reed.confidenceLevel).toBe('D');
-    expect(reed.validationStatus).toBe('vendor_lot_specific');
+    expect(reed.confidenceLevel).toBe('C');
+    expect(reed.validationStatus).toBe('documented_reference');
 
     // Tanque: baseline paramétrica, ainda não peça fisicamente confirmada
     const tank = FUELGUARD_CAD_LIBRARY['tank_cylinder'];
@@ -125,11 +125,49 @@ describe('CAD & Circuit JSON Pipeline (tscircuit Integration)', () => {
       expect(['power', 'spi', 'sensors', 'usb']).toContain(cable.group);
       expect(cable.fromCoord.length).toBe(3);
       expect(cable.toCoord.length).toBe(3);
+      expect(cable.fromTerminal).toBeTruthy();
+      expect(cable.toTerminal).toBeTruthy();
+      expect(cable.waypoints[0]).toEqual(cable.fromCoord);
+      expect(cable.waypoints[cable.waypoints.length - 1]).toEqual(cable.toCoord);
+      expect(cable.waypoints.every((point: number[]) => point.every(Number.isFinite))).toBe(true);
     });
 
     // Barramento SPI deve conter 4 vias ligando ESP32 ao PN532
     const spiCables = PHYSICAL_WIRING_REGISTRY.filter((c: any) => c.group === 'spi');
     expect(spiCables.length).toBe(4);
+  });
+
+  it('deve manter cada cabo ancorado no próprio endpoint, sem reutilizar rota por netName', () => {
+    const ids = PHYSICAL_WIRING_REGISTRY.map((cable) => cable.id);
+    expect(new Set(ids).size).toBe(ids.length);
+
+    PHYSICAL_WIRING_REGISTRY.forEach((cable) => {
+      expect(cable.waypoints[0]).toEqual(cable.fromCoord);
+      expect(cable.waypoints[cable.waypoints.length - 1]).toEqual(cable.toCoord);
+    });
+
+    const sameNet = PHYSICAL_WIRING_REGISTRY.filter((cable) => cable.netName === 'GND' || cable.netName === '+3.3V');
+    expect(new Set(sameNet.map((cable) => cable.id)).size).toBe(sameNet.length);
+    expect(new Set(sameNet.map((cable) => JSON.stringify(cable.waypoints))).size).toBe(sameNet.length);
+  });
+
+  it('deve representar todos os retornos e alimentações da mecatrônica real', () => {
+    const required = [
+      'W_5V_ESP_TO_RAIL', 'W_3V3_ESP_TO_RAIL', 'W_GND_ESP_TO_RAIL',
+      'W_LEVEL_VCC', 'W_LEVEL_GND', 'W_LEVEL_UART', 'W_LEVEL_MODE',
+      'W_PN532_VCC', 'W_PN532_GND', 'W_SPI_CS', 'W_SPI_MOSI', 'W_SPI_SCK', 'W_SPI_MISO',
+      'W_REED_INTERLOCK', 'W_REED_GND', 'W_LED_STATUS', 'W_LED_GND', 'W_BUZZER_CTRL', 'W_BUZZER_GND', 'W_USBC_MAIN',
+    ];
+    const byId = new Map(PHYSICAL_WIRING_REGISTRY.map((cable) => [cable.id, cable]));
+    expect(PHYSICAL_WIRING_REGISTRY).toHaveLength(required.length);
+    required.forEach((id) => expect(byId.has(id)).toBe(true));
+
+    expect(byId.get('W_LEVEL_GND')?.toComponent).toBe('a02yyuw_sen0311');
+    expect(byId.get('W_PN532_GND')?.toComponent).toBe('pn532_breakout');
+    expect(byId.get('W_REED_GND')?.netName).toBe('GND');
+    expect(byId.get('W_LED_GND')?.netName).toBe('GND');
+    expect(byId.get('W_LEVEL_MODE')?.fromComponent).toBe('breadboard_830');
+    expect(byId.get('W_USBC_MAIN')?.toComponent).toBe('esp32_s3_devkit');
   });
 });
 

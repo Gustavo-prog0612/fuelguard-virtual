@@ -20,9 +20,9 @@ describe('Auditoria de Engenharia Mecânica — Layout, Ponto de Apoio e Cabos',
       expect(bb.width).toBeGreaterThan(0);
       expect(bb.height).toBeGreaterThan(0);
       expect(bb.depth).toBeGreaterThan(0);
-      // Nenhum módulo menor que 2mm ou maior que a bancada de 420mm
-      expect(bb.width).toBeLessThanOrEqual(420);
-      expect(bb.depth).toBeLessThanOrEqual(300);
+      // Nenhum módulo maior que a bancada real de referência 500 x 340 mm.
+      expect(bb.width).toBeLessThanOrEqual(500);
+      expect(bb.depth).toBeLessThanOrEqual(340);
     });
   });
 
@@ -54,5 +54,28 @@ describe('Auditoria de Engenharia Mecânica — Layout, Ponto de Apoio e Cabos',
     const zeroPenetration = collisionRules.collisionChecks.find((c) => c.ruleId === 'COL-01');
     expect(zeroPenetration).toBeDefined();
     expect(zeroPenetration?.minClearanceMm).toBeGreaterThanOrEqual(1.0);
+  });
+
+  it('deve manter toda a eletrônica na baia seca, fora do envelope do tanque', () => {
+    const tank = benchLayout.objects.find((obj) => obj.id === 'TK1');
+    expect(tank).toBeDefined();
+    if (!tank) return;
+
+    const tankMinX = tank.positionMm[0] - tank.boundingBoxMm.width / 2;
+    const tankMaxX = tank.positionMm[0] + tank.boundingBoxMm.width / 2;
+    const tankMinZ = tank.positionMm[2] - tank.boundingBoxMm.depth / 2;
+    const tankMaxZ = tank.positionMm[2] + tank.boundingBoxMm.depth / 2;
+
+    ['BB1', 'U1', 'D1', 'BZ1', 'RFID1'].forEach((id) => {
+      const object = benchLayout.objects.find((obj) => obj.id === id);
+      expect(object).toBeDefined();
+      if (!object) return;
+      const objectMinX = object.positionMm[0] - object.boundingBoxMm.width / 2;
+      const objectMaxX = object.positionMm[0] + object.boundingBoxMm.width / 2;
+      const objectMinZ = object.positionMm[2] - object.boundingBoxMm.depth / 2;
+      const objectMaxZ = object.positionMm[2] + object.boundingBoxMm.depth / 2;
+      const overlapsTank = objectMinX < tankMaxX && objectMaxX > tankMinX && objectMinZ < tankMaxZ && objectMaxZ > tankMinZ;
+      expect(overlapsTank).toBe(false);
+    });
   });
 });

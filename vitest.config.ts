@@ -14,7 +14,7 @@ export default defineConfig({
     environment: 'happy-dom',
     setupFiles: [],
     include: ['tests/**/*.{test,spec}.{ts,tsx}'],
-    exclude: ['rp2040-motor-controller/**', 'node_modules/**'],
+    exclude: ['node_modules/**'],
   },
 });
 

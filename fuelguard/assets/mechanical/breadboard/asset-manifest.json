@@ -6,8 +6,9 @@
   "model": "MB-102-830",
   "revision": "Variante comercial a confirmar na unidade recebida",
   "sourceUrl": "https://handsontec.com/dataspecs/m102-830-bread-board.pdf",
-  "license": "vendor-reference",
-  "format": "Referência paramétrica de bancada (Classe C)",
+  "license": "FuelGuard reconstruction from manufacturer datasheet; vendor-lot validation pending",
+  "format": "GLB reconstruído de referência documentada (Classe C)",
+  "modelPath": "/models/reference/mb102-830-reference.glb",
   "sourceUnit": "mm",
   "dimensionsMm": {
     "width": 165.0,

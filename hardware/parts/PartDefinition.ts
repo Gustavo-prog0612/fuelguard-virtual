@@ -20,10 +20,10 @@ export interface PartDefinition {
 
 export const FUELGUARD_PARTS: PartDefinition[] = [
   {
-    id: 'esp32-s3-devkitc-1-n8r8', designator: 'U1', name: 'ESP32-S3-DevKitC-1-N8R8 v1.1', manufacturer: 'Espressif Systems', partNumber: 'ESP32-S3-DevKitC-1-N8R8', kind: 'commercial-module', confidence: 'A',
-    dimensionsMm: { width: 25.5, height: 68, depth: null }, interfaces: ['USB-C', 'GPIO 3.3V', '5V', 'GND'],
-    sourceUrl: 'https://documentation.espressif.com/api/resource/path/docs/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide.html', modelStatus: 'official',
-    notes: ['Usar esquemático, PCB e DXF oficiais da revisão v1.1.', 'Confirmar altura dos headers e keepouts na unidade recebida.'],
+    id: 'esp32-s3-devkitc-1-n8r8', designator: 'U1', name: 'ESP32-S3-DevKitC-1-N8R8 v1.1', manufacturer: 'Espressif Systems', partNumber: 'ESP32-S3-DevKitC-1-N8R8', kind: 'commercial-module', confidence: 'B',
+    dimensionsMm: { width: 25.5, height: 68, depth: 12.8 }, interfaces: ['Micro-USB UART', 'Micro-USB OTG', 'GPIO 3.3V', '5V', 'GND'],
+    sourceUrl: 'https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide_v1.1.html', modelStatus: 'documented-reference',
+    notes: ['GLB FuelGuard reconstruído a partir do guia, DXF e desenho oficial da revisão v1.1.', 'Não declarar CAD exato até validar headers, altura e keepouts na unidade recebida.'],
   },
   {
     id: 'pn532-v4', designator: 'RFID1', name: 'ELECHOUSE PN532 NFC/RFID V4', manufacturer: 'ELECHOUSE', partNumber: 'NFC-PN532_V4', kind: 'commercial-module', confidence: 'C',
@@ -59,8 +59,8 @@ export const FUELGUARD_PARTS: PartDefinition[] = [
     dimensionsMm: { width: 165, height: 8.5, depth: 55 }, interfaces: ['Matriz 2.54mm', 'Barramento 5V', 'Barramento GND'], sourceUrl: 'https://handsontec.com/dataspecs/m102-830-bread-board.pdf', modelStatus: 'documented-reference', notes: ['Medir a unidade recebida antes de congelar a mecânica.'],
   },
   {
-    id: 'fg-tank-6l-r1', designator: 'TK1', name: 'Tanque acrílico FG-TANK-6L-R1', manufacturer: 'FuelGuard bench design', partNumber: 'FG-TANK-6L-R1', kind: 'mechanical', confidence: 'C',
-    dimensionsMm: { width: 206, height: 168, depth: 206 }, interfaces: ['SEN0311 support', 'LID_INTERLOCK', '4x M3'], sourceUrl: null, modelStatus: 'parametric', notes: ['Interno 200 x 200 x 160 mm; paredes 3 mm; tampa 5 mm; capacidade geométrica 6,4 L; operação 1–5 L.'],
+    id: 'fg-tank-5l-cyl-r1', designator: 'TK1', name: 'Tanque acrílico FG-TANK-5L-CYL-R1', manufacturer: 'FuelGuard bench design', partNumber: 'FG-TANK-5L-CYL-R1', kind: 'mechanical', confidence: 'C',
+    dimensionsMm: { width: 206, height: 168, depth: 206 }, interfaces: ['SEN0311 support', 'LID_INTERLOCK', '4x M3'], sourceUrl: null, modelStatus: 'parametric', notes: ['Interno Ø200 x 160 mm; paredes 3 mm; tampa circular 5 mm; capacidade geométrica 5,0265 L; operação recomendada até aproximadamente 4,084 L.'],
   },
   {
     id: 'usb-c-5v-3a', designator: 'PS1', name: 'Fonte USB-C 5 V / 3 A certificada', manufacturer: 'A selecionar', partNumber: 'USB-C-5V-3A-CERTIFIED-PENDING', kind: 'cable', confidence: 'D',

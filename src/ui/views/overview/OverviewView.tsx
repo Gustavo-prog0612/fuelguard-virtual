@@ -26,7 +26,7 @@ export const OverviewView: React.FC = () => {
               <HonestyBadge level="simulado" />
             </h2>
             <p className="text-xs text-slate-400 mt-1 max-w-3xl leading-relaxed">
-              Esta visão consolida o estado do FG-TANK-6L-R1, a telemetria UART do DFRobot A02YYUW/SEN0311 e os eventos da máquina de estados do ESP32-S3.
+              Esta visão consolida o estado do FG-TANK-5L-CYL-R1, a telemetria UART do DFRobot A02YYUW/SEN0311 e os eventos da máquina de estados do ESP32-S3.
             </p>
           </div>
         </div>
@@ -71,7 +71,7 @@ export const OverviewView: React.FC = () => {
             <div className="text-xs font-mono text-slate-400">t_echo ≈ 2.45 ms</div>
           </div>
           <div className="text-[11px] text-slate-400 truncate">
-            Href: 16.0 cm • Zona Cega: 3 cm • Operação: 1–5 L
+            Href: 16.0 cm • Zona Cega: 3 cm • Operação: 1–4,084 L
           </div>
         </div>
 
@@ -82,15 +82,15 @@ export const OverviewView: React.FC = () => {
               <Activity className="w-4 h-4 text-purple-400" /> Volume Estimado
             </span>
             <span className="text-[10px] font-mono text-purple-300 bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-800/60">
-              V(h) Prismático
+              V(h) Cilíndrico
             </span>
           </div>
           <div className="flex items-baseline justify-between">
             <div className="text-3xl font-bold font-mono text-purple-400">3.2 <span className="text-sm font-normal text-slate-400">L</span></div>
-            <div className="text-xs font-mono text-slate-400">de 6.4 L geométricos</div>
+            <div className="text-xs font-mono text-slate-400">de 5,0265 L geométricos</div>
           </div>
           <div className="text-[11px] text-slate-400">
-            Base: 1.0 m × 1.0 m • Erro: ±0.5 L
+            Base: Ø200 mm • Erro: pendente de calibração
           </div>
         </div>
 

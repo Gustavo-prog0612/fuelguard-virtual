@@ -3,7 +3,7 @@
 ## Fase concluída no software
 
 - Contratos canônicos de peças, nets, BOM, bancada, chicote, medições e testes.
-- Modelo de água do tanque FG-TANK-6L-R1 e leitura SEN0311 com zona cega de 3 cm.
+- Modelo de água do tanque cilíndrico FG-TANK-5L-CYL-R1 e leitura SEN0311 com zona cega de 3 cm.
 - Validação de UART 5 V no GPIO16, SPI PN532, interlock MC-38, LED 220 Ω e buzzer ativo.
 - Viewer 3D paramétrico, esquemático visual e auditoria de montagem sem declarar fabricação.
 
@@ -14,7 +14,7 @@
 3. Fechar footprints, mating connectors e design inputs.
 4. Criar/rotear PCB KiCad e executar ERC/DRC.
 5. Gerar KiBot, PcbDraw, KiCanvas, Gerbers e montagem piloto.
-6. Calibrar 1–5 L de água e anexar evidências.
+6. Calibrar 1–4,084 L de água e anexar evidências.
 
 ## Não objetivos
 

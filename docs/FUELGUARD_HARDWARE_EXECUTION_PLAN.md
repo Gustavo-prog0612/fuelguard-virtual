@@ -13,7 +13,7 @@ Esta é a configuração de referência para desenhar bancada, chicote, suporte 
 | D1/R3 | LED verde 5 mm + 220 Ω | valor do resistor congelado; pacote de R3 será definido com a PCB |
 | BZ1 | Same Sky CMI-1295IC-0385T | buzzer ativo 2–5 V, 30 mA máx.; passo/polaridade a confirmar |
 | BB1 | MB-102, 830 pontos | provisório; medir o exemplar recebido |
-| TK1/LID1 | FG-TANK-6L-R1 | acrílico 3 mm, tampa 5 mm, interno 200×200×160 mm, 1–5 L operacional |
+| TK1/LID1 | FG-TANK-5L-CYL-R1 | acrílico 3 mm, tampa circular 5 mm, interno Ø200×160 mm, até aproximadamente 4,084 L operacional |
 | PS1 | USB-C 5 V/3 A certificada | fornecedor ainda não selecionado; somente baixa tensão |
 
 ## Topologia elétrica canônica
@@ -47,6 +47,6 @@ Não fazem parte desta montagem: JSN-SR04T, TRIG/ECHO, SN74AHCT125, divisor 10 k
 - **Gate elétrico:** ERC sem erros críticos; nenhum 5 V em GPIO; corrente do buzzer medida; UART e SPI testados.
 - **Gate mecânico:** tanque sem vazamento, tampa com 4×M3, sensor perpendicular e prensa-cabo com drip loop.
 - **Gate de fabricação:** esquemático, PCB, footprints, regras, Gerbers e BOM gerados pela mesma revisão KiCad.
-- **Gate de calibração:** água em volumes conhecidos de 1–5 L, curva distância/volume, repetibilidade, tampa aberta/fechada e ruído documentados.
+- **Gate de calibração:** água em volumes conhecidos de 1–4,084 L, curva distância/volume, repetibilidade, tampa aberta/fechada e ruído documentados.
 
 Até esses gates, o repositório é uma referência de engenharia de bancada. Ele não é uma PCB fabricável nem produto automotivo homologado.

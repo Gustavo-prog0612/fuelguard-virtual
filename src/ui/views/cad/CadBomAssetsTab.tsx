@@ -15,15 +15,12 @@ import {
   FUELGUARD_CAD_LIBRARY,
   CadComponentMetadata,
 } from '@/circuit-cad/component-library';
-import { RP2040_COMPONENT_LIBRARY } from '@/circuit-cad/rp2040-circuit-provider';
 
 interface CadBomAssetsTabProps {
-  activeBoard: 'fuelguard-carrier' | 'rp2040-motor-controller';
   onSelectTab: (tabId: string) => void;
 }
 
 export const CadBomAssetsTab: React.FC<CadBomAssetsTabProps> = ({
-  activeBoard,
   onSelectTab,
 }) => {
   const [subView, setSubView] = useState<'bom' | 'assets'>('bom');
@@ -31,8 +28,7 @@ export const CadBomAssetsTab: React.FC<CadBomAssetsTabProps> = ({
   const bomItems = bomData.items;
   const totalQuantity = bomItems.reduce((acc, item) => acc + item.quantity, 0);
 
-  const cadLibrary = activeBoard === 'rp2040-motor-controller' ? RP2040_COMPONENT_LIBRARY : FUELGUARD_CAD_LIBRARY;
-  const componentsList = Object.values(cadLibrary) as CadComponentMetadata[];
+  const componentsList = Object.values(FUELGUARD_CAD_LIBRARY) as CadComponentMetadata[];
 
   return (
     <div className="h-full overflow-y-auto space-y-4 pr-1 text-inst-primary font-ui select-text">

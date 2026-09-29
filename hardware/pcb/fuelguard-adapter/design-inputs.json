@@ -7,14 +7,14 @@
   "sourceOfTruth": ["hardware/nets/NetDefinition.ts", "fuelguard/hardware/circuit/pinmap.ts", "hardware/measurements/measurement-register.json", "docs/adr/0002-adapter-pcb-input-freeze.md"],
   "intent": "Placa adaptadora real de engenharia para ESP32-S3-DevKitC-1-N8R8, PN532 V4, SEN0311, MC-38 e indicadores. Não é ECU automotiva, não é certificada para combustível e não substitui o DevKit.",
   "benchBaseline": {
-    "tank": "FG-TANK-6L-R1",
-    "internalDimensionsMm": { "width": 200, "length": 200, "height": 160 },
-    "externalDimensionsMm": { "width": 206, "length": 206, "height": 168 },
+    "tank": "FG-TANK-5L-CYL-R1",
+    "internalDimensionsMm": { "diameter": 200, "height": 160 },
+    "externalDimensionsMm": { "outerDiameter": 206, "height": 168 },
     "wallThicknessMm": 3,
     "lidThicknessMm": 5,
-    "nominalCapacityLiters": 6.4,
-    "operationalVolumeLiters": { "min": 1, "max": 5 },
-    "sensorDistanceAtOperationalRangeMm": { "min": 35, "max": 135 },
+    "nominalCapacityLiters": 5.0265,
+    "operationalVolumeLiters": { "min": 1, "max": 4.084 },
+    "sensorDistanceAtOperationalRangeMm": { "min": 30, "max": 128.17 },
     "mounting": ["sensor centralizado na tampa", "4x M3", "prensa-cabo", "MC-38 lateral com ímã", "gota no cabo antes da protoboard"]
   },
   "electricalArchitecture": {
@@ -50,6 +50,6 @@
     "Não há contorno, stackup, fabricante ou regras de DRC aprovados.",
     "Não há arquivo KiCad de esquemático ou layout no estado atual; portanto ERC, DRC, Gerbers, BOM de fabricação e CPL ainda não existem.",
     "O visualizador 3D é referência paramétrica e não fonte de cotas de fabricação.",
-    "A geometria FG-TANK-6L-R1 é uma baseline de bancada aprovada, ainda não uma peça fabricada/medida."
+    "A geometria FG-TANK-5L-CYL-R1 é uma baseline cilíndrica de bancada aprovada, ainda não uma peça fabricada/medida."
   ]
 }

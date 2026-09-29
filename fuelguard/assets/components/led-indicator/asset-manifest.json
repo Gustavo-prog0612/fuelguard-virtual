@@ -5,9 +5,10 @@
   "manufacturer": "Kingbright",
   "model": "WP7113GD",
   "revision": "THT Radial 5mm (Chanfro Cátodo)",
-  "sourceUrl": "https://gitlab.com/kicad/libraries/kicad-packages3D",
-  "license": "CC-BY-SA 4.0",
-  "format": "Referência paramétrica documentada (Classe A)",
+  "sourceUrl": "https://www.kingbrightusa.com/images/catalog/SPEC/WP7113GD.pdf",
+  "license": "FuelGuard reconstruction from manufacturer reference",
+  "modelPath": "/models/reference/kingbright-wp7113gd-reference.glb",
+  "format": "GLB reconstruído de referência documentada (Classe B)",
   "sourceUnit": "mm",
   "dimensionsMm": {
     "width": 5.0,
@@ -19,8 +20,8 @@
     "positionOffsetMm": [0.0, 0.0, 0.0],
     "rotationDeg": [0, 0, 0]
   },
-  "fidelityClass": "A",
-  "confidenceRationale": "Envelope e família T-1 3/4 são documentados pelo datasheet Kingbright WP7113GD. O modelo 3D e a altura final dependem do componente comprado.",
+  "fidelityClass": "B",
+  "confidenceRationale": "Envelope e família T-1 3/4 são documentados pelo datasheet Kingbright WP7113GD; o GLB é uma reconstrução FuelGuard e a altura final depende do componente comprado.",
   "verificationDate": "2026-09-28",
   "mounting": {
     "type": "THT_INSERTION",

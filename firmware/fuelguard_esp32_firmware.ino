@@ -27,12 +27,11 @@ static constexpr uint8_t PIN_PN532_MISO = 13;
 static constexpr uint8_t PIN_BUZZER_ACTIVE = 14;
 static constexpr uint8_t PIN_LEVEL_UART_RX = 16;
 
-static constexpr uint16_t TANK_INTERNAL_WIDTH_MM = 200;
-static constexpr uint16_t TANK_INTERNAL_LENGTH_MM = 200;
+static constexpr uint16_t TANK_INTERNAL_DIAMETER_MM = 200;
 static constexpr uint16_t TANK_INTERNAL_HEIGHT_MM = 160;
 static constexpr uint16_t SENSOR_BLIND_ZONE_MM = 30;
 static constexpr uint16_t OPERATIONAL_MIN_VOLUME_ML = 1000;
-static constexpr uint16_t OPERATIONAL_MAX_VOLUME_ML = 5000;
+static constexpr uint16_t OPERATIONAL_MAX_VOLUME_ML = 4084;
 
 HardwareSerial LevelSerial(1);
 
@@ -62,7 +61,11 @@ static bool readSen0311Frame(LevelReading &reading) {
 
     const int32_t heightMm = static_cast<int32_t>(TANK_INTERNAL_HEIGHT_MM) - distanceMm;
     const uint16_t clampedHeightMm = static_cast<uint16_t>(constrain(heightMm, 0, TANK_INTERNAL_HEIGHT_MM));
-    const uint32_t volumeMl = (static_cast<uint32_t>(TANK_INTERNAL_WIDTH_MM) * TANK_INTERNAL_LENGTH_MM * clampedHeightMm) / 1000;
+    // O recipiente é cilíndrico: V = pi * r² * h. A versão anterior
+    // multiplicava largura x comprimento e superestimava o volume em 27%.
+    const double radiusMm = static_cast<double>(TANK_INTERNAL_DIAMETER_MM) / 2.0;
+    const double volumeMlExact = 3.14159265358979323846 * radiusMm * radiusMm * clampedHeightMm / 1000.0;
+    const uint32_t volumeMl = static_cast<uint32_t>(volumeMlExact + 0.5);
 
     reading = { true, distanceMm, clampedHeightMm, static_cast<uint16_t>(min<uint32_t>(volumeMl, 6400)) };
     return true;
@@ -98,7 +101,7 @@ void setup() {
   Serial.println(F("[FW] FuelGuard real bench baseline iniciada"));
   Serial.println(F("[FW] SEN0311 UART=9600 8N1 TX->GPIO16 RX_MODE=HIGH"));
   Serial.println(F("[FW] PN532 V4 SPI CS=10 MOSI=11 SCK=12 MISO=13"));
-  Serial.println(F("[FW] Tanque FG-TANK-6L-R1: interno 200x200x160 mm; operacao 1-5 L"));
+  Serial.println(F("[FW] Tanque FG-TANK-5L-CYL-R1: cilindro interno diametro 200 mm x 160 mm; operacao ate 4.084 L"));
 }
 
 void loop() {

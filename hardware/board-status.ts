@@ -76,22 +76,3 @@ export const FUELGUARD_BOARD_STATUS: BoardStatus = {
     'Não há roteamento cobre-a-cobre nem arquivos Gerber/BOM de fabricação para essa placa.',
   ],
 };
-
-export const RP2040_BOARD_STATUS: BoardStatus = {
-  id: 'rp2040-motor-controller',
-  name: 'RP2040 Dual Stepper Controller — fonte importada',
-  scope: 'adapter-pcb',
-  pcbReadiness: 'routed-unverified',
-  sourceOfTruth: ['src/circuit-cad/rp2040-circuit-provider.ts'],
-  evidence: [
-    {
-      kind: 'source-file',
-      reference: 'src/circuit-cad/rp2040-circuit-provider.ts',
-      description: 'Circuit JSON importado de uma placa roteada de referência.',
-    },
-  ],
-  blockingItems: [
-    'A placa é referência externa e não é o hardware FuelGuard.',
-    'DRC de fabricação deve ser reexecutado com arquivos originais e regras do fabricante.',
-  ],
-};

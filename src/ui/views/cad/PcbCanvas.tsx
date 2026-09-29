@@ -7,7 +7,7 @@
  * (Top Copper, Bottom Copper, Pads, Silkscreen, Ratsnest), mira de origem (0m, 0m),
  * e alternador formal entre 'PCB Roteada' e 'Conceito de Placa'.
  *
- * Referência visual de engenharia: tscircuit / rp2040-motor-controller (media_1790365048497.png).
+ * Referência visual de engenharia da placa adaptadora FuelGuard.
  */
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
@@ -145,7 +145,7 @@ export const PcbCanvas: React.FC<PcbCanvasProps> = ({ circuitPkg }) => {
     ctx.strokeStyle = rimBorderColor;
     ctx.lineWidth = 1.5;
 
-    // Verifica se há contorno paramétrico poligonal (ex: RP2040 com cantos chanfrados)
+    // Verifica se há contorno paramétrico poligonal da placa FuelGuard.
     const boardOutline = pcbBoard?.outline as Array<{ x: number; y: number }> | undefined;
     if (boardOutline && boardOutline.length > 2) {
       ctx.beginPath();
@@ -564,7 +564,7 @@ export const PcbCanvas: React.FC<PcbCanvasProps> = ({ circuitPkg }) => {
           </span>
         </div>
         <div className="px-2 py-1 rounded-xs bg-[#0e141c]/90 border border-inst-border text-inst-secondary flex items-center gap-1.5 shadow-xs">
-          <span>FR-4: {Math.round(pcbBoard?.width ?? 140)}×{Math.round(pcbBoard?.height ?? 100)}mm • {circuitPkg.title?.includes('RP2040') ? '4 Camadas (NEMA 17 Cap)' : '2 Camadas (Carrier FR4)'} • M3 (4 cantos)</span>
+          <span>FR-4: {Math.round(pcbBoard?.width ?? 140)}×{Math.round(pcbBoard?.height ?? 100)}mm • 2 camadas de referência • M3 (4 cantos)</span>
         </div>
       </div>
 

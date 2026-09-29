@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "project": "FuelGuard Virtual Test Bench",
+  "policy": "A model is exact only when the manufacturer source and conversion provenance are recorded.",
+  "assets": [
+    {
+      "id": "pn532-elechouse-v4",
+      "label": "ELECHOUSE PN532 NFC Module V4",
+      "kind": "module",
+      "format": "glb",
+      "path": "/models/official/elechouse-pn532-v4.glb",
+      "sourceStep": "/models/vendor/elechouse-pn532-v4/source/3D_NFC_EASY_SHIELD_V4.1_2025-12-13.step",
+      "sourceUrl": "https://www.elechouse.com/docs/pn532-v4/",
+      "sourceAssetUrl": "https://www.elechouse.com/wp-content/uploads/2022/04/ELECHOUSE_PN532_V4_3D.zip",
+      "sourceLicense": "Manufacturer-provided CAD; redistribution terms require vendor confirmation.",
+      "confidence": "A",
+      "validation": "exact_verified",
+      "dimensionsMm": { "width": 42.68, "depth": 40.38, "height": 4.61 },
+      "notes": "Official vendor STEP converted offline with OCCT Import JS. The source archive remains available for audit."
+    },
+    {
+      "id": "esp32-s3-devkitc-1-v1-1",
+      "label": "ESP32-S3-DevKitC-1-N8R8 v1.1",
+      "kind": "module",
+      "format": "glb",
+      "path": "/models/official/espressif-esp32-s3-devkitc-1-v1.1.glb",
+      "sourceStep": "/models/vendor/espressif-esp32-s3-devkitc-1-v1.1/source/ESP32-S3-DevKitC-1_V1.1.dxf",
+      "sourceAssetUrl": "https://dl.espressif.com/dl/schematics/esp_idf/DXF_ESP32-S3-DevKitC-1_V1.1_20220429.dxf",
+      "confidence": "B",
+      "validation": "documented_reference",
+      "sourceUrl": "https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide_v1.1.html",
+      "sourceLicense": "Espressif documentation/reference asset; redistribution terms require vendor confirmation.",
+      "dimensionsMm": { "width": 25.5, "depth": 68, "height": 12.8 },
+      "notes": "Detailed GLB reconstructed from the official v1.1 dimensions, PCB drawing and component guide, including two Micro-USB connector envelopes, WROOM shield, 2x22 headers and board-level passives. It is not presented as manufacturer-exported CAD; verify the received board before mechanical fabrication."
+    },
+    {
+      "id": "sen0311-a02yyuw",
+      "label": "DFRobot A02YYUW / SEN0311",
+      "kind": "sensor",
+      "format": "glb",
+      "path": "/models/reference/dfrobot-sen0311-a02yyuw-reference.glb",
+      "confidence": "B",
+      "validation": "documented_reference",
+      "sourceUrl": "https://wiki.dfrobot.com/sen0311/",
+      "sourceLicense": "FuelGuard reconstruction from DFRobot/Mouser mechanical drawing; no redistributable manufacturer CAD confirmed.",
+      "dimensionsMm": { "width": 84.6, "depth": 12.5, "height": 29.6 },
+      "notes": "Detailed reference GLB reconstructed from the documented 84.6 mm maximum width, 63.6 mm body, 29.6 mm height, 34.0 mm transducer pitch, Ø3.2 mm mounting holes and 300 mm cable reference. Validate the received lot before fabrication."
+    },
+    {
+      "id": "mc-38-reed-switch",
+      "label": "MC-38 reed switch + magnet",
+      "kind": "switch",
+      "format": "glb",
+      "path": "/models/reference/mc-38-reed-switch-magnet-reference.glb",
+      "confidence": "C",
+      "validation": "documented_reference",
+      "sourceUrl": "https://www.tinytronics.nl/en/switches/magnetic-switches/door-switch-reed-relay-with-magnet",
+      "sourceLicense": "FuelGuard reconstruction from vendor reference dimensions; MC-38 is a family, not a unique MPN.",
+      "dimensionsMm": { "width": 27, "depth": 36, "height": 10 },
+      "notes": "Reference pair with 27×14×10 mm housings, Ø3 mm mounting holes and documented switching gap; confirm vendor lot, NO/NC state, wire length and magnet geometry."
+    },
+    {
+      "id": "mb102-830",
+      "label": "MB-102 830-point breadboard",
+      "kind": "fixture",
+      "format": "glb",
+      "path": "/models/reference/mb102-830-reference.glb",
+      "confidence": "B",
+      "validation": "documented_reference",
+      "sourceUrl": "https://handsontec.com/dataspecs/m102-830-bread-board.pdf",
+      "sourceLicense": "FuelGuard reconstruction from manufacturer datasheet; no redistributable manufacturer CAD confirmed.",
+      "dimensionsMm": { "width": 165, "depth": 55, "height": 8.5 },
+      "notes": "Detailed reference GLB with 830 contact positions, rails and central ravine. Envelope and enclosure details remain subject to the received lot."
+    },
+    {
+      "id": "led-kingbright-wp7113gd",
+      "label": "Kingbright WP7113GD green LED",
+      "kind": "indicator",
+      "format": "glb",
+      "path": "/models/reference/kingbright-wp7113gd-reference.glb",
+      "confidence": "B",
+      "validation": "documented_reference",
+      "sourceUrl": "https://www.kingbrightusa.com/images/catalog/SPEC/WP7113GD.pdf",
+      "sourceLicense": "FuelGuard reconstruction from manufacturer datasheet.",
+      "dimensionsMm": { "width": 5, "depth": 5, "height": 8.6 },
+      "notes": "Detailed T-1 3/4 reference with diffused lens, polarity marker and leads; validate the received part."
+    },
+    {
+      "id": "buzzer-samesky-cmi-1295ic-0385t",
+      "label": "Same Sky CMI-1295IC-0385T active buzzer",
+      "kind": "indicator",
+      "format": "glb",
+      "path": "/models/reference/samesky-cmi-1295ic-0385t-reference.glb",
+      "confidence": "B",
+      "validation": "documented_reference",
+      "sourceUrl": "https://jp.sameskydevices.com/product/resource/cmi-1295ic-0385t.pdf",
+      "sourceLicense": "FuelGuard reconstruction from manufacturer datasheet.",
+      "dimensionsMm": { "width": 12, "depth": 12, "height": 9.5 },
+      "notes": "Detailed active-buzzer reference with acoustic port, grille and polarity marking; confirm terminal pitch and polarity."
+    },
+    {
+      "id": "fg-tank-5l-cyl-r1",
+      "label": "FG-TANK-5L-CYL-R1 acrylic tank",
+      "kind": "fixture",
+      "format": "parametric-cylinder-reference",
+      "confidence": "C",
+      "validation": "documented_reference",
+      "sourceLicense": "FuelGuard project-owned parametric geometry; not a commercial product asset.",
+      "dimensionsMm": { "width": 206, "depth": 206, "height": 168 },
+      "notes": "Project engineering envelope: internal diameter 200 mm x 160 mm, geometric capacity 5.0265 L. Keep visibly marked as parametric until fabricated."
+    }
+  ]
+}

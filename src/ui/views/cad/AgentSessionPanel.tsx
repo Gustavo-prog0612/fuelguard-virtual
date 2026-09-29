@@ -124,7 +124,7 @@ export const AgentSessionPanel: React.FC<AgentSessionPanelProps> = ({
         tags = ['PCB', 'PENDING'];
       } else if (lower.includes('montagem') || lower.includes('assembly') || lower.includes('galão') || lower.includes('bancada')) {
         onSelectTab('assembly');
-        responseText = 'Alternado para a montagem física 3D da bancada. Visualizando MB-102, ESP32-S3 v1.1, PN532 V4 frontal, tanque FG-TANK-6L-R1, probe SEN0311 e chicote com drip loop.';
+        responseText = 'Alternado para a montagem física 3D da bancada. Visualizando MB-102, ESP32-S3 v1.1, PN532 V4 frontal, tanque FG-TANK-5L-CYL-R1, probe SEN0311 e chicote com drip loop.';
         tags = ['ASSEMBLY', '3D'];
       } else if (lower.includes('circuit json') || lower.includes('json')) {
         onExportCircuitJson();

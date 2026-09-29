@@ -3,7 +3,7 @@
 ## Alimentação
 
 - Fonte externa: USB-C 5 V / 3 A certificada, somente baixa tensão na bancada.
-- ESP32-S3 recebe VBUS/USB-C e fornece 3,3 V regulados aos periféricos conforme a capacidade real da placa.
+- A fonte externa da bancada é USB-C, mas a ESP32-S3-DevKitC-1 v1.1 recebe alimentação pelos conectores Micro-USB da própria placa ou pelos pinos 5V/3V3 conforme a documentação da revisão.
 - GND de U1, SEN0311, PN532, MC-38, LED e BZ1 é comum.
 - Confirmar corrente, queda de tensão e comportamento de back-power na unidade antes da PCB.
 

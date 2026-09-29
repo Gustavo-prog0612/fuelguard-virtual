@@ -6,8 +6,9 @@
   "model": "CMI-1295IC-0385T",
   "revision": "Internally driven; 2–5 V; 30 mA max",
   "sourceUrl": "https://jp.sameskydevices.com/product/resource/cmi-1295ic-0385t.pdf",
-  "license": "manufacturer-reference; passo/polaridade a confirmar",
-  "format": "Representação paramétrica documentada",
+  "license": "FuelGuard reconstruction from manufacturer datasheet; passo/polaridade a confirmar",
+  "format": "GLB reconstruído de referência documentada",
+  "modelPath": "/models/reference/samesky-cmi-1295ic-0385t-reference.glb",
   "sourceUnit": "mm",
   "dimensionsMm": {
     "width": 12.0,

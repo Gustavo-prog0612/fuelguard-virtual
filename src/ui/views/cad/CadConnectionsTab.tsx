@@ -1,7 +1,7 @@
 /**
  * FuelGuard Virtual Test Bench — Estação 6: Conexões, Chicotes & Pinagem Física
  * Tabela e escalonamento completo do cabeamento ponto a ponto da bancada didática:
- * - 100% de cabos com terminações mecânicas reais em ambas as extremidades (DuPont/JST/RCA)
+ * - todos os condutores do netlist canônico, incluindo alimentação e retornos GND
  * - Identificação de pino de origem, pino de destino, bitola AWG e tensão nominal [MEDIDO]
  * - Verificação de rotas com waypoints calculados [CALCULADO]
  */
@@ -13,7 +13,7 @@ import {
   Filter,
   Search,
 } from 'lucide-react';
-import cableRoutesData from '@/../hardware/assembly/cable-routes.json';
+import { PHYSICAL_WIRING_REGISTRY } from '@/circuit-cad/wiring-registry';
 
 type SignalGroupFilter = 'ALL' | 'POWER' | 'ULTRASONIC' | 'NFC' | 'PERIPHERALS';
 
@@ -25,7 +25,21 @@ export const CadConnectionsTab: React.FC<CadConnectionsTabProps> = () => {
   const [filterGroup, setFilterGroup] = useState<SignalGroupFilter>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const cables = cableRoutesData.cables;
+  const cables = useMemo(() => PHYSICAL_WIRING_REGISTRY.map((cable) => ({
+    id: cable.id,
+    netName: cable.netName,
+    signalType: cable.signalType.toUpperCase(),
+    color: cable.colorHex,
+    wireGaugeAwg: cable.awgGauge,
+    estimatedLengthMm: cable.estimatedLengthMm,
+    waypoints: cable.waypoints,
+    origin: { component: cable.fromComponent, pin: cable.fromPin },
+    destination: { component: cable.toComponent, pin: cable.toPin },
+    terminals: {
+      start: cable.fromTerminal ?? 'PENDING_TERMINAL',
+      end: cable.toTerminal ?? 'PENDING_TERMINAL',
+    },
+  })), []);
 
   const filteredCables = useMemo(() => {
     return cables.filter((c) => {
@@ -88,7 +102,7 @@ export const CadConnectionsTab: React.FC<CadConnectionsTabProps> = () => {
           </div>
           <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border">
             <span className="text-[10px] text-inst-muted block uppercase">Bitolas Utilizadas:</span>
-            <span className="text-sm font-bold text-sky-400">AWG 22 (Alimentação) / AWG 26 (Sinal)</span>
+            <span className="text-sm font-bold text-sky-400">AWG 24 (Alimentação) / AWG 26 (Sinal)</span>
           </div>
           <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border">
             <span className="text-[10px] text-inst-muted block uppercase">Folga / curvatura:</span>

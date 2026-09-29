@@ -6,7 +6,7 @@ Aceita para a bancada de engenharia; PCB ainda não desenhada.
 
 ## Decisão
 
-Adotar ESP32-S3-DevKitC-1-N8R8 v1.1, ELECHOUSE PN532 V4 em SPI, DFRobot A02YYUW/SEN0311 em UART 9600 8N1, MC-38 com ímã, LED verde + 220 Ω, buzzer ativo CMI-1295IC-0385T, MB-102 e tanque acrílico paramétrico FG-TANK-6L-R1.
+Adotar ESP32-S3-DevKitC-1-N8R8 v1.1, ELECHOUSE PN532 V4 em SPI, DFRobot A02YYUW/SEN0311 em UART 9600 8N1, MC-38 com ímã, LED verde + 220 Ω, buzzer ativo CMI-1295IC-0385T, MB-102 e tanque cilíndrico acrílico paramétrico FG-TANK-5L-CYL-R1.
 
 ## Consequências
 

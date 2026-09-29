@@ -125,8 +125,12 @@ export const Esp32Node: React.FC<{ data: any }> = () => {
       </div>
 
       <div className="mt-3 pt-2 border-t border-inst-border flex justify-between text-[10px] font-mono text-inst-muted">
-        <span>USB-C Alimentado</span>
+        <span>Micro-USB Alimentado</span>
         <span className="text-fuelguard-green font-bold">LDO 3V3 OK</span>
+      </div>
+      <div className="relative mt-2 flex items-center justify-between h-6 px-3 bg-inst-canvas rounded-xs border border-inst-border text-[11px] font-mono">
+        <Handle type="target" position={Position.Left} id="esp_micro_usb_in" className="!w-2.5 !h-2.5 !bg-slate-600 !-left-1.5 border border-white" />
+        <span className="font-bold text-slate-600">Micro-USB 5V / UART</span>
       </div>
     </div>
   );

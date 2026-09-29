@@ -6,6 +6,7 @@ import { SignalsView } from '@/ui/views/signals/SignalsView';
 import { EventsView } from '@/ui/views/events/EventsView';
 import { TestsView } from '@/ui/views/tests/TestsView';
 import { DocsView } from '@/ui/views/docs/DocsView';
+import { AppSidebar } from '@/ui/components/sidebar/AppSidebar';
 const CadView = lazy(() => import('@/ui/views/cad/CadView').then((module) => ({ default: module.CadView })));
 import { HonestyBadge } from '@/ui/components/badges/HonestyBadge';
 import { X, BookOpen } from 'lucide-react';
@@ -15,6 +16,7 @@ import { useSimulation } from '@/core/worker/use-simulation';
 export const AppLayoutContent: React.FC = () => {
   const [currentRoute, setCurrentRoute] = useState<AppRoute>('bench');
   const [showAboutModal, setShowAboutModal] = useState<boolean>(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
 
   const sim = useSimulation();
 
@@ -56,7 +58,7 @@ export const AppLayoutContent: React.FC = () => {
   const renderActiveView = () => {
     switch (currentRoute) {
       case 'bench':
-        return <BenchView />;
+        return <BenchView onOpenCad={() => setCurrentRoute('cad')} />;
       case 'signals':
         return <SignalsView />;
       case 'events':
@@ -81,7 +83,6 @@ export const AppLayoutContent: React.FC = () => {
       {/* Barra de Instrumentação Superior */}
       <TopNavBar
         currentRoute={currentRoute}
-        onRouteChange={setCurrentRoute}
         isRunning={sim.isRunning}
         simTimeFormatted={sim.simTimeFormatted}
         speed={sim.speed}
@@ -92,11 +93,21 @@ export const AppLayoutContent: React.FC = () => {
         onSetSpeed={sim.setSpeed}
         onToggleOnline={sim.toggleTransport}
         onOpenHelpModal={() => setShowAboutModal(true)}
+        isSidebarCollapsed={isSidebarCollapsed}
+        onToggleSidebar={() => setIsSidebarCollapsed((value) => !value)}
       />
 
-      {/* Viewport Principal com Foco Primário na Bancada */}
-      <main className="flex-1 overflow-hidden relative" role="main">
-        {renderActiveView()}
+      {/* Workspace persistente: navegação contextual + área técnica ampla. */}
+      <main className="flex-1 flex min-h-0 overflow-hidden" role="main">
+        <AppSidebar
+          currentRoute={currentRoute}
+          onRouteChange={setCurrentRoute}
+          onOpenHelpModal={() => setShowAboutModal(true)}
+          isCollapsed={isSidebarCollapsed}
+        />
+        <section className="flex-1 min-w-0 min-h-0 overflow-hidden">
+          {renderActiveView()}
+        </section>
       </main>
 
       {/* Modal Didático Técnico */}
