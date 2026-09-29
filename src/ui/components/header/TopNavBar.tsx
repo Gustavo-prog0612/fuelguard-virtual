@@ -11,12 +11,15 @@ import {
   Moon,
   PanelLeftClose,
   PanelLeftOpen,
+  Search,
+  Sparkles,
+  Plus
 } from 'lucide-react';
 import { AppRoute } from '@/types/navigation';
 import { useDesignSystem } from '@/design-system/DesignSystemContext';
 
 interface TopNavBarProps {
-  currentRoute: AppRoute;
+  currentRoute?: AppRoute;
   isRunning: boolean;
   simTimeFormatted: string;
   speed: number;
@@ -31,17 +34,8 @@ interface TopNavBarProps {
   onToggleSidebar: () => void;
 }
 
-const NAV_TABS: { id: AppRoute; label: string; shortcut: string }[] = [
-  { id: 'bench', label: '1. Bancada', shortcut: '1' },
-  { id: 'signals', label: '2. Sinais', shortcut: '2' },
-  { id: 'events', label: '3. Eventos', shortcut: '3' },
-  { id: 'tests', label: '4. Testes', shortcut: '4' },
-  { id: 'cad', label: '5. Projeto CAD', shortcut: '5' },
-  { id: 'docs', label: '6. Docs & Limites', shortcut: '6' },
-];
-
 export const TopNavBar: React.FC<TopNavBarProps> = ({
-  currentRoute,
+  currentRoute: _currentRoute,
   isRunning,
   simTimeFormatted,
   speed,
@@ -58,64 +52,73 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   const { themeMode, toggleTheme } = useDesignSystem();
 
   return (
-    <header className="h-16 bg-inst-surface/95 border-b border-inst-border px-4 lg:px-5 flex items-center justify-between gap-4 z-30 select-none shadow-xs font-ui backdrop-blur-xl">
-      {/* 1. Esquerda: Logo Oficial FuelGuard & Badge de Versão */}
+    <header className="h-16 bg-white/95 dark:bg-slate-900/95 border-b border-slate-200/80 dark:border-slate-800 px-4 lg:px-6 flex items-center justify-between gap-3 z-30 select-none shadow-[0_1px_3px_rgba(0,0,0,0.02)] font-ui backdrop-blur-md">
+      {/* 1. Esquerda: Logo Oficial FuelGuard, Identidade e Badge Permity Style */}
       <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
         <button
           onClick={onToggleSidebar}
-          className="w-9 h-9 rounded-lg bg-inst-canvas border border-inst-border text-inst-secondary hover:text-inst-primary hover:bg-inst-subtle transition grid place-items-center"
+          className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition grid place-items-center"
           title={isSidebarCollapsed ? 'Expandir navegação' : 'Recolher navegação'}
           aria-label={isSidebarCollapsed ? 'Expandir navegação' : 'Recolher navegação'}
         >
           {isSidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
         </button>
-        <div className="w-9 h-9 rounded-xl bg-[#0f5132] flex items-center justify-center text-white font-mono font-bold text-xs tracking-tighter shadow-xs">
+
+        {/* Logo Icon Jet-Black com cantos arredondados (Permity style) */}
+        <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-mono font-bold text-xs tracking-tighter shadow-sm">
           FG
         </div>
-        <div className="min-w-0">
+
+        <div className="min-w-0 flex flex-col justify-center">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-display font-bold tracking-tight text-inst-primary">
-              FuelGuard <span className="text-inst-secondary font-normal text-xs">Real Hardware Reference</span>
+            <span className="text-sm font-display font-bold tracking-tight text-slate-900 dark:text-white">
+              FuelGuard <span className="text-slate-500 dark:text-slate-400 font-normal text-xs">Real Hardware Reference</span>
             </span>
-            <span className="hidden sm:inline-flex text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-inst-subtle text-inst-secondary border border-inst-border">
-              v1.0
+            {/* Badge Permity Lime / Soft Green de Verificações */}
+            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#EAF9A5] dark:bg-lime-950/70 text-[#1E3A0F] dark:text-lime-300 border border-[#CDEB65] dark:border-lime-700/60 shadow-xs">
+              <Sparkles className="w-3 h-3 text-[#588000] dark:text-lime-400" />
+              <span>83 verificações • 100% PASS</span>
             </span>
           </div>
-          <div className="hidden md:flex text-[10px] font-mono text-inst-muted items-center gap-1 truncate">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#166534]" />
-            ESP32-S3 v1.1 • PN532 V4 • SEN0311 UART • PCB sob gate
+          <div className="hidden md:flex text-[10px] font-mono text-slate-400 items-center gap-1.5 truncate">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span>ESP32-S3 v1.1 • PN532 V4 • SEN0311 UART • PCB sob gate</span>
           </div>
         </div>
       </div>
 
-      {/* 2. Centro: contexto da área aberta; a navegação vive na sidebar. */}
-      <div className="hidden lg:flex items-center gap-3 min-w-0 px-4 flex-1">
-        <span className="h-7 w-px bg-inst-border" />
-        <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-inst-muted">Workspace ativo</div>
-          <div className="text-sm font-semibold text-inst-primary truncate">
-            {NAV_TABS.find((tab) => tab.id === currentRoute)?.label.replace(/^\d+\.\s*/, '') ?? 'Bancada'}
-          </div>
+      {/* 2. Centro: Permity Search Bar (Pill arredondado com lupa) */}
+      <div className="hidden md:flex items-center justify-center flex-1 max-w-md px-2">
+        <div className="w-full flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-xs text-slate-600 dark:text-slate-300 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:border-slate-400 transition shadow-xs">
+          <Search className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+          <input
+            type="text"
+            placeholder="Buscar sinais, componentes, pinos, nets..."
+            className="w-full bg-transparent border-none outline-none text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 font-ui"
+          />
+          <kbd className="hidden lg:inline-flex items-center px-1.5 py-0.5 text-[9px] font-mono font-medium text-slate-400 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded">
+            Ctrl K
+          </kbd>
         </div>
       </div>
 
       {/* 3. Direita: Controles de Relógio de Instrumento & Conectividade */}
       <div className="flex items-center gap-2 flex-shrink-0">
-        {/* Bloco do Relógio Virtual */}
-        <div className="hidden sm:flex items-center gap-2 bg-inst-canvas border border-inst-border px-2.5 py-1.5 rounded-xl text-xs font-mono">
-          <div className="flex items-center space-x-1.5 pr-2 border-r border-inst-border">
-            <span className={`w-2 h-2 rounded-full ${isRunning ? 'bg-[#166534] animate-pulse' : 'bg-[#b45309]'}`} />
-            <span className="font-bold text-inst-primary">{simTimeFormatted}</span>
+        {/* Bloco do Relógio Virtual (Pill Permity Style) */}
+        <div className="hidden sm:flex items-center gap-2 bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700 px-3 py-1 rounded-full text-xs font-mono shadow-xs">
+          <div className="flex items-center space-x-1.5 pr-2 border-r border-slate-200 dark:border-slate-700">
+            <span className={`w-2 h-2 rounded-full ${isRunning ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+            <span className="font-bold text-slate-800 dark:text-slate-200">{simTimeFormatted}</span>
           </div>
 
           {/* Botões Play / Step / Reset */}
           <div className="flex items-center space-x-0.5">
             <button
               onClick={onTogglePlay}
-              className={`p-1.5 rounded-lg transition ${
+              className={`p-1 rounded-full transition ${
                 isRunning 
-                  ? 'text-[#b45309] hover:bg-amber-100 dark:hover:bg-amber-950' 
-                  : 'text-[#166534] hover:bg-emerald-100 dark:hover:bg-emerald-950'
+                  ? 'text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-950/60' 
+                  : 'text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-950/60'
               }`}
               title={isRunning ? 'Pausar Simulação (Espaço)' : 'Iniciar Simulação (Espaço)'}
               aria-label={isRunning ? 'Pausar Simulação' : 'Iniciar Simulação'}
@@ -125,7 +128,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             <button
               onClick={onStep}
               disabled={isRunning}
-              className="p-1.5 rounded-lg text-inst-secondary hover:text-inst-primary disabled:opacity-30 disabled:cursor-not-allowed"
+              className="p-1 rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition"
               title="Passo Único (20ms)"
               aria-label="Avançar Passo Único"
             >
@@ -133,24 +136,24 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             </button>
             <button
               onClick={onReset}
-              className="p-1.5 rounded-lg text-inst-secondary hover:text-inst-primary"
+              className="p-1 rounded-full text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 transition"
               title="Reiniciar Relógio"
               aria-label="Reiniciar Relógio"
             >
-              <RotateCcw className="w-3 h-3" />
+              <RotateCcw className="w-3.5 h-3.5" />
             </button>
           </div>
 
           {/* Multiplicador de Velocidade */}
-          <div className="flex items-center space-x-0.5 pl-1.5 border-l border-inst-border">
+          <div className="flex items-center space-x-0.5 pl-1.5 border-l border-slate-200 dark:border-slate-700">
             {[0.5, 1.0, 2.0].map((s) => (
               <button
                 key={s}
                 onClick={() => onSetSpeed(s)}
-                className={`text-[10px] px-1.5 py-0.5 rounded-md transition ${
+                className={`text-[10px] px-1.5 py-0.5 rounded-full transition font-semibold ${
                   speed === s
-                    ? 'bg-fuelguard-green text-white font-bold'
-                    : 'text-inst-secondary hover:text-inst-primary'
+                    ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900'
+                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
                 {s}x
@@ -159,38 +162,47 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           </div>
         </div>
 
-        {/* Toggle de Rede */}
+        {/* Toggle de Rede (Pill Permity) */}
         <button
           onClick={onToggleOnline}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-mono border transition ${
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border shadow-xs transition ${
             isOnline
-              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-[#166534] dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100'
-              : 'bg-rose-50 dark:bg-rose-950/60 text-[#b91c1c] dark:text-rose-400 border-rose-200 dark:border-rose-800 hover:bg-rose-100'
+              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100'
+              : 'bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800 hover:bg-rose-100'
           }`}
           title={isOnline ? 'Rede Virtual Conectada' : 'Rede Desconectada (Fila Offline Acumulando)'}
         >
-          {isOnline ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+          {isOnline ? <Wifi className="w-3 h-3 text-emerald-600" /> : <WifiOff className="w-3 h-3 text-rose-600" />}
           <span>{isOnline ? 'Online' : 'Offline'}</span>
         </button>
 
-        {/* Alternador de Tema Claro / Escuro (Obsidiana) */}
+        {/* Alternador de Tema Claro / Escuro */}
         <button
           onClick={toggleTheme}
-          className="p-2 rounded-xl text-inst-secondary hover:text-inst-primary hover:bg-inst-subtle border border-inst-border transition"
-          title={themeMode === 'dark' ? 'Mudar para Modo Laboratório Claro' : 'Mudar para Modo Instrumento Obsidiana (Escuro)'}
+          className="w-8 h-8 rounded-full text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition grid place-items-center"
+          title={themeMode === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}
           aria-label="Alternar Tema"
         >
-          {themeMode === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-inst-primary" />}
+          {themeMode === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
         </button>
 
         {/* Botão Sobre / Ajuda */}
         <button
           onClick={onOpenHelpModal}
-          className="p-2 rounded-xl text-inst-secondary hover:text-inst-primary hover:bg-inst-subtle border border-inst-border transition"
+          className="w-8 h-8 rounded-full text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition grid place-items-center"
           title="Manual do Instrumento & Limites Físicos"
           aria-label="Manual e Ajuda"
         >
-          <ShieldAlert className="w-4 h-4 text-inst-secondary" />
+          <ShieldAlert className="w-4 h-4" />
+        </button>
+
+        {/* Permity Signature Primary Action Button: Jet-Black Rounded Pill */}
+        <button
+          onClick={onOpenHelpModal}
+          className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-xs shadow-sm transition"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          <span>Novo Ensaio</span>
         </button>
       </div>
     </header>

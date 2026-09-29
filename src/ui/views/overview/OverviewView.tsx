@@ -1,334 +1,440 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Waves, 
-  Gauge, 
-  Thermometer, 
-  Activity, 
-  Cpu, 
-  Radio, 
-  Lock, 
-  CheckCircle2
+  CheckCircle2, 
+  AlertTriangle,
+  ArrowRight,
+  Sparkles,
+  Box,
+  Clock,
+  Check
 } from 'lucide-react';
-import { HonestyBadge } from '@/ui/components/badges/HonestyBadge';
+import { AppRoute } from '@/types/navigation';
 
-export const OverviewView: React.FC = () => {
+interface OverviewViewProps {
+  onNavigate?: (route: AppRoute) => void;
+}
+
+export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigate }) => {
+  const [timeRange, setTimeRange] = useState<'today' | '7days' | '30days'>('today');
+
   return (
-    <div className="p-6 space-y-6 overflow-y-auto h-full">
-      {/* Banner de Aviso de Escopo */}
-      <div className="bg-sky-950/30 border border-sky-800/50 rounded-xl p-4 flex items-start justify-between">
-        <div className="flex items-start space-x-3">
-          <div className="p-2 rounded-lg bg-sky-900/50 text-sky-400 mt-0.5">
-            <Waves className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-              Central Didática de Monitoramento — Tanque com Água
-              <HonestyBadge level="simulado" />
-            </h2>
-            <p className="text-xs text-slate-400 mt-1 max-w-3xl leading-relaxed">
-              Esta visão consolida o estado do FG-TANK-5L-CYL-R1, a telemetria UART do DFRobot A02YYUW/SEN0311 e os eventos da máquina de estados do ESP32-S3.
-            </p>
-          </div>
-        </div>
-        <div className="hidden md:flex flex-col items-end gap-1 text-[11px] font-mono text-slate-400">
-          <span>Álvo Acústico: <strong className="text-slate-200">Água Aberta</strong></span>
-          <span>Sensor: <strong className="text-slate-200">A02YYUW / SEN0311</strong></span>
-        </div>
-      </div>
-
-      {/* Grid Principal: Métricas Rápidas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Nível do Líquido */}
-        <div className="bg-bench-card border border-bench-border rounded-xl p-4 space-y-2">
-          <div className="flex justify-between items-center text-slate-400 text-xs">
-            <span className="flex items-center gap-1.5 font-medium">
-              <Waves className="w-4 h-4 text-sky-400" /> Nível da Água
-            </span>
-            <HonestyBadge level="simulado" size="sm" />
-          </div>
-          <div className="flex items-baseline justify-between">
-            <div className="text-3xl font-bold font-mono text-sky-400">50.0%</div>
-            <div className="text-xs font-mono text-slate-400">h = 8.0 cm</div>
-          </div>
-          {/* Barra de Progresso do Nível */}
-          <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
-            <div className="bg-gradient-to-r from-sky-600 to-sky-400 h-2 rounded-full" style={{ width: '50%' }} />
-          </div>
+    <div className="p-5 md:p-8 space-y-6 overflow-y-auto h-full bg-[#F4F5F7] dark:bg-slate-950 font-ui select-none">
+      {/* 1. Header do Dashboard (Permity Style): Saudação + Badge de Status */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Bom dia, Gustavo
+          </h1>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EAF9A5] dark:bg-lime-950/70 text-[#1E3A0F] dark:text-lime-300 border border-[#CDEB65] dark:border-lime-700/60 text-xs font-semibold shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-[#588000] dark:text-lime-400" />
+            <span>4 itens sob auditoria ativa</span>
+          </span>
         </div>
 
-        {/* Distância Acústica */}
-        <div className="bg-bench-card border border-bench-border rounded-xl p-4 space-y-2">
-          <div className="flex justify-between items-center text-slate-400 text-xs">
-            <span className="flex items-center gap-1.5 font-medium">
-              <Gauge className="w-4 h-4 text-emerald-400" /> Distância do Sensor
-            </span>
-            <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800/60">
-              ECO VÁLIDO
-            </span>
-          </div>
-          <div className="flex items-baseline justify-between">
-            <div className="text-3xl font-bold font-mono text-emerald-400">42.3 <span className="text-sm font-normal text-slate-400">cm</span></div>
-            <div className="text-xs font-mono text-slate-400">t_echo ≈ 2.45 ms</div>
-          </div>
-          <div className="text-[11px] text-slate-400 truncate">
-            Href: 16.0 cm • Zona Cega: 3 cm • Operação: 1–4,084 L
-          </div>
-        </div>
-
-        {/* Volume Estimado */}
-        <div className="bg-bench-card border border-bench-border rounded-xl p-4 space-y-2">
-          <div className="flex justify-between items-center text-slate-400 text-xs">
-            <span className="flex items-center gap-1.5 font-medium">
-              <Activity className="w-4 h-4 text-purple-400" /> Volume Estimado
-            </span>
-            <span className="text-[10px] font-mono text-purple-300 bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-800/60">
-              V(h) Cilíndrico
-            </span>
-          </div>
-          <div className="flex items-baseline justify-between">
-            <div className="text-3xl font-bold font-mono text-purple-400">3.2 <span className="text-sm font-normal text-slate-400">L</span></div>
-            <div className="text-xs font-mono text-slate-400">de 5,0265 L geométricos</div>
-          </div>
-          <div className="text-[11px] text-slate-400">
-            Base: Ø200 mm • Erro: pendente de calibração
-          </div>
-        </div>
-
-        {/* Temperatura e Acústica */}
-        <div className="bg-bench-card border border-bench-border rounded-xl p-4 space-y-2">
-          <div className="flex justify-between items-center text-slate-400 text-xs">
-            <span className="flex items-center gap-1.5 font-medium">
-              <Thermometer className="w-4 h-4 text-amber-400" /> Temperatura & Som
-            </span>
-            <HonestyBadge level="simulado" size="sm" />
-          </div>
-          <div className="flex items-baseline justify-between">
-            <div className="text-3xl font-bold font-mono text-amber-400">24.8 <span className="text-sm font-normal text-slate-400">°C</span></div>
-            <div className="text-xs font-mono text-slate-400">c ≈ 346.0 m/s</div>
-          </div>
-          <div className="text-[11px] text-slate-400 truncate">
-            Fórmula: c(T) = 331.3 · √(1 + T/273.15)
-          </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onNavigate?.('bench')}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-xs shadow-sm transition"
+          >
+            <Box className="w-3.5 h-3.5" />
+            <span>Abrir Bancada 3D</span>
+          </button>
         </div>
       </div>
 
-      {/* Seção Central: Corte do Tanque Didático 2D e Gráficos */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Painel Esquerdo: Representação 2D do Tanque (4 Colunas) */}
-        <div className="lg:col-span-4 bg-bench-card border border-bench-border rounded-xl p-5 flex flex-col justify-between">
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-xs font-bold font-mono uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-              <Waves className="w-4 h-4 text-sky-400" /> Corte do Tanque Didático
-            </h3>
-            <HonestyBadge level="aproximado" size="sm" />
-          </div>
+      {/* 2. Top Grid: 4 Cards Principais (Exatamente como 00:00 no Vídeo da Permity) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-5">
+        {/* Card 1 (Hero Project Card - "1254 Oak Street" no vídeo): 3.5 colunas */}
+        <div className="xl:col-span-3 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex flex-col justify-between space-y-4">
+          <div className="space-y-3">
+            {/* Visual Header com Thumbnail e Badges */}
+            <div className="relative w-full h-32 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700/60 p-3 flex flex-col justify-between overflow-hidden shadow-inner">
+              {/* Background Geometric Effect */}
+              <div className="absolute -right-4 -bottom-4 w-28 h-28 rounded-full bg-[#D4F63D]/10 blur-xl pointer-events-none" />
+              
+              <div className="flex justify-between items-start z-10">
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-white/20 text-white backdrop-blur-xs">
+                  PL-2841 • BENCH-MVP
+                </span>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]">
+                  Em Operação
+                </span>
+              </div>
 
-          {/* Canvas SVG Ilustrativo da Seção 7 do Briefing */}
-          <div className="relative w-full h-72 bg-slate-950/70 rounded-lg border border-slate-800 p-3 flex flex-col items-center justify-between overflow-hidden">
-            {/* Sensor no Topo */}
-            <div className="w-24 h-7 rounded bg-slate-800 border border-slate-700 flex flex-col items-center justify-center text-[10px] font-mono text-slate-300 shadow-md z-10">
-              <div className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <span>SEN0311 UART</span>
+              <div className="z-10 flex items-center justify-between text-white">
+                <div>
+                  <div className="text-xs font-bold font-mono">ESP32-S3 + PN532 + SEN0311</div>
+                  <div className="text-[10px] text-slate-300">Gêmeo Digital de Bancada</div>
+                </div>
+                <div className="w-6 h-6 rounded-full bg-[#D4F63D] text-slate-950 flex items-center justify-center font-bold text-xs">
+                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                </div>
               </div>
             </div>
 
-            {/* Zona Cega Visual (0 a 3 cm) */}
-            <div className="absolute top-11 w-44 h-8 border-b border-dashed border-rose-500/60 bg-rose-950/20 flex items-center justify-center text-[9px] font-mono text-rose-400">
-              Zona Cega (3 cm)
-            </div>
-
-            {/* Pulso e Feixe Cônico */}
-            <div className="absolute top-11 w-48 h-32 pointer-events-none flex flex-col items-center justify-start opacity-70">
-              <div className="w-12 h-6 border-b-2 border-sky-400/60 rounded-full animate-pulse" />
-              <div className="w-24 h-8 border-b-2 border-sky-400/40 rounded-full animate-pulse delay-75" />
-              <div className="w-36 h-10 border-b-2 border-sky-400/20 rounded-full animate-pulse delay-150" />
-            </div>
-
-            {/* Água (Nível Atual: 50%) */}
-            <div className="w-full absolute bottom-0 left-0 right-0 bg-gradient-to-t from-sky-900/90 to-sky-600/70 border-t-2 border-sky-300/80 flex flex-col justify-start p-2 transition-all duration-300" style={{ height: '50%' }}>
-              <div className="flex justify-between text-[10px] font-mono text-sky-100 font-bold">
-                <span>Água: 8.0 cm</span>
-                <span>V = 3.2 L</span>
-              </div>
-              <div className="text-[9px] font-mono text-sky-200/70 mt-1">
-                Superfície Calma • Ruído: ±0.3 cm
-              </div>
-            </div>
-
-            {/* Régua de Cotas */}
-            <div className="absolute right-2 top-11 bottom-2 w-4 flex flex-col justify-between text-[9px] font-mono text-slate-500 pointer-events-none border-l border-slate-800 pl-1">
-              <span>0 cm</span>
-              <span>3 cm</span>
-              <span>8 cm</span>
-              <span>16 cm</span>
-            </div>
-          </div>
-
-          <div className="mt-3 text-[11px] text-slate-400 leading-tight">
-            * Modelo geométrico determinístico. Não é CFD nem representa reflexão em paredes do galão real (<span className="text-amber-400">Seção 7 do Briefing</span>).
-          </div>
-        </div>
-
-        {/* Painel Direito: Gráficos de Séries Temporais (8 Colunas) */}
-        <div className="lg:col-span-8 bg-bench-card border border-bench-border rounded-xl p-5 flex flex-col justify-between">
-          <div className="flex justify-between items-center mb-4">
+            {/* Title & Location */}
             <div>
-              <h3 className="text-xs font-bold font-mono uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-emerald-400" /> Séries Temporais (Nível & Distância Acústica)
-              </h3>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Comparação entre distância UART bruta do SEN0311 e sinal estabilizado pós-filtro mediano de 5 amostras.
+              <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                Bancada de Teste MVP #01
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Laboratório de Engenharia • ESP32-S3 NodeMCU
               </p>
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="flex items-center gap-1 text-[11px] font-mono text-slate-400">
-                <span className="w-2.5 h-2.5 rounded bg-sky-400" /> Filtrado (cm)
-              </span>
-              <span className="flex items-center gap-1 text-[11px] font-mono text-slate-500">
-                <span className="w-2.5 h-2.5 rounded bg-slate-600" /> Bruto (cm)
-              </span>
+
+            {/* Specs Row */}
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+              <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                <span className="text-[10px] text-slate-400 block font-medium">Alimentação</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">3.3V / 5.0V LDO</span>
+              </div>
+              <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                <span className="text-[10px] text-slate-400 block font-medium">Amostragem</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">50 Hz Worker</span>
+              </div>
             </div>
           </div>
 
-          {/* Gráfico Simulado Visualmente no M1 (Integrado a Chart.js no M4) */}
-          <div className="h-64 bg-slate-950/60 rounded-lg border border-slate-800 p-4 flex flex-col justify-between">
-            <div className="h-full w-full flex items-end space-x-1 pt-6 pb-2">
-              {[42.5, 42.1, 42.3, 42.0, 42.8, 42.2, 42.4, 42.3, 42.1, 42.5, 42.3, 42.2, 42.3, 42.4, 42.3, 42.1, 42.3, 42.2, 42.3, 42.3, 42.4, 42.3, 42.2, 42.3].map((val, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full justify-end group">
-                  <div
-                    className="w-full rounded-t bg-sky-500/80 hover:bg-sky-400 transition-all"
-                    style={{ height: `${(val / 60) * 100}%` }}
-                    title={`Amostra #${i + 1}: ${val} cm`}
-                  />
-                </div>
-              ))}
+          {/* Progress Bar (Permity Style) */}
+          <div className="space-y-1.5 pt-2">
+            <div className="flex justify-between text-xs font-medium">
+              <span className="text-slate-600 dark:text-slate-400">Validação Geral</span>
+              <span className="font-bold text-slate-900 dark:text-white">83/83 PASS (100%)</span>
             </div>
-            <div className="flex justify-between text-[10px] font-mono text-slate-500 pt-2 border-t border-slate-800">
-              <span>-60s</span>
-              <span>-45s</span>
-              <span>-30s</span>
-              <span>-15s</span>
-              <span>Agora (Tempo Real)</span>
+            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div className="bg-[#D4F63D] h-2 rounded-full" style={{ width: '100%' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Card 2 (Portfolio / Statistics Card - "Portfolio: 128 Total projects" no vídeo): 4 colunas */}
+        <div className="xl:col-span-4 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex flex-col justify-between space-y-4">
+          <div>
+            {/* Header com Segmented Time Toggle */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                Portfólio de Testes & Sinais
+              </h2>
+              <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-full text-[10px] font-semibold">
+                {(['today', '7days', '30days'] as const).map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => setTimeRange(r)}
+                    className={`px-2.5 py-0.5 rounded-full transition ${
+                      timeRange === r 
+                        ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shadow-xs' 
+                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    {r === 'today' ? 'Hoje' : r === '7days' ? '7 dias' : '30 dias'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Big Stat Number */}
+            <div className="py-3 flex items-baseline gap-2">
+              <span className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                83
+              </span>
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                verificações automatizadas (16 suítes)
+              </span>
+            </div>
+
+            {/* 4 Stat Columns (Permity Style) */}
+            <div className="grid grid-cols-4 gap-2 py-2 text-center border-y border-slate-100 dark:border-slate-800 text-xs">
+              <div>
+                <span className="block text-base font-bold text-slate-900 dark:text-white">16</span>
+                <span className="text-[10px] text-slate-500 leading-tight block">Mecânica</span>
+              </div>
+              <div>
+                <span className="block text-base font-bold text-slate-900 dark:text-white">8</span>
+                <span className="text-[10px] text-slate-500 leading-tight block">DRC / Nets</span>
+              </div>
+              <div>
+                <span className="block text-base font-bold text-slate-900 dark:text-white">28</span>
+                <span className="text-[10px] text-slate-500 leading-tight block">Firmware</span>
+              </div>
+              <div>
+                <span className="block text-base font-bold text-slate-900 dark:text-white">31</span>
+                <span className="text-[10px] text-slate-500 leading-tight block">Acústica</span>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between mt-3 text-[11px] text-slate-400">
-            <span>Algoritmo: <strong className="text-slate-300">Mediana Móvel (5 amostras)</strong></span>
-            <span>Taxa de Amostragem: <strong className="text-slate-300">5 Hz (200 ms)</strong></span>
-            <span>Rejeição de Outliers: <strong className="text-emerald-400">Ativa (100%)</strong></span>
+          {/* Pipeline Stages Progress (Permity Style) */}
+          <div className="space-y-2">
+            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+              Distribuição por Domínio
+            </span>
+            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 flex overflow-hidden gap-0.5">
+              <div className="bg-[#D4F63D] h-full" style={{ width: '20%' }} title="Mecânica (16)" />
+              <div className="bg-amber-400 h-full" style={{ width: '10%' }} title="DRC / Nets (8)" />
+              <div className="bg-sky-400 h-full" style={{ width: '35%' }} title="Firmware (28)" />
+              <div className="bg-emerald-500 h-full" style={{ width: '35%' }} title="Acústica (31)" />
+            </div>
+            <div className="flex justify-between text-[10px] text-slate-500 font-medium">
+              <span>Fixação 3D</span>
+              <span>Regras DRC</span>
+              <span>FreeRTOS</span>
+              <span>Ultra-som</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3 (Signature Featured Jet-Black AI Card - Permity Style): 3 colunas */}
+        <div className="xl:col-span-3 bg-neutral-900 text-white rounded-3xl p-5 shadow-lg flex flex-col justify-between space-y-4">
+          <div className="space-y-2.5">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-[#D4F63D]">
+              <Sparkles className="w-4 h-4 fill-current" />
+              <span>FuelGuard AI</span>
+            </div>
+            <h2 className="text-base font-bold text-white tracking-tight">
+              Gêmeo Digital 100% Sincronizado
+            </h2>
+            <div className="space-y-2 pt-2 text-xs text-slate-300">
+              <div className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#D4F63D] mt-1.5 flex-shrink-0" />
+                <span>0 violações de sobretensão no GPIO do ESP32-S3</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 flex-shrink-0" />
+                <span>1 gate ativo: PCB adaptadora aguarda roteamento</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-1.5 flex-shrink-0" />
+                <span>Metrologia bloqueada até medição física de lote</span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onNavigate?.('cad')}
+            className="w-full py-2.5 px-3 rounded-2xl bg-neutral-800 hover:bg-neutral-700 text-[#D4F63D] font-bold text-xs flex items-center justify-center gap-1.5 transition border border-neutral-700 shadow-sm"
+          >
+            <span>Revisar Central de Riscos DRC</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Card 4 (Package Compliance Gauge Card - "Package compliance: 94%" no vídeo): 2.5 colunas */}
+        <div className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex flex-col items-center justify-between text-center space-y-3">
+          <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+            Conformidade Geral
+          </h2>
+
+          {/* SVG Circular Radial Gauge (Permity Style) */}
+          <div className="relative w-28 h-28 flex items-center justify-center">
+            <svg className="w-28 h-28 transform -rotate-90" viewBox="0 0 100 100">
+              {/* Background Circle */}
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                className="text-slate-100 dark:text-slate-800"
+                strokeWidth="10"
+                stroke="currentColor"
+                fill="transparent"
+              />
+              {/* Foreground Arc in Electric Lime */}
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                className="text-[#D4F63D]"
+                strokeWidth="10"
+                strokeDasharray="251.2"
+                strokeDashoffset="10.0"
+                strokeLinecap="round"
+                stroke="currentColor"
+                fill="transparent"
+              />
+            </svg>
+            <div className="absolute flex flex-col items-center justify-center">
+              <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">
+                96<span className="text-sm font-semibold">%</span>
+              </span>
+              <span className="text-[9px] text-slate-400 font-bold uppercase">SCORE</span>
+            </div>
+          </div>
+
+          <div className="text-[11px] text-slate-500 font-medium">
+            <strong className="text-slate-800 dark:text-slate-200 block">83/83 verificações</strong>
+            <span>Contratos canônicos OK</span>
           </div>
         </div>
       </div>
 
-      {/* Seção Inferior: Status dos Módulos Físicos da Bancada & Linha do Tempo */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Status dos Componentes (7 Colunas) */}
-        <div className="lg:col-span-7 bg-bench-card border border-bench-border rounded-xl p-5 space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-xs font-bold font-mono uppercase tracking-wider text-slate-300 flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-sky-400" /> Componentes da Bancada Didática
-            </h3>
-            <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" /> 5 Módulos Operacionais
-            </span>
+      {/* 3. Bottom Section: "Needs Attention" Table Card (Exatamente como 00:01 - 00:02 no vídeo da Permity) */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] space-y-4">
+        {/* Table Header Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white">
+              Itens de Atenção & Gates Técnicos
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              4 itens sinalizados • Verificado em tempo real
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            {/* ESP32-S3 */}
-            <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800 space-y-1">
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-slate-200">ESP32-S3 DevKitC-1</span>
-                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">ONLINE</span>
-              </div>
-              <p className="text-[11px] text-slate-400">Firmware: FSM Didática v0.1 • 3,3V Lógica</p>
-              <div className="flex justify-between text-[10px] font-mono text-slate-500 pt-1">
-                <span>Free Heap: 284 kB</span>
-                <span>Clock: 240 MHz</span>
-              </div>
-            </div>
-
-            {/* PN532 NFC */}
-            <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800 space-y-1">
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-slate-200 flex items-center gap-1">
-                  <Radio className="w-3.5 h-3.5 text-sky-400" /> PN532 NFC (SPI)
-                </span>
-                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">PRONTO</span>
-              </div>
-              <p className="text-[11px] text-slate-400">Pinos: CS:10, MOSI:11, SCK:12, MISO:13</p>
-              <div className="flex justify-between text-[10px] font-mono text-slate-500 pt-1">
-                <span>Sessão: Operador Demo</span>
-                <span>Tag: 04:3A:7F:2C:5D</span>
-              </div>
-            </div>
-
-            {/* A02YYUW / SEN0311 */}
-            <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800 space-y-1">
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-slate-200 flex items-center gap-1">
-                  <Gauge className="w-3.5 h-3.5 text-emerald-400" /> A02YYUW / SEN0311
-                </span>
-                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">ECO OK</span>
-              </div>
-              <p className="text-[11px] text-slate-400">UART TTL: 9600 8N1 • TX → GPIO16 • RX/MODE: HIGH</p>
-              <div className="flex justify-between text-[10px] font-mono text-slate-500 pt-1">
-                <span>Cone: ~55°</span>
-                <span>Freq: 40 kHz</span>
-              </div>
-            </div>
-
-            {/* Reed Switch da Tampa */}
-            <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800 space-y-1">
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-slate-200 flex items-center gap-1">
-                  <Lock className="w-3.5 h-3.5 text-amber-400" /> Tampa (Reed Switch)
-                </span>
-                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-sky-950 text-sky-300 border border-sky-800">FECHADA</span>
-              </div>
-              <p className="text-[11px] text-slate-400">GPIO7 • Pull-up 10k a 3V3 • Debounce 50ms</p>
-              <div className="flex justify-between text-[10px] font-mono text-slate-500 pt-1">
-                <span>Estado: Seguro</span>
-                <span>Bounce: Filtrado</span>
-              </div>
-            </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EAF9A5] dark:bg-lime-950/70 text-[#1E3A0F] dark:text-lime-300 border border-[#CDEB65] text-xs font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-[#588000]" />
+              <span>Sinalizado por FuelGuard AI</span>
+            </span>
           </div>
         </div>
 
-        {/* Linha do Tempo de Eventos em Tempo Real (5 Colunas) */}
-        <div className="lg:col-span-5 bg-bench-card border border-bench-border rounded-xl p-5 space-y-3 flex flex-col justify-between">
-          <div className="flex justify-between items-center">
-            <h3 className="text-xs font-bold font-mono uppercase tracking-wider text-slate-300 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-purple-400" /> Linha do Tempo (Eventos)
-            </h3>
-            <span className="text-[10px] font-mono text-slate-400">Ordenado por seq + ms</span>
-          </div>
+        {/* Clean Modern Table (Permity Style) */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="text-slate-400 text-[11px] font-semibold border-b border-slate-100 dark:border-slate-800">
+                <th className="pb-3 font-medium">Código</th>
+                <th className="pb-3 font-medium">Item de Hardware</th>
+                <th className="pb-3 font-medium">Fase</th>
+                <th className="pb-3 font-medium">Alerta Principal / Condição</th>
+                <th className="pb-3 font-medium">Status / Risco</th>
+                <th className="pb-3 font-medium text-right">Data</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-ui">
+              {/* Linha 1: PCB Adaptadora */}
+              <tr className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition">
+                <td className="py-3.5 font-mono font-bold text-slate-900 dark:text-white">
+                  HW-PCB-01
+                </td>
+                <td className="py-3.5">
+                  <div className="font-bold text-slate-800 dark:text-slate-200">Placa Adaptadora FuelGuard</div>
+                  <div className="text-[10px] text-slate-400 font-mono">Nível B • Em especificação</div>
+                </td>
+                <td className="py-3.5">
+                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-[11px]">
+                    Gate PCB
+                  </span>
+                </td>
+                <td className="py-3.5">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-medium">
+                    <Clock className="w-3 h-3 text-amber-700" />
+                    <span>Aguardando roteamento de cobre real</span>
+                  </span>
+                </td>
+                <td className="py-3.5">
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-bold text-[10px]">
+                    Médio
+                  </span>
+                </td>
+                <td className="py-3.5 text-right font-mono text-slate-400">
+                  29 Set
+                </td>
+              </tr>
 
-          <div className="space-y-2 h-48 overflow-y-auto pr-1 text-xs font-mono">
-            {[
-              { id: 42, time: '14:27:18', kind: 'tank.stable', desc: 'Leitura estável: 50.0% (8.0 cm, 3.2 L)', type: 'tank' },
-              { id: 41, time: '14:26:58', kind: 'tank.sample', desc: 'Amostra UART: 80 mm (frame SEN0311)', type: 'raw' },
-              { id: 40, time: '14:26:41', kind: 'session.started', desc: 'NFC Tag Autorizada (04:3A:7F:2C:5D)', type: 'nfc' },
-              { id: 39, time: '14:26:20', kind: 'lid.changed', desc: 'Tampa Fechada (após debounce 50ms)', type: 'lid' },
-              { id: 38, time: '14:25:01', kind: 'transport.state', desc: 'Wi-Fi Conectado • Fila Descarregada', type: 'net' },
-            ].map((ev) => (
-              <div key={ev.id} className="p-2 rounded bg-slate-900/60 border border-slate-800/80 flex items-start space-x-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-1.5 flex-shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex justify-between text-[10px] text-slate-500">
-                    <span>#{ev.id} • {ev.kind}</span>
-                    <span>{ev.time}</span>
-                  </div>
-                  <p className="text-[11px] text-slate-300 truncate mt-0.5">{ev.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+              {/* Linha 2: Tanque de Acrílico */}
+              <tr className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition">
+                <td className="py-3.5 font-mono font-bold text-slate-900 dark:text-white">
+                  TANK-CYL-01
+                </td>
+                <td className="py-3.5">
+                  <div className="font-bold text-slate-800 dark:text-slate-200">Tanque FG-TANK-5L-CYL-R1</div>
+                  <div className="text-[10px] text-slate-400 font-mono">Acrílico 3mm • Ø200 × 160 mm</div>
+                </td>
+                <td className="py-3.5">
+                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-[11px]">
+                    Metrologia
+                  </span>
+                </td>
+                <td className="py-3.5">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-900 border border-sky-300 text-[11px] font-medium">
+                    <Waves className="w-3 h-3 text-sky-700" />
+                    <span>Curva de calibração física pendente</span>
+                  </span>
+                </td>
+                <td className="py-3.5">
+                  <span className="px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200 font-bold text-[10px]">
+                    Aviso
+                  </span>
+                </td>
+                <td className="py-3.5 text-right font-mono text-slate-400">
+                  29 Set
+                </td>
+              </tr>
 
-          <div className="pt-2 border-t border-bench-border flex justify-between text-[11px] text-slate-400">
-            <span>Fila Pendente: <strong className="text-emerald-400">0 msgs</strong></span>
-            <span>schema_version: <strong className="text-slate-300">1</strong></span>
-          </div>
+              {/* Linha 3: Reed Switch MC-38 */}
+              <tr className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition">
+                <td className="py-3.5 font-mono font-bold text-slate-900 dark:text-white">
+                  SENS-MC38-01
+                </td>
+                <td className="py-3.5">
+                  <div className="font-bold text-slate-800 dark:text-slate-200">Sensor Magnético MC-38</div>
+                  <div className="text-[10px] text-slate-400 font-mono">Intertravamento de tampa</div>
+                </td>
+                <td className="py-3.5">
+                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-[11px]">
+                    Aferição Lote
+                  </span>
+                </td>
+                <td className="py-3.5">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-medium">
+                    <AlertTriangle className="w-3 h-3 text-amber-700" />
+                    <span>Gap e contato NO/NC dependente do lote</span>
+                  </span>
+                </td>
+                <td className="py-3.5">
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-bold text-[10px]">
+                    Médio
+                  </span>
+                </td>
+                <td className="py-3.5 text-right font-mono text-slate-400">
+                  28 Set
+                </td>
+              </tr>
+
+              {/* Linha 4: DFRobot A02YYUW */}
+              <tr className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition">
+                <td className="py-3.5 font-mono font-bold text-slate-900 dark:text-white">
+                  SENS-A02-01
+                </td>
+                <td className="py-3.5">
+                  <div className="font-bold text-slate-800 dark:text-slate-200">DFRobot A02YYUW / SEN0311</div>
+                  <div className="text-[10px] text-slate-400 font-mono">Ultrassônico UART TTL 9600</div>
+                </td>
+                <td className="py-3.5">
+                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-[11px]">
+                    Validação
+                  </span>
+                </td>
+                <td className="py-3.5">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-lime-100 text-lime-900 border border-lime-300 text-[11px] font-medium">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-700" />
+                    <span>Alimentação 3.3V e retorno GND validados</span>
+                  </span>
+                </td>
+                <td className="py-3.5">
+                  <span className="px-2.5 py-0.5 rounded-full bg-lime-50 text-lime-800 border border-lime-200 font-bold text-[10px]">
+                    Baixo
+                  </span>
+                </td>
+                <td className="py-3.5 text-right font-mono text-slate-400">
+                  28 Set
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Table Footer */}
+        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-500 gap-2">
+          <span>Exibindo 4 de 4 gates técnicos ativos</span>
+          <button
+            onClick={() => onNavigate?.('cad')}
+            className="font-bold text-slate-800 dark:text-slate-200 hover:text-neutral-900 dark:hover:text-white flex items-center gap-1 transition"
+          >
+            <span>Ver Lista de Materiais & Gates na Estação CAD</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
     </div>
