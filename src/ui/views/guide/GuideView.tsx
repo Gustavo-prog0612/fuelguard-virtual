@@ -13,57 +13,119 @@ export const GuideView: React.FC = () => {
   const handleDownloadFirmwareIno = () => {
     // Busca o código do firmware ou gera dinamicamente para download
     const firmwareCode = `/**
- * FuelGuard — Firmware de Bancada ESP32-S3 (FG-TANK-5L-CYL-R1 com água)
+ * FuelGuard — Firmware Oficial de Bancada Real (ESP32-S3)
  * Microcontrolador: ESP32-S3 DevKitC-1 (Xtensa Dual-Core 240 MHz, 3.3V CMOS)
  *
  * Mapeamento Canônico de Pinos:
  * - D1 (LED Status): GPIO4 (com resistor 220R)
  * - SEN0311 (Ultrassônico): TX -> GPIO16 (UART1 RX), MODE/RX -> +3.3V (Modo Processado contínuo)
- * - BZ1 (Buzzer Ativo): GPIO14
+ * - BZ1 (Buzzer Ativo): Acionado via transistor Q1 (2N2222A) com base no GPIO14 (resistor 1kΩ)
  * - SW1 (Reed Switch): GPIO7 (com resistor pull-up interno)
  * - PN532 (NFC): SPI (SCK=GPIO12, MISO=GPIO13, MOSI=GPIO11, SS=GPIO10)
  */
 #include <Arduino.h>
+#include <SPI.h>
+#include <Adafruit_PN532.h>
 
-#define PIN_LED_READY   4
-#define PIN_LEVEL_RX    16  // SEN0311 TX conectado ao GPIO16 (ESP32 UART1_RX)
-#define PIN_BUZZER      14
-#define PIN_REED_LID    7
+#define PIN_LED_READY      4
+#define PIN_LID_REED       7
+#define PIN_PN532_CS       10
+#define PIN_PN532_MOSI     11
+#define PIN_PN532_SCK      12
+#define PIN_PN532_MISO     13
+#define PIN_BUZZER_ACTIVE  14  // Base de Q1 (2N2222A) via 1kΩ
+#define PIN_LEVEL_RX       16  // SEN0311 TX conectado ao GPIO16 (ESP32 UART1_RX)
 
-static const float TANK_HREF_CM = 16.0f;
-static const float TANK_BASE_M2 = 0.04f;
-static const float SENSOR_BLIND_CM = 3.0f;
+static constexpr uint16_t TANK_INTERNAL_DIAMETER_MM = 200;
+static constexpr uint16_t TANK_INTERNAL_HEIGHT_MM   = 160;
+static constexpr uint16_t SENSOR_BLIND_ZONE_MM      = 30;
+static constexpr double   TANK_RADIUS_MM            = 100.0;
+static constexpr double   PI_CONST                  = 3.14159265358979323846;
 
-float calculateSpeedOfSound(float tempC) {
-  return 331.3f * sqrtf(1.0f + (tempC / 273.15f));
+HardwareSerial LevelSerial(1);
+Adafruit_PN532 nfc(PIN_PN532_SCK, PIN_PN532_MISO, PIN_PN532_MOSI, PIN_PN532_CS);
+
+struct LevelReading {
+  bool     valid;
+  uint16_t distanceMm;
+  uint16_t waterHeightMm;
+  uint16_t volumeMl;
+};
+
+static bool readSen0311Frame(LevelReading &reading) {
+  reading = { false, 0, 0, 0 };
+  while (LevelSerial.available() >= 4) {
+    if (LevelSerial.peek() != 0xFF) {
+      LevelSerial.read();
+      continue;
+    }
+    const uint8_t header   = static_cast<uint8_t>(LevelSerial.read());
+    const uint8_t dataHigh = static_cast<uint8_t>(LevelSerial.read());
+    const uint8_t dataLow  = static_cast<uint8_t>(LevelSerial.read());
+    const uint8_t checksum = static_cast<uint8_t>(LevelSerial.read());
+
+    if (static_cast<uint8_t>(header + dataHigh + dataLow) != checksum) continue;
+
+    const uint16_t distanceMm = (static_cast<uint16_t>(dataHigh) << 8) | dataLow;
+    if (distanceMm < SENSOR_BLIND_ZONE_MM || distanceMm > 4500) continue;
+
+    const int32_t heightMm = static_cast<int32_t>(TANK_INTERNAL_HEIGHT_MM) - distanceMm;
+    const uint16_t clampedHeightMm = static_cast<uint16_t>(constrain(heightMm, 0, TANK_INTERNAL_HEIGHT_MM));
+    const double volumeMlExact = (PI_CONST * TANK_RADIUS_MM * TANK_RADIUS_MM * clampedHeightMm) / 1000.0;
+
+    reading = { true, distanceMm, clampedHeightMm, static_cast<uint16_t>(min<uint32_t>(static_cast<uint32_t>(volumeMlExact + 0.5), 5026)) };
+    return true;
+  }
+  return false;
 }
 
 void setup() {
   Serial.begin(115200);
   pinMode(PIN_LED_READY, OUTPUT);
-  // Inicializa UART1 no GPIO16 (RX) a 9600 baud 8N1
-  Serial1.begin(9600, SERIAL_8N1, PIN_LEVEL_RX, -1);
-  pinMode(PIN_REED_LID, INPUT_PULLUP);
-  pinMode(PIN_BUZZER, OUTPUT);
+  pinMode(PIN_LID_REED, INPUT_PULLUP);
+  pinMode(PIN_BUZZER_ACTIVE, OUTPUT);
+  digitalWrite(PIN_LED_READY, LOW);
+  digitalWrite(PIN_BUZZER_ACTIVE, LOW);
+
+  LevelSerial.begin(9600, SERIAL_8N1, PIN_LEVEL_RX, -1);
+  nfc.begin();
+  if (nfc.getFirmwareVersion()) {
+    nfc.SAMConfig();
+  }
+  digitalWrite(PIN_BUZZER_ACTIVE, HIGH);
+  delay(80);
+  digitalWrite(PIN_BUZZER_ACTIVE, LOW);
   digitalWrite(PIN_LED_READY, HIGH);
-  Serial.println("[SYSTEM] ESP32-S3 FuelGuard inicializado.");
 }
 
 void loop() {
-  // Protocolo binário DFRobot SEN0311 (4 bytes: 0xFF + Data_H + Data_L + Checksum)
-  if (Serial1.available() >= 4 && Serial1.read() == 0xFF) {
-    const uint8_t high = Serial1.read();
-    const uint8_t low = Serial1.read();
-    const uint8_t checksum = Serial1.read();
-    if ((uint8_t)(0xFF + high + low) == checksum) {
-      const float distMm = (float)((high << 8) | low);
-      const float distCm = distMm / 10.0f;
-      const float waterHeightCm = constrain(TANK_HREF_CM - distCm, 0.0f, TANK_HREF_CM);
-      const float volumeL = TANK_BASE_M2 * (waterHeightCm / 100.0f) * 1000.0f;
-      Serial.printf("[FW] SEN0311 UART dist=%.1fmm h=%.1fcm vol=%.2fL\\r\\n", distMm, waterHeightCm, volumeL);
+  static uint32_t lastReportMs = 0;
+  static uint32_t lastRfidMs = 0;
+  static LevelReading lastReading = { false, 0, 0, 0 };
+
+  LevelReading cur;
+  if (readSen0311Frame(cur)) lastReading = cur;
+
+  const bool lidClosed = (digitalRead(PIN_LID_REED) == LOW);
+
+  if (millis() - lastRfidMs >= 400) {
+    lastRfidMs = millis();
+    uint8_t uid[7];
+    uint8_t uidLen;
+    if (nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLen, 25)) {
+      digitalWrite(PIN_BUZZER_ACTIVE, HIGH); delay(30); digitalWrite(PIN_BUZZER_ACTIVE, LOW);
+      Serial.print(F("[RFID] UID: "));
+      for (uint8_t i = 0; i < uidLen; i++) Serial.printf("%02X ", uid[i]);
+      Serial.println();
     }
   }
-  delay(200);
+
+  if (millis() - lastReportMs >= 500) {
+    lastReportMs = millis();
+    Serial.printf("[FW] dist_mm=%u height_mm=%u volume_ml=%u lid=%s\\r\\n",
+                  lastReading.distanceMm, lastReading.waterHeightMm, lastReading.volumeMl,
+                  lidClosed ? "CLOSED" : "OPEN");
+  }
 }
 `;
     const blob = new Blob([firmwareCode], { type: 'text/x-c' });

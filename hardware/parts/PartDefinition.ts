@@ -66,4 +66,12 @@ export const FUELGUARD_PARTS: PartDefinition[] = [
     id: 'usb-c-5v-3a', designator: 'PS1', name: 'Fonte USB-C 5 V / 3 A certificada', manufacturer: 'A selecionar', partNumber: 'USB-C-5V-3A-CERTIFIED-PENDING', kind: 'cable', confidence: 'D',
     dimensionsMm: { width: null, height: null, depth: null }, interfaces: ['USB-C 5V'], sourceUrl: null, modelStatus: 'placeholder', notes: ['Somente baixa tensão na bancada; registrar fabricante e certificação antes do uso.'],
   },
+  {
+    id: 'q1-2n2222', designator: 'Q1', name: 'Transistor NPN 2N2222A (TO-92)', manufacturer: 'ON Semiconductor ou equivalente', partNumber: 'P2N2222AG', kind: 'commercial-module', confidence: 'B',
+    dimensionsMm: { width: 4.5, height: 5.0, depth: 4.5 }, interfaces: ['GPIO14_BUZZER_CTRL', 'BUZZER_COLLECTOR', 'GND'], sourceUrl: 'https://www.onsemi.com/pdf/datasheet/p2n2222a-d.pdf', modelStatus: 'documented-reference', notes: ['Driver BJT NPN saturação para acionamento do buzzer BZ1 sem sobrecarregar o pino GPIO14 do ESP32-S3.'],
+  },
+  {
+    id: 'r-base-1k', designator: 'R_BASE', name: 'Resistor base 1 kΩ 1/4W 5%', manufacturer: 'Yageo ou equivalente', partNumber: '1K-5%-THT', kind: 'passive', confidence: 'A',
+    dimensionsMm: { width: 6.3, height: 2.5, depth: 2.5 }, interfaces: ['GPIO14_BUZZER_CTRL', 'BUZZER_BASE'], sourceUrl: 'https://www.yageo.com', modelStatus: 'library', notes: ['Resistor de limitação de corrente de base do transistor Q1 (Ib ≈ 2.6mA).'],
+  },
 ];

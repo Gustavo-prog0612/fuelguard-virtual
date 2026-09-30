@@ -25,7 +25,6 @@ import {
   Compass,
   Cable as CableIcon,
   Droplets,
-  AlertTriangle,
   FileCheck2,
 } from 'lucide-react';
 import { HonestyBadge } from '@/ui/components/badges/HonestyBadge';
@@ -33,14 +32,14 @@ import { CircuitJsonBuilder, CircuitJsonPackage } from '@/circuit-cad/circuit-js
 import { DrcChecker } from '@/circuit-cad/drc-checker';
 import { KiCadExporter } from '@/circuit-cad/kicad-exporter';
 import { SchematicCanvas } from './SchematicCanvas';
-import { PcbCanvas } from './PcbCanvas';
+import { PcbRealCanvas } from './PcbRealCanvas';
+import { BomView } from './BomView';
 import { DrcReportPanel } from './DrcReportPanel';
 import ErrorBoundary from '@/ui/components/ErrorBoundary';
 import { AgentSessionPanel } from './AgentSessionPanel';
 import { CadOverviewTab } from './CadOverviewTab';
 import { CadConnectionsTab } from './CadConnectionsTab';
 import { CadSensorsWaterTab } from './CadSensorsWaterTab';
-import { CadBomAssetsTab } from './CadBomAssetsTab';
 import { CadTestsTab } from './CadTestsTab';
 
 const BenchAssemblyCanvas = lazy(() => import('./BenchAssemblyCanvas').then((module) => ({ default: module.BenchAssemblyCanvas })));
@@ -260,22 +259,11 @@ export const CadView: React.FC = () => {
             <SchematicCanvas circuitPkg={circuitPkg} />
           )}
 
-          {/* Estação 4: PCB 2D */}
+          {/* Estação 4: PCB 2D Real com Footprints KiCad */}
           {activeTab === 'pcb' && (
             <div className="h-full flex flex-col overflow-hidden">
-                <div className="bg-amber-950/40 border border-amber-600/70 p-2.5 rounded-sm mb-2 text-xs font-mono text-amber-200 flex items-center justify-between gap-2 shrink-0">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span>
-                      <strong>REFERÊNCIA DE ENGENHARIA: protótipo em Protoboard MB-102</strong> • PCB Adaptadora: em especificação / não roteada em cobre físico.
-                    </span>
-                  </div>
-                  <span className="text-[10px] bg-amber-900/60 px-2 py-0.5 rounded-2xs border border-amber-500/50 text-amber-300">
-                    [IPC-2221A / JLCPCB Class 2]
-                  </span>
-                </div>
               <div className="flex-1 overflow-hidden">
-                <PcbCanvas circuitPkg={circuitPkg} />
+                <PcbRealCanvas />
               </div>
             </div>
           )}
@@ -299,9 +287,11 @@ export const CadView: React.FC = () => {
             <CadSensorsWaterTab onSelectTab={handleNavigateTab} />
           )}
 
-          {/* Estação 8: BOM & Catálogo de Assets */}
+          {/* Estação 8: BOM & Catálogo de Assets (Completo com Compras BR) */}
           {activeTab === 'bom' && (
-            <CadBomAssetsTab onSelectTab={handleNavigateTab} />
+            <div className="h-full flex flex-col overflow-hidden">
+              <BomView />
+            </div>
           )}
 
           {/* Estação 9: Testes Automatizados */}
