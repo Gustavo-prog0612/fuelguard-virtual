@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" role="img" aria-labelledby="title desc">
+  <title id="title">Prévia técnica do reed switch MC-38</title>
+  <desc id="desc">Envelope paramétrico do reed switch normalmente aberto e seu ímã separado.</desc>
+  <rect width="240" height="160" rx="16" fill="#08101d"/>
+  <path d="M31 82h43M167 82h42" stroke="#d9b65b" stroke-width="3"/>
+  <rect x="72" y="62" width="96" height="40" rx="20" fill="#e6edf2" opacity=".92" stroke="#b3c2d0" stroke-width="2"/>
+  <rect x="93" y="74" width="54" height="16" rx="8" fill="#9aa9b7"/>
+  <circle cx="183" cy="46" r="15" fill="#b9363d" stroke="#f28b8c" stroke-width="2"/><path d="M174 46h18M183 37v18" stroke="#f9d5d5" stroke-width="2"/>
+  <text x="120" y="137" fill="#f0b640" font-family="Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">MC-38 NO · referência de lote</text>
+</svg>

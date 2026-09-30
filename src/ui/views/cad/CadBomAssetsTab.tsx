@@ -81,7 +81,7 @@ export const CadBomAssetsTab: React.FC<CadBomAssetsTabProps> = ({
           </div>
           <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border">
             <span className="text-[10px] text-inst-muted block uppercase">Componentes Críticos:</span>
-            <span className="text-sm font-bold text-amber-400">ESP32-S3, PN532 V4, SEN0311</span>
+            <span className="text-sm font-bold text-amber-400">ESP32-S3, Adafruit PN532 v1.6, SEN0311</span>
           </div>
           <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border">
             <span className="text-[10px] text-inst-muted block uppercase">Classes de Fidelidade:</span>

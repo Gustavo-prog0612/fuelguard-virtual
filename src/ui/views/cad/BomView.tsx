@@ -15,8 +15,16 @@ import {
   Download, Filter, ShoppingCart, AlertTriangle, CheckCircle2,
   ExternalLink, Package, Cpu, Zap, Radio, ToggleLeft,
   Lightbulb, Wrench, Plug, Battery, ChevronDown, ChevronUp,
+  Box, Eye, Ruler, ShieldCheck, Clock3, Search,
 } from 'lucide-react';
-import { FUELGUARD_BOM, BOM_SUMMARY, type BomItem, type BomConfidence } from '@/circuit-cad/bom';
+import { FUELGUARD_BOM, BOM_SUMMARY, BOM_CATALOG_UPDATED_AT, PURCHASE_CATALOG, type BomItem, type BomConfidence } from '@/circuit-cad/bom';
+import {
+  CARRIER_CAD_ASSET_MANIFEST,
+  getCarrierAssetStatusClass,
+  getCarrierAssetStatusLabel,
+} from '@/circuit-cad/carrier-assets';
+import { FUELGUARD_CAD_LIBRARY, type CadComponentMetadata } from '@/circuit-cad/component-library';
+import { Component360InspectorModal } from './Component360InspectorModal';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -42,6 +50,12 @@ const CATEGORY_ICONS: Record<string, React.FC<{ className?: string }>> = {
 };
 
 const NEW_ITEMS = new Set(['Q1', 'R_BASE']);
+
+const CARRIER_PURCHASE_ONLY = [
+  { designator: 'U2', mpn: 'SN74AHCT125N', description: 'Buffer lógico DIP-14 do Carrier' },
+  { designator: 'R1', mpn: 'CFR-25JB-52-10K', description: 'Divisor resistivo · 10 kΩ' },
+  { designator: 'R2', mpn: 'CFR-25JB-52-15K', description: 'Divisor resistivo · 15 kΩ' },
+];
 
 function isNewItem(item: BomItem): boolean {
   return item.designator.split(',').some((d) => NEW_ITEMS.has(d.trim()));
@@ -72,23 +86,85 @@ function exportCsv(bom: BomItem[]): void {
   URL.revokeObjectURL(url);
 }
 
+function formatDimensions(dimensions?: { width: number; height: number; depth: number }): string {
+  if (!dimensions) return 'Ainda não medido';
+  return `${dimensions.width} × ${dimensions.height} × ${dimensions.depth} mm`;
+}
+
+const PurchaseImage: React.FC<{ src: string | null; alt: string; designator: string }> = ({ src, alt, designator }) => {
+  const [hasError, setHasError] = useState(false);
+
+  if (!src || hasError) {
+    return (
+      <div className="w-[92px] rounded-lg border border-slate-600 bg-[#091018] px-2 py-3 flex flex-col items-center text-center" aria-label={`${alt} — imagem indisponível`}>
+        <Box className="w-5 h-5 text-sky-300 mb-1" aria-hidden="true" />
+        <span className="text-sm font-bold text-emerald-400">{designator}</span>
+        <span className="mt-1 text-[8px] leading-tight uppercase tracking-wide text-slate-500">{src ? 'Imagem indisponível' : 'Imagem rastreável pendente'}</span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="max-w-[92px] max-h-[92px] object-contain"
+      loading="lazy"
+      onError={() => setHasError(true)}
+    />
+  );
+};
+
+const PURCHASE_STATUS: Record<'observed' | 'consult' | 'pending', { label: string; className: string }> = {
+  observed: { label: 'Preço observado', className: 'text-emerald-300' },
+  consult: { label: 'Consultar preço', className: 'text-sky-300' },
+  pending: { label: 'Fornecedor pendente', className: 'text-amber-300' },
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Componente principal
 // ─────────────────────────────────────────────────────────────────────────────
 export const BomView: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [expandedRow,    setExpandedRow]     = useState<string | null>(null);
   const [showOnlyNew,    setShowOnlyNew]     = useState(false);
+  const [carrierClassFilter, setCarrierClassFilter] = useState<'all' | 'A' | 'B' | 'C' | 'D'>('all');
+  const [carrierStatusFilter, setCarrierStatusFilter] = useState<'all' | 'verified' | 'unverified'>('all');
+  const [inspectedCarrierComponent, setInspectedCarrierComponent] = useState<CadComponentMetadata | null>(null);
+
+  const normalizedSearch = searchQuery.trim().toLocaleLowerCase('pt-BR');
+  const matchesSearch = (values: Array<string | undefined>): boolean => {
+    if (!normalizedSearch) return true;
+    return values.some((value) => value?.toLocaleLowerCase('pt-BR').includes(normalizedSearch));
+  };
 
   const filtered = useMemo(() => {
     return FUELGUARD_BOM.filter((item) => {
       if (categoryFilter !== 'all' && item.category !== categoryFilter) return false;
       if (showOnlyNew && !isNewItem(item)) return false;
+      if (!matchesSearch([item.designator, item.value, item.description, item.mpn, item.manufacturer])) return false;
       return true;
     });
-  }, [categoryFilter, showOnlyNew]);
+  }, [categoryFilter, showOnlyNew, normalizedSearch]);
 
   const totalQty = filtered.reduce((s, i) => s + i.quantity, 0);
+  const purchaseItems = filtered.filter((item) => PURCHASE_CATALOG[item.mpn]);
+  const purchaseCards = [
+    ...purchaseItems.map((item) => ({ designator: item.designator, mpn: item.mpn, description: item.description })),
+    ...(categoryFilter === 'all' ? CARRIER_PURCHASE_ONLY : []),
+  ].filter((item) => matchesSearch([item.designator, item.mpn, item.description]));
+  const observedPrices = purchaseCards.filter((item) => PURCHASE_CATALOG[item.mpn]?.priceStatus === 'observed').length;
+  const verifiedCarrierAssets = CARRIER_CAD_ASSET_MANIFEST.filter((entry) => entry.assetStatus === 'verified').length;
+  const unverifiedCarrierAssets = CARRIER_CAD_ASSET_MANIFEST.filter((entry) => entry.assetStatus !== 'verified').length;
+  const visibleCarrierAssets = CARRIER_CAD_ASSET_MANIFEST.filter((entry) => {
+    if (carrierClassFilter !== 'all' && entry.confidenceLevel !== carrierClassFilter) return false;
+    if (carrierStatusFilter === 'verified' && entry.assetStatus !== 'verified') return false;
+    if (carrierStatusFilter === 'unverified' && entry.assetStatus === 'verified') return false;
+    const component = FUELGUARD_CAD_LIBRARY[entry.componentId];
+    if (!matchesSearch([entry.designator, entry.partNumber, entry.revision, component?.name, entry.sourceReference])) return false;
+    return true;
+  });
 
   return (
     <div className="flex flex-col h-full bg-[#06090d] text-slate-200 font-mono overflow-hidden">
@@ -101,7 +177,7 @@ export const BomView: React.FC = () => {
             Bill of Materials — FuelGuard Real Bench
           </div>
           <div className="text-[11px] text-slate-500 mt-0.5">
-            {BOM_SUMMARY.totalLineItems} itens • {BOM_SUMMARY.totalComponents} componentes • Estimativa BR: R\${BOM_SUMMARY.estimatedCostBRL.min}–R\${BOM_SUMMARY.estimatedCostBRL.max}
+            {BOM_SUMMARY.totalLineItems} itens • {BOM_SUMMARY.totalComponents} componentes • Estimativa BR: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(BOM_SUMMARY.estimatedCostBRL.min)}–{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(BOM_SUMMARY.estimatedCostBRL.max)}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -136,11 +212,218 @@ export const BomView: React.FC = () => {
             </button>
           );
         })}
+        <label className="relative min-w-[220px] flex-1 max-w-sm" aria-label="Buscar referências da BOM e do CAD">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" aria-hidden="true" />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Buscar designator, MPN ou peça"
+            className="w-full rounded-md border border-slate-700 bg-[#091018] pl-8 pr-2 py-1.5 text-[10px] text-slate-200 placeholder:text-slate-600 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-900"
+          />
+        </label>
         <div className="ml-auto flex items-center gap-2 text-[10px] text-slate-500">
           <Filter className="w-3 h-3" />
-          {filtered.length} de {FUELGUARD_BOM.length} itens • {totalQty} peças
+          {normalizedSearch
+            ? `${filtered.length} BOM · ${purchaseCards.length} compras · ${visibleCarrierAssets.length} CAD`
+            : `${filtered.length} de ${FUELGUARD_BOM.length} itens • ${totalQty} peças`}
         </div>
       </div>
+
+      {/* Referências de compra: valores datados, fonte e variante ficam explícitos. */}
+      <section className="px-5 pt-4 flex-shrink-0" aria-labelledby="purchase-catalog-title">
+        <div className="flex items-end justify-between gap-3 mb-2">
+          <div>
+            <div id="purchase-catalog-title" className="text-xs font-bold uppercase tracking-[0.14em] text-white">Referências para compra</div>
+            <p className="text-[10px] text-slate-500 mt-1">{observedPrices} preços observados em {BOM_CATALOG_UPDATED_AT.split('-').reverse().join('/')} · valores sujeitos a estoque, frete e imposto.</p>
+          </div>
+          <span className="text-[10px] text-amber-400 font-semibold">A compra abre a fonte do fornecedor</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          {purchaseCards.map((item) => {
+            const reference = PURCHASE_CATALOG[item.mpn];
+            if (!reference) return null;
+            const priceStatus = PURCHASE_STATUS[reference.priceStatus];
+            const price = reference.price === null
+              ? 'Consultar'
+              : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: reference.currency ?? 'USD' }).format(reference.price);
+            return (
+              <article key={`purchase-${item.designator}`} className="rounded-xl border border-slate-800 bg-[#0e141c] overflow-hidden flex min-h-[126px]">
+                <div className="w-28 shrink-0 bg-[#151e29] grid place-items-center border-r border-slate-800">
+                  <PurchaseImage
+                    src={reference.imageUrl}
+                    alt={reference.imageAlt}
+                    designator={item.designator.split(',')[0].trim()}
+                  />
+                </div>
+                <div className="p-3 flex-1 min-w-0 flex flex-col justify-between gap-2">
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-bold text-emerald-400">{item.designator}</span>
+                      <span className={`text-[9px] font-bold uppercase ${priceStatus.className}`}>{priceStatus.label}</span>
+                    </div>
+                    <h3 className="text-xs font-bold text-white mt-1 truncate">{item.mpn}</h3>
+                    <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-2">{item.description} · {reference.note}</p>
+                    {reference.imageUrl && (
+                      <p className="text-[9px] text-slate-500 mt-1 uppercase tracking-wide">
+                        {reference.imageKind === 'technical_cad'
+                          ? 'Prévia CAD local · não é foto comercial'
+                          : reference.imageKind === 'technical_reference'
+                            ? 'Referência visual · variante/lote pendente'
+                            : 'Foto do fornecedor'}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-bold text-amber-300">{price}</span>
+                    <div className="flex items-center gap-1.5">
+                      {reference.imageSourceUrl && (
+                        <a
+                          href={reference.imageSourceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-1.5 rounded-md border border-slate-700 text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition"
+                          title="Abrir a fonte da imagem do fornecedor"
+                          aria-label={`Abrir fonte da imagem de ${item.mpn}`}
+                        >
+                          <Eye className="w-3 h-3" />
+                        </a>
+                      )}
+                      {reference.buyUrl ? (
+                        <a href={reference.buyUrl} target="_blank" rel="noreferrer" className="px-2.5 py-1 rounded-md bg-emerald-700 hover:bg-emerald-600 text-white text-[10px] font-bold inline-flex items-center gap-1.5 transition">
+                          <ShoppingCart className="w-3 h-3" /> Comprar <ExternalLink className="w-3 h-3" />
+                        </a>
+                      ) : <span className="text-[10px] text-slate-500">Fornecedor não selecionado</span>}
+                    </div>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Registro CAD do Carrier: uma fonte visível para status, dimensões e origem. */}
+      <section className="px-5 pt-4 pb-3 flex-shrink-0" aria-labelledby="carrier-cad-title">
+        <div className="flex items-end justify-between gap-3 mb-2">
+          <div>
+            <div id="carrier-cad-title" className="text-xs font-bold uppercase tracking-[0.14em] text-white flex items-center gap-2">
+              <Box className="w-3.5 h-3.5 text-sky-400" />
+              CAD do Carrier · ordem A → D
+            </div>
+            <p className="text-[10px] text-slate-500 mt-1">
+              {verifiedCarrierAssets} GLBs locais verificados · {unverifiedCarrierAssets} pendências/aproximações explícitas · nenhum asset do RP2040 entra nesta lista.
+            </p>
+          </div>
+          <span className="text-[10px] text-slate-500 font-semibold">Fonte, licença e dimensão ficam no cartão</span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5 mb-3" aria-label="Filtros do registro CAD Carrier">
+          <span className="text-[9px] text-slate-500 uppercase tracking-wider mr-1">Classe</span>
+          {(['all', 'A', 'B', 'C', 'D'] as const).map((grade) => (
+            <button
+              key={grade}
+              type="button"
+              aria-pressed={carrierClassFilter === grade}
+              onClick={() => setCarrierClassFilter(grade)}
+              className={`px-2 py-1 rounded-md border text-[10px] font-bold transition ${carrierClassFilter === grade ? 'bg-sky-900/70 border-sky-600 text-sky-100' : 'border-slate-800 text-slate-500 hover:border-sky-800 hover:text-sky-300'}`}
+            >
+              {grade === 'all' ? 'Todas' : `Classe ${grade}`}
+            </button>
+          ))}
+          <span className="h-4 w-px bg-slate-800 mx-1" aria-hidden="true" />
+          <span className="text-[9px] text-slate-500 uppercase tracking-wider mr-1">Asset</span>
+          {([['all', 'Todos'], ['verified', 'Verificados'], ['unverified', 'Pendentes / aproximações']] as const).map(([status, label]) => (
+            <button
+              key={status}
+              type="button"
+              aria-pressed={carrierStatusFilter === status}
+              onClick={() => setCarrierStatusFilter(status)}
+              className={`px-2 py-1 rounded-md border text-[10px] font-bold transition ${carrierStatusFilter === status ? 'bg-emerald-900/70 border-emerald-700 text-emerald-100' : 'border-slate-800 text-slate-500 hover:border-emerald-800 hover:text-emerald-300'}`}
+            >
+              {label}
+            </button>
+          ))}
+          <span className="ml-auto text-[10px] text-slate-500">{visibleCarrierAssets.length}/{CARRIER_CAD_ASSET_MANIFEST.length} exibidos</span>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-2.5">
+          {visibleCarrierAssets.map((entry) => {
+            const component = FUELGUARD_CAD_LIBRARY[entry.componentId];
+            if (!component) return null;
+            const isVerified = entry.assetStatus === 'verified';
+            const hasReference = Boolean(entry.referenceAssetPath);
+            return (
+              <article
+                key={entry.designator}
+                className="rounded-xl border border-slate-800 bg-[#0e141c] p-3 min-h-[145px] flex flex-col gap-2"
+                data-testid={`carrier-asset-${entry.designator}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-emerald-400">{entry.designator}</span>
+                      <span className="text-[9px] font-bold uppercase tracking-wide text-slate-500">Classe {entry.confidenceLevel}</span>
+                    </div>
+                    <h3 className="text-xs font-bold text-white truncate mt-1">{component.name}</h3>
+                    <p className="text-[10px] text-slate-400 truncate">{entry.partNumber} · {entry.revision}</p>
+                  </div>
+                  <span className={`shrink-0 text-[9px] font-bold uppercase px-2 py-1 rounded-full border ${getCarrierAssetStatusClass(entry.assetStatus)}`}>
+                    {getCarrierAssetStatusLabel(entry.assetStatus)}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-[10px]">
+                  <div className="rounded-md bg-[#091018] border border-slate-800 px-2 py-1.5">
+                    <div className="text-slate-500 flex items-center gap-1"><Ruler className="w-3 h-3" /> Nominal</div>
+                    <div className="text-slate-200 mt-0.5">{formatDimensions(component.nominalDimensionsMm)}</div>
+                  </div>
+                  <div className="rounded-md bg-[#091018] border border-slate-800 px-2 py-1.5">
+                    <div className="text-slate-500 flex items-center gap-1"><Box className="w-3 h-3" /> {isVerified ? 'GLB medido' : hasReference ? 'Referência 3D local' : 'Validação física'}</div>
+                    <div className={isVerified ? 'text-emerald-300 mt-0.5' : 'text-amber-300 mt-0.5'}>{isVerified ? formatDimensions(entry.assetDimensionsMm) : hasReference ? (entry.referenceAssetDimensionsMm ? formatDimensions(entry.referenceAssetDimensionsMm) : 'Disponível para inspeção') : 'Ainda não medido'}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 mt-auto">
+                  <div className="min-w-0 flex items-center gap-1.5 text-[10px] text-slate-500 truncate" title={entry.pendingReason ?? entry.limitations[0]}>
+                    {isVerified ? <ShieldCheck className="w-3 h-3 text-emerald-400 shrink-0" /> : <Clock3 className="w-3 h-3 text-amber-400 shrink-0" />}
+                    <span className="truncate">{entry.pendingReason ?? entry.limitations[0]}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setInspectedCarrierComponent(component)}
+                      className="px-2 py-1 rounded-md border border-sky-800 bg-sky-950/40 text-sky-300 hover:bg-sky-900/60 text-[10px] font-bold inline-flex items-center gap-1 transition"
+                    >
+                      <Eye className="w-3 h-3" /> Inspecionar
+                    </button>
+                    <a
+                      href={entry.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="p-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
+                      title="Abrir fonte do CAD"
+                      aria-label={`Abrir fonte do CAD de ${entry.designator}`}
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+        {visibleCarrierAssets.length === 0 && (
+          <div className="rounded-lg border border-dashed border-slate-800 px-3 py-5 text-center text-[11px] text-slate-500">
+            Nenhum asset corresponde aos filtros selecionados.
+          </div>
+        )}
+        {normalizedSearch && purchaseCards.length === 0 && visibleCarrierAssets.length === 0 && (
+          <div className="mt-2 rounded-lg border border-dashed border-amber-800/70 bg-amber-950/20 px-3 py-2 text-center text-[11px] text-amber-300">
+            Nenhuma referência de compra ou asset CAD corresponde a “{searchQuery}”.
+          </div>
+        )}
+      </section>
 
       {/* Tabela */}
       <div className="flex-1 overflow-y-auto">
@@ -271,9 +554,16 @@ export const BomView: React.FC = () => {
           </span>
         ))}
         <span className="ml-auto text-slate-500">
-          Atualizado em: 29/09/2026 • FuelGuard Virtual Test Bench
+          Atualizado em: {BOM_CATALOG_UPDATED_AT.split('-').reverse().join('/')} • FuelGuard Virtual Test Bench
         </span>
       </div>
+
+      {inspectedCarrierComponent && (
+        <Component360InspectorModal
+          component={inspectedCarrierComponent}
+          onClose={() => setInspectedCarrierComponent(null)}
+        />
+      )}
     </div>
   );
 };

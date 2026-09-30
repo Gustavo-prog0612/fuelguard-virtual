@@ -1,0 +1,23 @@
+{
+  "designator": "BZ1",
+  "componentId": "buzzer_active",
+  "partNumber": "Buzzer_12x9.5RM7.6",
+  "revision": "KiCad standard radial buzzer",
+  "class": "B",
+  "assetStatus": "verified",
+  "assetSourceType": "kicad",
+  "sourceReference": "KiCad Packages3D / Buzzer_Beeper.3dshapes/Buzzer_12x9.5RM7.6.step",
+  "sourceUrl": "https://gitlab.com/kicad/libraries/kicad-packages3D",
+  "license": "KiCad library license / CC-BY-SA-4.0",
+  "originalFile": "Buzzer_Beeper.3dshapes/Buzzer_12x9.5RM7.6.step",
+  "sourceRevision": "master @ 2026-09-26",
+  "assetChecksum": "4138446d524ea4ee3755271df07ba1c60879d0aef1da9e1bccaf9857bdfc1b32",
+  "sourceUnits": "mm",
+  "scale": { "x": 1, "y": 1, "z": 1 },
+  "rotationDeg": { "x": -90, "y": 0, "z": 0 },
+  "translationMm": { "x": 0, "y": 0, "z": 0 },
+  "assetDimensionsMm": { "width": 12, "height": 12.53, "depth": 12 },
+  "toleranceMm": 0.25,
+  "verificationDate": "2026-09-26",
+  "limitations": ["O modelo confirma o encapsulamento radial e o passo nominal; não confirma um fabricante CUI específico."]
+}

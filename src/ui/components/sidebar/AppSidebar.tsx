@@ -14,6 +14,7 @@ import {
   Compass
 } from 'lucide-react';
 import { AppRoute } from '@/types/navigation';
+import { BOM_SUMMARY } from '@/circuit-cad/bom';
 
 interface AppSidebarProps {
   currentRoute: AppRoute;
@@ -55,7 +56,7 @@ const PRIMARY_NAV_ITEMS: { id: AppRoute; label: string; icon: React.FC<{ classNa
     id: 'tests',
     label: '4. Testes',
     icon: FlaskConical,
-    badge: '83',
+    badge: 'LIVE',
     shortcut: '4',
   },
   {
@@ -185,7 +186,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
                   <span>Lista de Peças (BOM)</span>
                 </div>
                 <span className="text-[10px] font-mono text-purple-700 bg-purple-100 px-1.5 py-0.2 rounded-full font-bold">
-                  12 MPNs
+                  {BOM_SUMMARY.totalLineItems} linhas
                 </span>
               </button>
 
@@ -226,7 +227,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
               </button>
             </div>
             <div className="text-[10px] text-slate-800 font-medium leading-tight">
-              {isAiActive ? 'Auditoria em tempo real ativa • 83 verificações em dia' : 'Auditoria em modo manual'}
+              {isAiActive ? 'Auditoria em tempo real ativa • gates físicos pendentes' : 'Auditoria em modo manual'}
             </div>
           </div>
         )}

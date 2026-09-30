@@ -112,7 +112,7 @@ export const StyleGuideView: React.FC = () => {
 
                   {/* Nome do Componente e Especificações */}
                   <div style={{ fontFamily: p.uiFont }} className="text-xs text-inst-secondary">
-                    ESP32-S3 DevKitC-1 v1.1 • SEN0311 UART • PN532 V4 em SPI
+                    ESP32-S3 DevKitC-1 v1.1 • SEN0311 UART • Adafruit PN532 v1.6 em SPI
                   </div>
 
                   {/* Telemetria e Medições Numéricas Monoespaçadas */}
@@ -125,7 +125,7 @@ export const StyleGuideView: React.FC = () => {
 
                   {/* Pinagem e Níveis Lógicos */}
                   <div style={{ fontFamily: p.monoFont }} className="text-[11px] text-inst-secondary space-y-0.5">
-                    <div>GPIO16: UART1_RX (SEN0311 TX) • GPIO10–13: SPI (PN532 V4) • GPIO7: MC-38</div>
+                    <div>GPIO16: UART1_RX (SEN0311 TX) • GPIO10–13: SPI (Adafruit PN532 v1.6) • GPIO7: MC-38</div>
                     <div>SPI PN532: CS:10, MOSI:11, SCK:12, MISO:13 • Reed Switch: GPIO7 (3V3)</div>
                   </div>
 

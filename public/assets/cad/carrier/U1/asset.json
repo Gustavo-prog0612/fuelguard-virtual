@@ -1,0 +1,29 @@
+{
+  "designator": "U1",
+  "componentId": "esp32_s3_devkit",
+  "partNumber": "ESP32-S3-DevKitC-1-N8R8",
+  "revision": "v1.1",
+  "class": "A",
+  "assetStatus": "pending",
+  "assetSourceType": "derived",
+  "referenceAssetPath": "/assets/cad/carrier/U1/reference.glb",
+  "referenceAssetChecksum": "93293ca95b2135c13fd4b2cff9d19b342f537941b4fd3772639728dede74fef0",
+  "referenceAssetDimensionsMm": { "width": 25.5, "height": 10.82, "depth": 71.25 },
+  "sourceReference": "Espressif ESP32-S3-DevKitC-1 v1.1 hardware guide + official reference files; KiCad library inspected separately",
+  "sourceUrl": "https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32s3/esp32-s3-devkitc-1/user_guide_v1.1.html",
+  "license": "CC-BY-SA-4.0",
+  "originalFile": "ESP32-S3-DevKitC-1_V1.1.dxf + guia de hardware e desenho de placa Espressif",
+  "assetChecksum": null,
+  "sourceUnits": "mm",
+  "scale": { "x": 1, "y": 1, "z": 1 },
+  "rotationDeg": { "x": 0, "y": 0, "z": 0 },
+  "translationMm": { "x": 0, "y": 0, "z": 0 },
+  "assetDimensionsMm": null,
+  "toleranceMm": 0.25,
+  "verificationDate": "2026-09-26",
+  "limitations": [
+    "O GLB local é derivado do guia, DXF/desenho de placa e componentes documentados; não é exportação CAD oficial da Espressif.",
+    "O envelope medido do GLB é 25,5 × 10,82 × 71,25 mm porque inclui os dois conectores Micro-USB; confirmar a unidade N8R8 recebida antes de fabricar suportes."
+  ],
+  "pendingReason": "A fonte oficial não fornece um CAD 3D liberado da placa completa; a variante física N8R8, altura dos headers, conectores e keepouts ainda precisam ser conferidos no exemplar comprado."
+}

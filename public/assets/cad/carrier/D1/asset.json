@@ -1,0 +1,23 @@
+{
+  "designator": "D1",
+  "componentId": "led_indicator",
+  "partNumber": "LED THT verde 5 mm",
+  "revision": "LED_D5.0mm_Green",
+  "class": "B",
+  "assetStatus": "verified",
+  "assetSourceType": "kicad",
+  "sourceReference": "KiCad Packages3D / LED_THT.3dshapes/LED_D5.0mm_Green.step",
+  "sourceUrl": "https://gitlab.com/kicad/libraries/kicad-packages3D",
+  "license": "KiCad library license / CC-BY-SA-4.0",
+  "originalFile": "LED_THT.3dshapes/LED_D5.0mm_Green.step",
+  "sourceRevision": "master @ 2026-09-26",
+  "assetChecksum": "93ed2b6d8a12ffe14275a919025b3d5d29c1fb608de84d29e43c1588acdafee8",
+  "sourceUnits": "mm",
+  "scale": { "x": 1, "y": 1, "z": 1 },
+  "rotationDeg": { "x": -90, "y": 0, "z": 0 },
+  "translationMm": { "x": 0, "y": 0, "z": 0 },
+  "assetDimensionsMm": { "width": 5.396, "height": 14.1, "depth": 5.798 },
+  "toleranceMm": 0.2,
+  "verificationDate": "2026-09-26",
+  "limitations": ["O resistor limitador de 1 kΩ permanece um componente distinto do LED e não é incorporado ao GLB."]
+}

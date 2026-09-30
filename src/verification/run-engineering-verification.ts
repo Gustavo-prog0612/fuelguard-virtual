@@ -2,11 +2,11 @@ import benchLayout from '@/../hardware/assembly/bench-layout.json';
 import cableRoutes from '@/../hardware/assembly/cable-routes.json';
 import measurementRegister from '@/../hardware/measurements/measurement-register.json';
 import adapterInputs from '@/../hardware/pcb/fuelguard-adapter/design-inputs.json';
-import { FUELGUARD_PARTS } from '@/../hardware/parts/PartDefinition';
 import { HARDWARE_TEST_DEFINITIONS, TestResult } from '@/../hardware/tests/TestDefinition';
 import { FUELGUARD_BOARD_STATUS } from '@/../hardware/board-status';
 import { CircuitJsonBuilder } from '@/circuit-cad/circuit-json-builder';
 import { DrcChecker } from '@/circuit-cad/drc-checker';
+import { CARRIER_CAD_ASSET_MANIFEST } from '@/circuit-cad/carrier-assets';
 
 const result = (id: string, status: TestResult['status'], message: string, evidenceRef: string): TestResult => ({
   ...HARDWARE_TEST_DEFINITIONS.find((test) => test.id === id)!,
@@ -25,8 +25,8 @@ export function runEngineeringVerification(): TestResult[] {
 
   const layoutOk = benchLayout.objects.every((object) => object.supportPoint && object.supportPoint.contactY >= 0 && object.boundingBoxMm.width > 0 && object.boundingBoxMm.height > 0 && object.boundingBoxMm.depth > 0);
   const cableOk = cableRoutes.cables.every((cable) => cable.origin.component && cable.destination.component && cable.terminals.start && cable.terminals.end && cable.waypoints.length >= 3 && cable.visualDiameterMm > 0 && cable.estimatedLengthMm > 0);
-  const assetsPending = FUELGUARD_PARTS.some((part) => part.sourceUrl === null || Object.values(part.dimensionsMm).some((value) => value === null));
-  const assetsOk = FUELGUARD_PARTS.every((part) => part.sourceUrl !== undefined);
+  const carrierAssetsWithoutSource = CARRIER_CAD_ASSET_MANIFEST.filter((entry) => !entry.sourceUrl || !entry.license);
+  const carrierAssetsPending = CARRIER_CAD_ASSET_MANIFEST.filter((entry) => entry.assetStatus !== 'verified');
   const pendingMeasurements = measurementRegister.records.filter((record) => record.status !== 'APPROVED_BY_MEASUREMENT');
   const connectorSelectionsPending = adapterInputs.connectorDecisions.filter((connector) => connector.selection === null);
 
@@ -38,7 +38,7 @@ export function runEngineeringVerification(): TestResult[] {
     result('MECH-001', layoutOk ? 'PASS' : 'FAIL', layoutOk ? `${benchLayout.objects.length} objetos têm apoio e bounding box em milímetros.` : 'Há objeto sem apoio ou dimensão válida.', 'hardware/assembly/bench-layout.json'),
     result('MECH-002', cableOk ? 'PASS' : 'FAIL', cableOk ? `${cableRoutes.cables.length} rotas têm origem, destino, terminais e waypoints.` : 'Há rota sem terminação ou geometria suficiente.', 'hardware/assembly/cable-routes.json'),
     result('FLUID-001', 'PENDING', 'O confinamento da água e qualquer curva volumétrica exigem recipiente real, ensaio físico e medição aprovados.', 'hardware/assets/asset-manifest.json#TK1'),
-    result('ASSET-001', !assetsOk ? 'FAIL' : assetsPending ? 'PENDING' : 'PASS', !assetsOk ? 'Há peça sem fonte registrada.' : assetsPending ? `${FUELGUARD_PARTS.length} peças catalogadas; dimensões ou fonte ainda pendentes em itens vendor-lot-specific.` : `${FUELGUARD_PARTS.length} peças possuem fonte e dimensões aprovadas.`, 'hardware/parts/PartDefinition.ts + hardware/assets/asset-manifest.json'),
+    result('ASSET-001', carrierAssetsWithoutSource.length ? 'FAIL' : carrierAssetsPending.length ? 'PENDING' : 'PASS', carrierAssetsWithoutSource.length ? `${carrierAssetsWithoutSource.length} asset(s) Carrier sem fonte ou licença registrada.` : carrierAssetsPending.length ? `${CARRIER_CAD_ASSET_MANIFEST.length - carrierAssetsPending.length}/${CARRIER_CAD_ASSET_MANIFEST.length} assets Carrier verificados; ${carrierAssetsPending.length} permanecem pendentes/aproximados.` : `${CARRIER_CAD_ASSET_MANIFEST.length} assets Carrier possuem fonte, licença e verificação.`, 'src/circuit-cad/carrier-assets.ts + public/assets/cad/carrier/**/asset.json'),
     result('PCB-001', 'PENDING', `PCB adaptadora: ${FUELGUARD_BOARD_STATUS.pcbReadiness}. ${FUELGUARD_BOARD_STATUS.blockingItems[0]}`, 'hardware/board-status.ts + docs/decision-log.md'),
   ];
 }

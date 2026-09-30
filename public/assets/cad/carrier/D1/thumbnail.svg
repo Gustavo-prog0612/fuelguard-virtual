@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" role="img" aria-labelledby="title desc">
+  <title id="title">Prévia CAD do LED verde THT de 5 mm</title>
+  <desc id="desc">LED verde de 5 mm derivado do modelo KiCad verificado.</desc>
+  <defs><radialGradient id="led"><stop stop-color="#d6ff9b"/><stop offset=".35" stop-color="#74d149"/><stop offset="1" stop-color="#0f6e42"/></radialGradient></defs>
+  <rect width="240" height="160" rx="16" fill="#08101d"/>
+  <path d="M105 115V66m30 49V66" stroke="#cbd5e1" stroke-width="4" stroke-linecap="round"/>
+  <path d="M89 64h62v10H89z" fill="#1b6544" stroke="#94f0aa" stroke-width="2"/>
+  <path d="M91 63a29 29 0 0 1 58 0v1H91z" fill="url(#led)" stroke="#a2f08a" stroke-width="2"/>
+  <path d="M89 64l7 7v-14z" fill="#061b15"/>
+  <text x="120" y="142" fill="#91d55d" font-family="Arial, sans-serif" font-size="12" font-weight="700" text-anchor="middle">LED Ø5 mm · THT</text>
+  <text x="151" y="122" fill="#8ea2bf" font-family="Arial, sans-serif" font-size="9">A</text><text x="95" y="122" fill="#8ea2bf" font-family="Arial, sans-serif" font-size="9">K</text>
+</svg>

@@ -103,37 +103,37 @@ export const BenchView: React.FC<BenchViewProps> = ({ onOpenCad }) => {
       </div>
 
       {/* Resumo primário do gêmeo digital (Permity Clean Cards Grid) */}
-      <section className="p-3 md:p-4 grid grid-cols-2 lg:grid-cols-5 gap-3 bg-[#F4F5F7] dark:bg-slate-950 shrink-0" aria-label="Resumo do gêmeo digital">
+      <section className="p-3 md:p-4 grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-3 bg-[#F4F5F7] dark:bg-slate-950 shrink-0" aria-label="Resumo do gêmeo digital">
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-3.5 shadow-xs">
           <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Gêmeo digital</div>
           <div className="mt-1 flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" /> Operacional
+            <span className="w-2 h-2 rounded-full bg-emerald-500" /> Simulação operacional
           </div>
           <div className="text-[10px] text-slate-500 mt-0.5">Simulação determinística · 50 Hz</div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-3.5 shadow-xs">
-          <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Tanque</div>
+          <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Envelope do tanque</div>
           <div className="mt-1 flex items-center gap-1.5 text-sm font-bold text-slate-900 dark:text-white">
-            <Box className="w-4 h-4 text-sky-600" /> Cilíndrico 5,0265 L
+            <Box className="w-4 h-4 text-amber-600" /> 5,0265 L calculados
           </div>
-          <div className="text-[10px] text-slate-500 mt-0.5">Ø200 × 160 mm interno · nível {Math.round(sim.snapshot.percentage)}%</div>
+          <div className="text-[10px] text-slate-500 mt-0.5">Ø200 × 160 mm interno · placeholder Classe D · nível {Math.round(sim.snapshot.percentage)}%</div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-3.5 shadow-xs">
-          <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Assets Oficiais</div>
+          <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Proveniência 3D</div>
           <div className="mt-1 flex items-center gap-1.5 text-sm font-bold text-slate-900 dark:text-white">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" /> PN532 GLB oficial
+            <ShieldCheck className="w-4 h-4 text-emerald-600" /> 2 GLBs locais validados
           </div>
-          <div className="text-[10px] text-slate-500 mt-0.5">ESP32-S3 DevKitC-1 v1.1 · SEN0311 GLB B</div>
+          <div className="text-[10px] text-slate-500 mt-0.5">D1 e BZ1 na bancada · U1, RFID1 e SEN1 são referências sob aferição</div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-3.5 shadow-xs">
-          <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Colisões</div>
+          <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Colisões mecânicas</div>
           <div className="mt-1 flex items-center gap-1.5 text-sm font-bold text-amber-600">
-            <AlertTriangle className="w-4 h-4" /> Aferição Pendente
+            <AlertTriangle className="w-4 h-4" /> Triagem em cena
           </div>
-          <div className="text-[10px] text-slate-500 mt-0.5">BVH disponível no viewer 3D</div>
+          <div className="text-[10px] text-slate-500 mt-0.5">BVH no viewer 3D · não substitui aferição física</div>
         </div>
 
         <div className="bg-neutral-900 hover:bg-neutral-800 text-white rounded-2xl p-3.5 shadow-sm transition flex flex-col justify-center cursor-pointer col-span-2 lg:col-span-1" onClick={onOpenCad}>
@@ -163,21 +163,23 @@ export const BenchView: React.FC<BenchViewProps> = ({ onOpenCad }) => {
             />
           )}
 
-          {/* Legenda Flutuante de Fiação no Rodapé do Canvas */}
-          <div className="absolute bottom-4 left-4 z-10 bg-inst-surface/90 backdrop-blur-xs border border-inst-border p-2.5 rounded-sm shadow-xs flex items-center space-x-4 text-[10px] font-mono">
-            <span className="font-bold text-inst-primary uppercase">Cores dos Fios:</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#1f2937]" /> GND</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#dc2626]" /> +5V</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#d97706]" /> +3V3</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#7c3aed]" /> UART TX</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#0284c7]" /> UART RX</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#059669]" /> SPI</span>
-            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#166534]" /> LED</span>
-          </div>
+          {/* A legenda pertence à topologia 2D; na cena 3D ela escondia o objeto. */}
+          {workspaceMode === 'connections' && (
+            <div className="absolute bottom-4 left-4 z-10 bg-inst-surface/90 backdrop-blur-xs border border-inst-border p-2.5 rounded-sm shadow-xs flex items-center space-x-4 text-[10px] font-mono">
+              <span className="font-bold text-inst-primary uppercase">Cores dos Fios:</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#1f2937]" /> GND</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#dc2626]" /> +5V</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#d97706]" /> +3V3</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#7c3aed]" /> UART TX</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#0284c7]" /> UART RX</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#059669]" /> SPI</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs bg-[#166534]" /> LED</span>
+            </div>
+          )}
         </div>
 
         {/* PAINEL LATERAL: VALIDADOR ELÉTRICO TOPOLÓGICO (25% DA ÁREA) */}
-        <div className="w-72 lg:w-80 xl:w-96 bg-inst-surface border-l border-inst-border flex flex-col justify-between flex-shrink-0 z-20 shadow-xs">
+        <div className="hidden xl:flex w-96 bg-inst-surface border-l border-inst-border flex-col justify-between flex-shrink-0 z-20 shadow-xs">
           <div className="p-4 space-y-4 overflow-y-auto flex-1">
             {/* Header do Validador */}
             <div className="flex justify-between items-center border-b border-inst-border pb-3">

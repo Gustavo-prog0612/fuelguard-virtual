@@ -134,12 +134,12 @@ export const CadOverviewTab: React.FC<CadOverviewTabProps> = ({
             <h4 className="text-xs font-bold text-inst-primary">Hardware Físico de Bancada</h4>
             <ul className="text-[11px] text-inst-secondary space-y-1 list-disc list-inside">
               <li>Protoboard MB-102 830 pontos sobre tapete ESD antiestático</li>
-              <li>ESP32-S3 DevKitC-1 v1.1 comercial; GLB detalhado documentado a partir de referências oficiais</li>
-              <li>DFRobot A02YYUW/SEN0311 centralizado na tampa, via UART</li>
-              <li>MC-38 com ímã lateral; GLB de referência documentada</li>
-              <li>Módulo ELECHOUSE PN532 V4 com suporte frontal dedicado</li>
-              <li>Chicote tubular com terminais DuPont Macho/Fêmea e JST</li>
-              <li>Tanque FG-TANK-5L-CYL-R1: Ø200 × 160 mm internos, fabricação e medição pendentes</li>
+              <li>U1 · ESP32-S3 DevKitC-1 v1.1 comercial; Classe A pendente de CAD exato da variante, com referência GLB local</li>
+              <li>SEN1 · DFRobot A02YYUW/SEN0311 centralizado na tampa, via UART; Classe C pendente de revisão física</li>
+              <li>SW1 · MC-38 com ímã lateral; Classe C, referência paramétrica e lote ainda não confirmados</li>
+              <li>RFID1 · Adafruit PN532 Breakout v1.6 com suporte frontal; Classe C, GLB derivado do Eagle oficial aguardando validação física</li>
+              <li>CBL_USB · Cabo USB-C → Micro-USB de dados; Classe C, sem CAD de fabricante no runtime</li>
+              <li>TK1 · FG-TANK-5L-CYL-R1 Ø200 × 160 mm internos; Classe D, fabricação e medição pendentes</li>
             </ul>
             <div className="pt-2 border-t border-inst-border text-[10px] text-emerald-400">
               ✓ Base para verificação elétrica e mecânica da bancada

@@ -52,7 +52,7 @@ export class AssemblyAuditor {
 
     add({ id: 'AUD-SUP-01', category: 'support_mounting', title: 'Apoio da protoboard MB-102 sobre a bancada', severity: 'PENDING', componentId: 'breadboard_830', message: 'O exemplar MB-102 deve ser medido antes de congelar o suporte da bancada.', technicalDetails: 'Envelope nominal de referência: aproximadamente 165 x 55 x 8,5 mm; lote comercial varia.' });
     add({ id: 'AUD-SUP-02', category: 'support_mounting', title: 'Encaixe da ESP32-S3 DevKitC-1 v1.1', severity: 'PASS', componentId: 'esp32_s3_devkit', message: 'A placa oficial usa duas fileiras de 22 pinos em passo 2,54 mm.', technicalDetails: 'A revisão v1.1 está registrada; a furação da bancada ainda deve respeitar a unidade recebida.' });
-    add({ id: 'AUD-SUP-03', category: 'support_mounting', title: 'Suporte frontal do PN532 V4', severity: 'PENDING', componentId: 'pn532_breakout', message: 'O módulo deve ficar em suporte frontal, sem permanecer solto na bancada.', technicalDetails: 'Envelope nominal 42,7 x 40,4 x 4,0 mm; header, furos e antena da unidade V4 aguardam conferência.' });
+    add({ id: 'AUD-SUP-03', category: 'support_mounting', title: 'Suporte frontal do Adafruit PN532 v1.6', severity: 'PENDING', componentId: 'pn532_breakout', message: 'A placa deve ficar em suporte frontal seco, sem permanecer solta na bancada.', technicalDetails: 'Envelope de placa derivado do Eagle: 120 × 50 mm; JP4, furos M3, antena e altura dos headers aguardam conferência física.' });
     add({ id: 'AUD-SUP-04', category: 'support_mounting', title: 'Fixação do probe DFRobot A02YYUW/SEN0311', severity: 'PENDING', componentId: 'a02yyuw_sen0311', message: 'O probe será centralizado na tampa, mas o diâmetro do suporte depende da unidade comprada.', technicalDetails: 'A DFRobot documenta a função elétrica e a faixa; o envelope físico e o cabo são vendor-lot-specific.', mitigationOrAction: 'Medir probe, cabo e prensa-cabo antes de liberar o furo da tampa.' });
     add({ id: 'AUD-SUP-05', category: 'support_mounting', title: 'Assentamento do tanque FG-TANK-5L-CYL-R1', severity: 'PENDING', componentId: 'tank_cylinder', message: 'Tanque cilíndrico transparente com base apoiada e área de respingos controlada.', technicalDetails: 'Baseline: Ø206 x 168 mm externos; Ø200 x 160 mm internos; acrílico 3 mm.' });
     add({ id: 'AUD-SUP-06', category: 'support_mounting', title: 'Apoio do buzzer ativo BZ1 e LED D1', severity: 'PENDING', componentId: 'buzzer_active', message: 'O indicador ativo Same Sky CMI-1295IC-0385T e o LED verde serão montados na protoboard.', technicalDetails: 'CMI-1295IC-0385T tem circuito interno, opera em 2–5 V e não usa Q1; confirmar passo e polaridade na unidade.' });
@@ -98,7 +98,7 @@ export class AssemblyAuditor {
       'W_USBC_MAIN', 'W_5V_ESP_TO_RAIL', 'W_3V3_ESP_TO_RAIL', 'W_GND_ESP_TO_RAIL',
       'W_LEVEL_VCC', 'W_LEVEL_GND', 'W_LEVEL_UART', 'W_LEVEL_MODE',
       'W_PN532_VCC', 'W_PN532_GND', 'W_SPI_CS', 'W_SPI_MOSI', 'W_SPI_SCK', 'W_SPI_MISO',
-      'W_REED_INTERLOCK', 'W_REED_GND', 'W_LED_STATUS', 'W_LED_GND', 'W_BUZZER_CTRL', 'W_BUZZER_GND',
+      'W_REED_INTERLOCK', 'W_REED_GND', 'W_LED_STATUS', 'W_LED_GND', 'W_BUZZER_CTRL', 'W_BUZZER_LOAD', 'W_BUZZER_GND',
     ];
     const missingConductors = requiredConductors.filter((id) => !cables.some((cable) => cable.id === id));
     add({

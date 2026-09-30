@@ -9,7 +9,7 @@
  *   - hardware/real-hardware-catalog.json
  *   - ESP32-S3 DevKitC-1 v1.1 User Guide (Espressif)
  *   - DFRobot SEN0311 / A02YYUW Wiki
- *   - ELECHOUSE PN532 V4 datasheet
+ *   - Adafruit PN532 Breakout v1.6 Eagle source
  */
 
 export interface NetPin {

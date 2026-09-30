@@ -26,6 +26,29 @@
 export type BomConfidence = 'A' | 'B' | 'C' | 'D';
 export type BomStatus = 'required' | 'optional' | 'pending';
 
+/** Data da última conferência manual dos links, imagens e preços do catálogo. */
+export const BOM_CATALOG_UPDATED_AT = '2026-09-30';
+
+export interface BomPurchaseReference {
+  /** Preço observado na fonte em `priceCheckedAt`; não é cotação garantida. */
+  price: number | null;
+  currency: 'USD' | 'BRL' | null;
+  priceCheckedAt: string;
+  priceStatus: 'observed' | 'consult' | 'pending';
+  supplier: string;
+  buyUrl: string | null;
+  /** Página que autoriza/rastreia a imagem exibida, quando há foto do fornecedor. */
+  imageSourceUrl?: string;
+  /** Diferencia foto comercial de prévia técnica derivada de um CAD local. */
+  imageKind?: 'supplier_photo' | 'technical_cad' | 'technical_reference';
+  /** SHA-256 da cópia local da foto, quando a interface não depende de hotlink. */
+  imageChecksum?: string;
+  imageUrl: string | null;
+  imageAlt: string;
+  match: 'exact_mpn' | 'documented_variant' | 'vendor_lot' | 'not_selected';
+  note: string;
+}
+
 export interface BomItem {
   designator: string;
   quantity: number;
@@ -83,7 +106,7 @@ export const FUELGUARD_BOM: BomItem[] = [
     manufacturer:'DFRobot',
     mpn:         'SEN0311',
     supplier:    'DFRobot Store',
-    supplierUrl: 'https://www.dfrobot.com/product-1894.html',
+    supplierUrl: 'https://www.dfrobot.com/product-1935.html',
     altSupplier: 'Eletrogate (Brasil)',
     altSupplierUrl:'https://www.eletrogate.com/sensor-ultrassonico-de-distancia-a-prova-d-agua',
     footprint:   'Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical',
@@ -97,24 +120,48 @@ export const FUELGUARD_BOM: BomItem[] = [
   },
 
   // ──────────────────────────────────────────────────────────────────────────
+  // PROTÓTIPO DE BANCADA
+  // ──────────────────────────────────────────────────────────────────────────
+  {
+    designator:  'BB1',
+    quantity:    1,
+    value:       'MB-102 830 pontos',
+    description: 'Protoboard de tamanho completo com 630 pontos centrais e barramentos de alimentação. O modelo comercial varia por lote; confirmar trilhos, canaleta e medidas antes de congelar a montagem.',
+    manufacturer:'Vendor-lot-specific',
+    mpn:         'MB-102-830',
+    supplier:    'Tayda Electronics',
+    supplierUrl: 'https://www.taydaelectronics.com/hardware-tools/breadboards/830-point-solder-less-plug-in-breadboard.html',
+    altSupplier: 'CRCibernética',
+    altSupplierUrl:'https://www.crcibernetica.com/mb-102-830-breadboard/',
+    footprint:   'N/A — montagem de bancada',
+    package:     'Solderless breadboard 165 × 55 × 8,5 mm',
+    voltageV:    5.0,
+    currentMa:   500,
+    notes:       'Não tratar o anúncio como CAD oficial. O anúncio consultado descreve MB102, 830 pontos e 165 × 55 × 8,5 mm; medir a unidade recebida.',
+    confidence:  'C',
+    status:      'required',
+    category:    'mechanical',
+  },
+
+  // ──────────────────────────────────────────────────────────────────────────
   // LEITOR RFID/NFC
   // ──────────────────────────────────────────────────────────────────────────
   {
     designator:  'RFID1',
     quantity:    1,
-    value:       'PN532 V4',
-    description: 'ELECHOUSE PN532 NFC/RFID Module V4 — Controlador NFC 13.56MHz, interface SPI/I2C/HSU selecionável por DIP switches, header 1×8 pitch 2.54mm. Para SPI: CH1=OFF, CH2=ON.',
-    manufacturer:'ELECHOUSE',
-    mpn:         'NFC-PN532_V4',
-    supplier:    'Elechouse Store',
-    supplierUrl: 'https://www.elechouse.com/product/pn532-nfc-rfid-module-v4/',
-    altSupplier: 'AliExpress',
-    altSupplierUrl:'https://www.aliexpress.com/item/PN532-NFC-RFID-V4.html',
-    footprint:   'Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical',
-    package:     'Módulo breakout; conector 1×8 macho na PCB',
+    value:       'Adafruit PN532 v1.6',
+    description: 'Adafruit PN532 RFID/NFC Breakout v1.6 — placa oficial 120 × 50 mm com antena stripline, JP4 1×8 para SPI, JP3 1×12, CN1 1×6 e jumpers SEL0/SEL1.',
+    manufacturer:'Adafruit',
+    mpn:         'PN532-BREAKOUT-V1.6',
+    supplier:    'Adafruit Store',
+    supplierUrl: 'https://www.adafruit.com/product/364',
+    altSupplier: 'Fonte CAD oficial',
+    altSupplierUrl:'https://github.com/adafruit/Adafruit-PN532-RFID-NFC-Breakout',
+    footprint:   'Adafruit Eagle v1.6: JP4 1×08 / JP3 1×12 / CN1 1×06',
+    package:     'Placa breakout 120 × 50 mm; headers e jumpers conforme v1.6',
     voltageV:    3.3,
     currentMa:   150,
-    notes:       'CRÍTICO: Configurar DIP switches ANTES de conectar — SPI: CH1=OFF CH2=ON. Confirmar revisão V4 (pinout pode mudar nas V3). SPI frequência máx: 5MHz.',
+    notes:       'CRÍTICO: a placa oficial v1.6 usa JP4.1=VDD, JP4.8=GND, JP4.2=SCK, JP4.3=MISO, JP4.4=MOSI, JP4.5=NSS/CS. A altura real dos headers e a posição no suporte ainda exigem medição física.',
     confidence:  'C',
     status:      'required',
     category:    'rfid',
@@ -292,7 +339,7 @@ export const FUELGUARD_BOM: BomItem[] = [
     designator:  'J_PN532',
     quantity:    1,
     value:       'Header macho 1×8 P2.54mm',
-    description: 'Conector macho 1×8 pinos pitch 2.54mm (PinHeader) — Para conexão do módulo PN532 V4 via fio jumper. Montado na PCB; cabo DuPont fêmea-fêmea no PN532.',
+    description: 'Conector macho 1×8 pinos pitch 2.54mm (PinHeader) — Para conexão do JP4 da placa Adafruit PN532 v1.6 via fio jumper. Montado na PCB; confirmar a posição do header na unidade recebida.',
     manufacturer:'Various',
     mpn:         'PinHeader_1x08_P2.54mm',
     supplier:    'FilipeFlop (Brasil)',
@@ -369,14 +416,14 @@ export const FUELGUARD_BOM: BomItem[] = [
     package:     'Adaptador de parede USB-C',
     voltageV:    5.0,
     currentMa:   2000,
-    notes:       'Selecionar fonte certificada com proteção contra curto-circuito. Corrente mínima 1A (recomendado 2A para margem). Usar junto com cabo Micro-USB PS2.',
+    notes:       'Selecionar fonte certificada com proteção contra curto-circuito. Corrente mínima 1A (recomendado 2A para margem). Usar junto com o cabo CBL_USB de dados.',
     confidence:  'D',
     status:      'required',
     category:    'power',
   },
 
   {
-    designator:  'PS2',
+    designator:  'CBL_USB',
     quantity:    1,
     value:       'Cabo USB-C → Micro-USB 1m',
     description: 'Cabo USB-C (fonte) → Micro-USB (ESP32 DevKit) — Conexão de alimentação e programação. Deve suportar dados (para flash via Arduino IDE).',
@@ -390,7 +437,7 @@ export const FUELGUARD_BOM: BomItem[] = [
     package:     'Cabo 1m',
     voltageV:    5.0,
     currentMa:   2000,
-    notes:       'Usar cabo de dados (não apenas carga) para poder programar o ESP32. Comprimento recomendado: 1m.',
+    notes:       'Usar cabo de dados (não apenas carga) para poder programar o ESP32. Comprimento recomendado: 1m. A compatibilidade física com o lote do U1 permanece pendente.',
     confidence:  'C',
     status:      'required',
     category:    'power',
@@ -444,6 +491,226 @@ export const FUELGUARD_BOM: BomItem[] = [
     category:    'mechanical',
   },
 ];
+
+/**
+ * Referências de compra e imagem para a interface. Preços são observações
+ * datadas, em USD, e nunca substituem cotação, frete, impostos ou validação
+ * da variante física recebida.
+ */
+export const PURCHASE_CATALOG: Record<string, BomPurchaseReference> = {
+  'ESP32-S3-DevKitC-1-N8R8': {
+    price: 15,
+    currency: 'USD',
+    priceCheckedAt: '2026-09-30',
+    priceStatus: 'observed',
+    supplier: 'DigiKey',
+    buyUrl: 'https://www.digikey.com/en/products/detail/espressif-systems/ESP32-S3-DEVKITC-1-N8R8/15295894',
+    imageSourceUrl: 'https://www.digikey.com/en/products/detail/espressif-systems/ESP32-S3-DEVKITC-1-N8R8/15295894',
+    imageKind: 'supplier_photo',
+    imageChecksum: '793479c92649e4363b96c7827bc7f8005890810a99b8fa57ae404df896a87a5d',
+    imageUrl: '/assets/purchase/ESP32-S3-DevKitC-1-N8R8-digikey.jpg',
+    imageAlt: 'Placa Espressif ESP32-S3-DevKitC-1-N8R8',
+    match: 'exact_mpn',
+    note: 'Preço unitário observado na página DigiKey; estoque e impostos variam.',
+  },
+  SEN0311: {
+    price: 15.90,
+    currency: 'USD',
+    priceCheckedAt: '2026-09-30',
+    priceStatus: 'observed',
+    supplier: 'DFRobot',
+    buyUrl: 'https://www.dfrobot.com/product-1935.html',
+    imageSourceUrl: 'https://www.dfrobot.com/product-1935.html',
+    imageKind: 'supplier_photo',
+    imageChecksum: '66da41ba0cb29058936eb861c76c9666a0861a8530ff4bea39887f1e3b8a9a2a',
+    imageUrl: '/assets/purchase/SEN0311-dfrobot.jpg',
+    imageAlt: 'Sensor ultrassônico impermeável DFRobot A02YYUW SEN0311',
+    match: 'exact_mpn',
+    note: 'Link corrigido para o produto SEN0311; confirmar o lote e o cabo PH2.0 recebido.',
+  },
+  'PN532-BREAKOUT-V1.6': {
+    price: null,
+    currency: 'USD',
+    priceCheckedAt: '2026-09-30',
+    priceStatus: 'consult',
+    supplier: 'Adafruit',
+    buyUrl: 'https://www.adafruit.com/product/364',
+    imageSourceUrl: 'https://github.com/adafruit/Adafruit-PN532-RFID-NFC-Breakout/blob/master/assets/364.jpg',
+    imageKind: 'supplier_photo',
+    imageChecksum: '6bca5a325f1e30bb5b81a01a8c9418c1be308f3e470677450a50b9de2466c7d1',
+    imageUrl: '/assets/purchase/PN532-Adafruit-v1.6.jpg',
+    imageAlt: 'Adafruit PN532 RFID NFC Breakout v1.6',
+    match: 'exact_mpn',
+    note: 'Preço depende da região e do estoque; imagem local vem do repositório oficial. Não confundir com módulos ELECHOUSE V4 de dimensões diferentes.',
+  },
+  WP7113GD: {
+    price: 0.21,
+    currency: 'USD',
+    priceCheckedAt: '2026-09-30',
+    priceStatus: 'observed',
+    supplier: 'DigiKey',
+    buyUrl: 'https://www.digikey.com/en/products/detail/kingbright/WP7113GD/1747662',
+    imageSourceUrl: 'https://gitlab.com/kicad/libraries/kicad-packages3D',
+    imageKind: 'technical_cad',
+    imageUrl: '/assets/cad/carrier/D1/thumbnail.svg',
+    imageAlt: 'LED verde difuso Kingbright WP7113GD de 5 mm',
+    match: 'exact_mpn',
+    note: 'Preço unitário observado na faixa de compra avulsa; o datasheet define Ø5 mm e altura máxima de 8,6 mm.',
+  },
+  'CMI-1295IC-0385T': {
+    price: 2.05,
+    currency: 'USD',
+    priceCheckedAt: '2026-09-30',
+    priceStatus: 'observed',
+    supplier: 'DigiKey',
+    buyUrl: 'https://www.digikey.com/en/products/detail/same-sky-formerly-cui-devices/CMI-1295IC-0385T/11674182',
+    imageSourceUrl: 'https://gitlab.com/kicad/libraries/kicad-packages3D',
+    imageKind: 'technical_cad',
+    imageUrl: '/assets/cad/carrier/BZ1/thumbnail.svg',
+    imageAlt: 'Buzzer magnético Same Sky CMI-1295IC-0385T',
+    match: 'exact_mpn',
+    note: 'Preço unitário observado; o circuito deve manter o driver Q1/R_BASE e não ligar a carga diretamente ao GPIO14.',
+  },
+  'MB-102-830': {
+    price: 2.49,
+    currency: 'USD',
+    priceCheckedAt: '2026-09-30',
+    priceStatus: 'observed',
+    supplier: 'Tayda Electronics',
+    buyUrl: 'https://www.taydaelectronics.com/hardware-tools/breadboards/830-point-solder-less-plug-in-breadboard.html',
+    imageSourceUrl: 'https://www.taydaelectronics.com/hardware-tools/breadboards/830-point-solder-less-plug-in-breadboard.html',
+    imageKind: 'technical_reference',
+    imageUrl: '/assets/purchase/MB-102-830-reference.svg',
+    imageAlt: 'Protoboard MB102 de 830 pontos',
+    match: 'vendor_lot',
+    note: 'Referência comercial compatível, não CAD oficial. Confirmar geometria e trilhos da unidade antes da montagem.',
+  },
+  'P2N2222AG': {
+    price: null,
+    currency: null,
+    priceCheckedAt: '2026-09-30',
+    priceStatus: 'pending',
+    supplier: 'ON Semiconductor / DigiKey',
+    buyUrl: 'https://www.mouser.com/ProductDetail/onsemi/P2N2222AG',
+    imageSourceUrl: 'https://www.mouser.com/ProductDetail/onsemi/P2N2222AG',
+    imageKind: 'technical_reference',
+    imageUrl: '/assets/purchase/P2N2222AG-reference.svg',
+    imageAlt: 'Transistor NPN 2N2222A em encapsulamento TO-92',
+    match: 'documented_variant',
+    note: 'Não exibir preço inventado: a variante P2N2222AG exige disponibilidade e pinagem confirmadas antes da compra.',
+  },
+  SN74AHCT125N: {
+    price: null,
+    currency: null,
+    priceCheckedAt: '2026-09-30',
+    priceStatus: 'consult',
+    supplier: 'DigiKey',
+    buyUrl: 'https://www.digikey.com/en/products/result?keywords=SN74AHCT125N',
+    imageSourceUrl: 'https://gitlab.com/kicad/libraries/kicad-packages3D',
+    imageKind: 'technical_cad',
+    imageUrl: '/assets/cad/carrier/U2/thumbnail.svg',
+    imageAlt: 'CI Texas Instruments SN74AHCT125N em encapsulamento DIP-14',
+    match: 'exact_mpn',
+    note: 'Busca por MPN exato; confirmar fabricante, encapsulamento DIP-14 e disponibilidade do lote antes da compra.',
+  },
+  'CFR-25JB-52-10K': {
+    price: null,
+    currency: null,
+    priceCheckedAt: '2026-09-30',
+    priceStatus: 'consult',
+    supplier: 'DigiKey',
+    buyUrl: 'https://www.digikey.com/en/products/result?keywords=CFR-25JB-52-10K',
+    imageSourceUrl: 'https://gitlab.com/kicad/libraries/kicad-packages3D',
+    imageKind: 'technical_cad',
+    imageUrl: '/assets/cad/carrier/R_DIV/thumbnail.svg',
+    imageAlt: 'Resistor axial THT de 10 kΩ 1/4 W',
+    match: 'documented_variant',
+    note: 'R1 do divisor; comprar resistor axial THT 10 kΩ no passo P10.16 mm e confirmar tolerância.',
+  },
+  'CFR-25JB-52-15K': {
+    price: null,
+    currency: null,
+    priceCheckedAt: '2026-09-30',
+    priceStatus: 'consult',
+    supplier: 'DigiKey',
+    buyUrl: 'https://www.digikey.com/en/products/result?keywords=CFR-25JB-52-15K',
+    imageSourceUrl: 'https://gitlab.com/kicad/libraries/kicad-packages3D',
+    imageKind: 'technical_cad',
+    imageUrl: '/assets/cad/carrier/R_DIV/thumbnail.svg',
+    imageAlt: 'Resistor axial THT de 15 kΩ 1/4 W',
+    match: 'documented_variant',
+    note: 'R2 do divisor; comprar resistor axial THT 15 kΩ no passo P10.16 mm e confirmar tolerância.',
+  },
+  'CFR-25JB-52-220R': {
+    price: null,
+    currency: null,
+    priceCheckedAt: '2026-09-30',
+    priceStatus: 'consult',
+    supplier: 'DigiKey',
+    buyUrl: 'https://www.digikey.com/en/products/result?keywords=CFR-25JB-52-220R',
+    imageSourceUrl: 'https://gitlab.com/kicad/libraries/kicad-packages3D',
+    imageKind: 'technical_cad',
+    imageUrl: '/assets/cad/carrier/R_DIV/thumbnail.svg',
+    imageAlt: 'Resistor axial THT de 220 Ω 1/4 W',
+    match: 'exact_mpn',
+    note: 'R3 limitador do LED; confirmar corpo axial e passo P10.16 mm.',
+  },
+  'CFR-25JB-52-1K': {
+    price: null,
+    currency: null,
+    priceCheckedAt: '2026-09-30',
+    priceStatus: 'consult',
+    supplier: 'DigiKey',
+    buyUrl: 'https://www.digikey.com/en/products/result?keywords=CFR-25JB-52-1K',
+    imageSourceUrl: 'https://gitlab.com/kicad/libraries/kicad-packages3D',
+    imageKind: 'technical_cad',
+    imageUrl: '/assets/cad/carrier/R_DIV/thumbnail.svg',
+    imageAlt: 'Resistor axial THT de 1 kΩ 1/4 W',
+    match: 'exact_mpn',
+    note: 'R_BASE do driver Q1; confirmar o valor no kit comprado.',
+  },
+  'MC-38-NO': {
+    price: null,
+    currency: null,
+    priceCheckedAt: '2026-09-30',
+    priceStatus: 'consult',
+    supplier: 'FilipeFlop',
+    buyUrl: 'https://www.filipeflop.com/produto/sensor-magnetico-reed-switch/',
+    imageSourceUrl: 'https://www.filipeflop.com/produto/sensor-magnetico-reed-switch/',
+    imageKind: 'technical_reference',
+    imageUrl: '/assets/purchase/MC-38-reference.svg',
+    imageAlt: 'Sensor magnético reed switch normalmente aberto com ímã',
+    match: 'vendor_lot',
+    note: 'Comprar somente a variante NO e conferir comprimento da ampola, cabo e ímã do lote recebido.',
+  },
+  'CABLE-USBC-MICROUSB-1M': {
+    price: null,
+    currency: null,
+    priceCheckedAt: '2026-09-30',
+    priceStatus: 'consult',
+    supplier: 'FilipeFlop',
+    buyUrl: 'https://www.filipeflop.com/produto/cabo-usb-c-micro-usb/',
+    imageSourceUrl: 'https://www.filipeflop.com/produto/cabo-usb-c-micro-usb/',
+    imageKind: 'technical_reference',
+    imageUrl: '/assets/purchase/CABLE-USBC-MICROUSB-1M-reference.svg',
+    imageAlt: 'Cabo USB-C para Micro-USB de 1 metro com dados',
+    match: 'vendor_lot',
+    note: 'Confirmar que o cabo suporta dados e que o conector Micro-USB corresponde à revisão física da DevKit.',
+  },
+  'FG-TANK-5L-CYL-R1': {
+    price: null,
+    currency: null,
+    priceCheckedAt: '2026-09-30',
+    priceStatus: 'pending',
+    supplier: 'Fabricar localmente',
+    buyUrl: null,
+    imageKind: 'technical_reference',
+    imageUrl: '/assets/purchase/FG-TANK-5L-CYL-reference.svg',
+    imageAlt: 'Recipiente didático cilíndrico de 5 litros FuelGuard',
+    match: 'not_selected',
+    note: 'Sem compra direta: fabricante, espessura, tampa e posição do sensor ainda não foram especificados.',
+  },
+};
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Estatísticas e totais da BOM

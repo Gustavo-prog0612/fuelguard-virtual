@@ -1,4 +1,9 @@
-# ELECHOUSE PN532 V4 model provenance
+# Legacy PN532 V4 archive (not used by Carrier runtime)
+
+This directory is retained only as historical provenance. It is not the selected
+RFID1 asset and must not be used for the Carrier Board FuelGuard assembly.
+The active reference is the Adafruit PN532 Breakout v1.6 Eagle-derived asset:
+`/assets/cad/carrier/RFID1/reference-derived.glb`.
 
 - Manufacturer documentation: https://www.elechouse.com/docs/pn532-v4/
 - Manufacturer 3D archive: `../../../../../hardware/vendor-sources/elechouse-pn532-v4/ELECHOUSE_PN532_V4_3D.zip`

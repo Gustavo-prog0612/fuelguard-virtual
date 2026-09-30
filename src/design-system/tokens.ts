@@ -1,6 +1,6 @@
 /**
  * FuelGuard Virtual Test Bench — Tokens Estruturados do Design System
- * Conceito: "Instrumento de Engenharia Sereno"
+ * Conceito: "Produto técnico sereno"
  */
 
 export type TypographyPreset = 'A' | 'B' | 'C' | 'D';
@@ -18,12 +18,12 @@ export interface TypographyConfig {
 export const TYPOGRAPHY_PRESETS: Record<TypographyPreset, TypographyConfig> = {
   A: {
     id: 'A',
-    name: 'Combinação A — Recomendada Oficial',
-    displayFont: "'Space Grotesk', system-ui, sans-serif",
-    uiFont: "'IBM Plex Sans', system-ui, sans-serif",
-    monoFont: "'IBM Plex Mono', monospace",
-    rationale: 'Rigor técnico de laboratório. Títulos com personalidade geométrica industrial sóbria, corpo de alta legibilidade em rótulos densos e monoespaçada cirúrgica para registradores.',
-    tag: 'Recomendada Oficial',
+    name: 'Sistema A — Nativo e editorial',
+    displayFont: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif',
+    uiFont: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif',
+    monoFont: '"SF Mono", "Cascadia Code", "IBM Plex Mono", ui-monospace, monospace',
+    rationale: 'Ritmo editorial, tipografia nativa e contraste contido. A informação técnica só ganha ênfase quando orienta uma decisão.',
+    tag: 'Sistema ativo',
   },
   B: {
     id: 'B',
@@ -57,36 +57,36 @@ export const TYPOGRAPHY_PRESETS: Record<TypographyPreset, TypographyConfig> = {
 export const TOKENS = {
   colors: {
     // Fundo geral de bancada técnica
-    canvas: '#f8f9fa',
+    canvas: '#f5f5f7',
     // Superfície de instrumentos e cartões funcionais
     surface: '#ffffff',
     // Baías secundárias e áreas embutidas
-    subtle: '#f1f3f5',
+    subtle: '#f5f5f7',
     // Recessos técnicos, cavidades de pinos e terminais
-    inset: '#eaedf0',
+    inset: '#e8e8ed',
     // Texto primário grafite profundo (Contraste 16.2:1 - AAA)
-    fgPrimary: '#111827',
+    fgPrimary: '#1d1d1f',
     // Texto secundário cinza neutro (Contraste 7.4:1 - AAA)
-    fgSecondary: '#4b5563',
+    fgSecondary: '#424245',
     // Texto terciário e metadados (Contraste 4.9:1 - AA)
-    fgMuted: '#6b7280',
+    fgMuted: '#6e6e73',
     // Linhas finas estruturais (Hairline 1px)
-    borderSubtle: '#e5e7eb',
-    borderStrong: '#d1d5db',
-    borderFocus: '#0f5132',
-    // Assinatura FuelGuard: Verde Floresta de Instrumentação (Contraste 8.6:1 - AAA)
+    borderSubtle: '#d2d2d7',
+    borderStrong: '#a1a1a6',
+    borderFocus: '#0071e3',
+    // Azul é a ação; cores semânticas permanecem exclusivas de estados técnicos.
     fuelGuardGreen: {
-      deep: '#0f5132',
-      surface: '#f0fdf4',
-      border: '#86efac',
-      hover: '#14532d',
+      deep: '#0071e3',
+      surface: '#eaf4ff',
+      border: '#7ab8f5',
+      hover: '#0077ed',
     },
     // Sinalização Semântica Rigorosa
     status: {
-      success: '#166534',
-      warning: '#b45309',
-      danger: '#b91c1c',
-      info: '#0369a1',
+      success: '#248a3d',
+      warning: '#b25000',
+      danger: '#d70015',
+      info: '#0071e3',
     },
     // Fiação da Bancada (Norma Didática de Cores Elétricas)
     wire: {

@@ -64,7 +64,7 @@ export const AgentSessionPanel: React.FC<AgentSessionPanelProps> = ({
     {
       id: 'm2',
       sender: 'agent',
-      text: 'Baseline real carregada. UART do SEN0311 em 3,3 V/GPIO16, SPI do PN532 V4 e interlock MC-38 registrados; medições físicas continuam pendentes.',
+      text: 'Baseline real carregada. UART do SEN0311 em 3,3 V/GPIO16, SPI da Adafruit PN532 v1.6 e interlock MC-38 registrados; medições físicas continuam pendentes.',
       timestamp: '14:20:05',
       tags: ['EDA', 'SAFE'],
     },
@@ -124,7 +124,7 @@ export const AgentSessionPanel: React.FC<AgentSessionPanelProps> = ({
         tags = ['PCB', 'PENDING'];
       } else if (lower.includes('montagem') || lower.includes('assembly') || lower.includes('galão') || lower.includes('bancada')) {
         onSelectTab('assembly');
-        responseText = 'Alternado para a montagem física 3D da bancada. Visualizando MB-102, ESP32-S3 v1.1, PN532 V4 frontal, tanque FG-TANK-5L-CYL-R1, probe SEN0311 e chicote com drip loop.';
+        responseText = 'Alternado para a montagem física 3D da bancada. Visualizando MB-102, ESP32-S3 v1.1, Adafruit PN532 v1.6 frontal, tanque FG-TANK-5L-CYL-R1, probe SEN0311 e chicote com drip loop.';
         tags = ['ASSEMBLY', '3D'];
       } else if (lower.includes('circuit json') || lower.includes('json')) {
         onExportCircuitJson();

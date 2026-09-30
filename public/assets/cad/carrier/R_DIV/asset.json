@@ -1,0 +1,26 @@
+{
+  "designator": "R_DIV",
+  "componentId": "voltage_divider",
+  "partNumber": "DIV-10K-15K-1%",
+  "revision": "Axial DIN0207 P10.16 mm",
+  "class": "B",
+  "assetStatus": "verified",
+  "assetSourceType": "kicad",
+  "sourceReference": "KiCad Packages3D / Resistor_THT.3dshapes",
+  "sourceUrl": "https://gitlab.com/kicad/libraries/kicad-packages3D",
+  "license": "KiCad library license / CC-BY-SA-4.0",
+  "originalFile": "Resistor_THT.3dshapes/R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal.step",
+  "sourceRevision": "master @ 2026-09-26",
+  "assetChecksum": "1b55294a45b9fe810f8728044e18d9b83f03f82dd59134b432ceb2709bbb9d22",
+  "sourceUnits": "mm",
+  "scale": { "x": 1, "y": 1, "z": 1 },
+  "rotationDeg": { "x": -90, "y": 0, "z": 0 },
+  "translationMm": { "x": 0, "y": 0, "z": 0 },
+  "assetDimensionsMm": { "width": 10.76, "height": 5.5, "depth": 2.5 },
+  "toleranceMm": 0.15,
+  "verificationDate": "2026-09-26",
+  "limitations": [
+    "O GLB é a geometria axial reutilizável para R1 e R2; os valores 10 kΩ e 15 kΩ continuam sendo metadados elétricos separados.",
+    "A posição final dos terminais depende do passo e da dobra na protoboard."
+  ]
+}

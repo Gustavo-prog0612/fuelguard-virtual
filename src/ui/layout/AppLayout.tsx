@@ -138,7 +138,7 @@ export const AppLayoutContent: React.FC = () => {
                   FuelGuard Virtual Test Bench — Manual do Instrumento
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Bancada de Engenharia (ESP32-S3 + PN532 V4 + SEN0311 + Água)
+                  Bancada de Engenharia (ESP32-S3 + Adafruit PN532 v1.6 + SEN0311 + Água)
                 </p>
               </div>
             </div>
@@ -164,7 +164,7 @@ export const AppLayoutContent: React.FC = () => {
               </p>
               <ul className="list-disc pl-4 space-y-1">
                 <li>Alimente o A02YYUW/SEN0311 em 3,3 V; TX deve ir ao GPIO16/UART1_RX e RX/MODE deve ficar em nível alto.</li>
-                <li>Mantenha a eletrônica fora dos respingos, use laço de gotejamento e confira o PN532 V4 em SPI antes de energizar.</li>
+                <li>Mantenha a eletrônica fora dos respingos, use laço de gotejamento e confira o JP4 da Adafruit PN532 v1.6 em SPI antes de energizar.</li>
                 <li>A referência paramétrica não libera fabricação: tanque, tampa, sensor, MC-38, MB-102 e conectores exigem conferência física.</li>
               </ul>
             </div>

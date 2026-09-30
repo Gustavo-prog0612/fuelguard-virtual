@@ -22,6 +22,14 @@ export const LedNode: React.FC<{ data: any }> = () => {
 
       <div className="space-y-2 text-[11px] font-mono">
         <div className="relative flex items-center justify-between h-6 px-3 bg-inst-canvas rounded-xs border border-inst-border">
+          <Handle type="target" position={Position.Left} id="r3_in" className="!w-2.5 !h-2.5 !bg-[#166534] !-left-1.5 border border-white" />
+          <span className="text-inst-primary">R3 entrada</span><span className="font-bold text-[#166534]">220 Ω</span>
+        </div>
+        <div className="relative flex items-center justify-between h-6 px-3 bg-inst-canvas rounded-xs border border-inst-border">
+          <span className="text-inst-primary">R3 saída</span><span className="font-bold text-[#166534]">D1 +</span>
+          <Handle type="source" position={Position.Right} id="r3_out" className="!w-2.5 !h-2.5 !bg-[#166534] !-right-1.5 border border-white" />
+        </div>
+        <div className="relative flex items-center justify-between h-6 px-3 bg-inst-canvas rounded-xs border border-inst-border">
           <Handle
             type="target"
             position={Position.Left}

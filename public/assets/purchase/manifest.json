@@ -1,0 +1,31 @@
+{
+  "purpose": "Fotos de referência de compra servidas localmente para não depender de hotlink em runtime.",
+  "policy": "Cada imagem permanece ligada à página de produto original no catálogo. A foto identifica a variante comercial, não valida o CAD de fabricação.",
+  "assets": [
+    {
+      "mpn": "ESP32-S3-DevKitC-1-N8R8",
+      "path": "/assets/purchase/ESP32-S3-DevKitC-1-N8R8-digikey.jpg",
+      "sourceUrl": "https://www.digikey.com/en/products/detail/espressif-systems/ESP32-S3-DEVKITC-1-N8R8/15295894",
+      "sourceImageUrl": "https://mm.digikey.com/Volume0/opasdata/d220001/derivates/1/001/180/418/ESP32-S3-DEVKITC-1-N8R8_sml%28200x200%29.jpg",
+      "checksumSha256": "793479c92649e4363b96c7827bc7f8005890810a99b8fa57ae404df896a87a5d",
+      "retrievedAt": "2026-09-30"
+    },
+    {
+      "mpn": "SEN0311",
+      "path": "/assets/purchase/SEN0311-dfrobot.jpg",
+      "sourceUrl": "https://www.dfrobot.com/product-1935.html",
+      "sourceImageUrl": "https://dfimg.dfrobot.com/enshop/SEN0311/SEN0311_Main_01.jpg",
+      "checksumSha256": "66da41ba0cb29058936eb861c76c9666a0861a8530ff4bea39887f1e3b8a9a2a",
+      "retrievedAt": "2026-09-30"
+    },
+    {
+      "mpn": "PN532-BREAKOUT-V1.6",
+      "path": "/assets/purchase/PN532-Adafruit-v1.6.jpg",
+      "sourceUrl": "https://www.adafruit.com/product/364",
+      "sourceImageUrl": "https://raw.githubusercontent.com/adafruit/Adafruit-PN532-RFID-NFC-Breakout/master/assets/364.jpg",
+      "checksumSha256": "6bca5a325f1e30bb5b81a01a8c9418c1be308f3e470677450a50b9de2466c7d1",
+      "license": "CC-BY-SA-3.0",
+      "retrievedAt": "2026-09-30"
+    }
+  ]
+}

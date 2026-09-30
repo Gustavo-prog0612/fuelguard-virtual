@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" role="img" aria-labelledby="title desc">
+  <title id="title">Envelope paramétrico do recipiente didático de 5 litros</title>
+  <desc id="desc">Envelope visual sem fabricante definido, não apto para fabricação ou compra direta.</desc>
+  <rect width="240" height="160" rx="16" fill="#08101d"/>
+  <path d="M65 44c0-13 110-13 110 0v70c0 13-110 13-110 0z" fill="#3e9fb0" fill-opacity=".25" stroke="#65d6e2" stroke-width="3"/>
+  <ellipse cx="120" cy="44" rx="55" ry="14" fill="#93dbe4" fill-opacity=".22" stroke="#65d6e2" stroke-width="3"/>
+  <path d="M70 89c32 12 68 12 100 0M70 102c32 12 68 12 100 0" fill="none" stroke="#2b91a4" stroke-width="2"/>
+  <path d="M116 40v-18h8v18" fill="#94a3b8"/><ellipse cx="120" cy="22" rx="13" ry="4" fill="#cbd5e1"/>
+  <text x="120" y="143" fill="#f0b640" font-family="Arial, sans-serif" font-size="11" font-weight="700" text-anchor="middle">TK1 · envelope Classe D · fabricante pendente</text>
+</svg>

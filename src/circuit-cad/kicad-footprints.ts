@@ -119,7 +119,7 @@ export const FP_PINSOCKET_1X22_P254: KiCadFootprint = {
 // ─────────────────────────────────────────────────────────────────────────────
 // 2. PinHeader_1x08_P2.54mm_Vertical
 //    Fonte: KiCad/kicad-footprints/Connector_PinHeader_2.54mm.pretty
-//    Usado para: J_PN532 (ELECHOUSE PN532 V4 header 1×8)
+//    Usado para: J_PN532 (Adafruit PN532 v1.6 JP4 header 1×8)
 //    Pitch: 2.54mm | Pinos: 8 | Furo: 1.0mm | Pad circular: 1.7mm
 //    fp_line silkscreen: (start -0.635 -1.27) → confirmado do .kicad_mod
 // ─────────────────────────────────────────────────────────────────────────────

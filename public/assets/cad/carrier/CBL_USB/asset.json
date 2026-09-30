@@ -1,0 +1,22 @@
+{
+  "designator": "CBL_USB",
+  "componentId": "usb_cable_assembly",
+  "partNumber": "USB-C macho para Micro-USB, dados, 1 m",
+  "revision": "Cabo genérico — aproximação",
+  "class": "C",
+  "assetStatus": "approximate",
+  "assetSourceType": "procedural",
+  "sourceReference": "Referência comercial USB-C → Micro-USB de dados; não é um CAD de cabo específico",
+  "sourceUrl": "https://www.filipeflop.com/produto/cabo-usb-c-micro-usb/",
+  "license": "A confirmar para o cabo físico",
+  "originalFile": null,
+  "assetChecksum": null,
+  "sourceUnits": "mm",
+  "scale": { "x": 1, "y": 1, "z": 1 },
+  "rotationDeg": { "x": 0, "y": 0, "z": 0 },
+  "translationMm": { "x": 0, "y": 0, "z": 0 },
+  "assetDimensionsMm": null,
+  "toleranceMm": 2,
+  "verificationDate": "2026-09-26",
+  "limitations": ["O cabo procedural permanece didático até existir modelo com fabricante, comprimento, diâmetro e licença rastreáveis."]
+}

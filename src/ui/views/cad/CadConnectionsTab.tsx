@@ -21,7 +21,7 @@ interface CadConnectionsTabProps {
   onSelectTab?: (tabId: string) => void;
 }
 
-export const CadConnectionsTab: React.FC<CadConnectionsTabProps> = () => {
+export const CadConnectionsTab: React.FC<CadConnectionsTabProps> = ({ onSelectTab }) => {
   const [filterGroup, setFilterGroup] = useState<SignalGroupFilter>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -32,6 +32,8 @@ export const CadConnectionsTab: React.FC<CadConnectionsTabProps> = () => {
     color: cable.colorHex,
     wireGaugeAwg: cable.awgGauge,
     estimatedLengthMm: cable.estimatedLengthMm,
+    nominalVoltageV: cable.nominalVoltageV,
+    description: cable.description,
     waypoints: cable.waypoints,
     origin: { component: cable.fromComponent, pin: cable.fromPin },
     destination: { component: cable.toComponent, pin: cable.toPin },
@@ -40,6 +42,9 @@ export const CadConnectionsTab: React.FC<CadConnectionsTabProps> = () => {
       end: cable.toTerminal ?? 'PENDING_TERMINAL',
     },
   })), []);
+
+  const gaugeSummary = useMemo(() => [...new Set(cables.map((cable) => cable.wireGaugeAwg))].join(' / '), [cables]);
+  const totalRouteLengthMm = useMemo(() => cables.reduce((total, cable) => total + cable.estimatedLengthMm, 0), [cables]);
 
   const filteredCables = useMemo(() => {
     return cables.filter((c) => {
@@ -82,19 +87,25 @@ export const CadConnectionsTab: React.FC<CadConnectionsTabProps> = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 rounded-xs bg-emerald-950 text-emerald-300 border border-emerald-800 text-[11px] font-mono font-bold flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Rotas cadastradas • revisão física pendente</span>
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            <span className="px-2.5 py-1 rounded-xs bg-amber-950 text-amber-300 border border-amber-800 text-[11px] font-mono font-bold flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />
+              <span>Rotas calculadas • revisão física pendente</span>
             </span>
+            <button onClick={() => onSelectTab?.('tests')} className="px-2.5 py-1 rounded-xs border border-sky-800 bg-sky-950/50 text-sky-300 text-[10px] font-bold hover:bg-sky-900/60">
+              Testar em tempo real
+            </button>
+            <button onClick={() => onSelectTab?.('bom')} className="px-2.5 py-1 rounded-xs border border-inst-border text-inst-secondary text-[10px] font-bold hover:text-inst-primary">
+              Ver peças
+            </button>
           </div>
         </div>
 
         {/* Estatísticas do Chicote */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs font-mono">
           <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border">
-            <span className="text-[10px] text-inst-muted block uppercase">Total de Condutores:</span>
-            <span className="text-sm font-bold text-inst-primary">{cables.length} Cabos Físicos</span>
+            <span className="text-[10px] text-inst-muted block uppercase">Rotas registradas:</span>
+            <span className="text-sm font-bold text-inst-primary">{cables.length} rotas calculadas</span>
           </div>
           <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border">
             <span className="text-[10px] text-inst-muted block uppercase">Terminações descritas:</span>
@@ -102,11 +113,11 @@ export const CadConnectionsTab: React.FC<CadConnectionsTabProps> = () => {
           </div>
           <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border">
             <span className="text-[10px] text-inst-muted block uppercase">Bitolas Utilizadas:</span>
-            <span className="text-sm font-bold text-sky-400">AWG 24 (Alimentação) / AWG 26 (Sinal)</span>
+            <span className="text-sm font-bold text-sky-400">{gaugeSummary}</span>
           </div>
           <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border">
             <span className="text-[10px] text-inst-muted block uppercase">Folga / curvatura:</span>
-            <span className="text-sm font-bold text-amber-300">Pendente de medição</span>
+            <span className="text-sm font-bold text-amber-300">{(totalRouteLengthMm / 1000).toFixed(2)} m roteados · folga pendente</span>
           </div>
         </div>
       </div>
@@ -139,15 +150,18 @@ export const CadConnectionsTab: React.FC<CadConnectionsTabProps> = () => {
           ))}
         </div>
 
-        <div className="relative">
-          <Search className="w-3.5 h-3.5 text-inst-muted absolute left-2.5 top-2.5" />
-          <input
-            type="text"
-            placeholder="Buscar por ID, net ou componente..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 pr-3 py-1.5 rounded-xs bg-inst-canvas border border-inst-border text-inst-primary placeholder:text-inst-muted focus:border-fuelguard-green focus:outline-none w-56 text-xs"
-          />
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-inst-muted">{filteredCables.length}/{cables.length} rotas</span>
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-inst-muted absolute left-2.5 top-2.5" />
+            <input
+              type="text"
+              placeholder="Buscar por ID, net ou componente..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 pr-3 py-1.5 rounded-xs bg-inst-canvas border border-inst-border text-inst-primary placeholder:text-inst-muted focus:border-fuelguard-green focus:outline-none w-56 text-xs"
+            />
+          </div>
         </div>
       </div>
 
@@ -170,11 +184,9 @@ export const CadConnectionsTab: React.FC<CadConnectionsTabProps> = () => {
             </thead>
             <tbody className="divide-y divide-inst-border">
               {filteredCables.map((cable) => {
-                const voltage = cable.signalType.includes('5V')
-                  ? '5.0V'
-                  : cable.signalType.includes('GROUND')
+                const voltage = cable.nominalVoltageV === 0
                   ? '0.0V (GND)'
-                  : '3.3V';
+                  : `${cable.nominalVoltageV.toFixed(1)}V`;
 
                 return (
                   <tr key={cable.id} className="hover:bg-inst-canvas/60 transition">
@@ -221,7 +233,7 @@ export const CadConnectionsTab: React.FC<CadConnectionsTabProps> = () => {
                       {cable.estimatedLengthMm.toFixed(1)} mm
                     </td>
                     <td className="p-3 text-inst-muted text-[11px]">
-                      {cable.waypoints.length} nós de interpolação
+                      <span title={cable.description}>{cable.waypoints.length} nós · calculado</span>
                     </td>
                   </tr>
                 );

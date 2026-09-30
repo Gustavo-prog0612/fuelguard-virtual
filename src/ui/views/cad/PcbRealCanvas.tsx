@@ -16,7 +16,7 @@
 
 import React, { useRef, useEffect, useMemo, useState } from 'react';
 import {
-  ZoomIn, ZoomOut, RotateCcw, Layers, CheckCircle2, Compass,
+  ZoomIn, ZoomOut, RotateCcw, Layers, Compass,
   Download,
 } from 'lucide-react';
 import {
@@ -66,7 +66,7 @@ export const PcbRealCanvas: React.FC = () => {
     topCopper: true, bottomCopper: true, pads: true,
     silkscreen: true, courtyard: true, ratsnest: false,
   });
-  const [hovered, _setHovered] = useState<string | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
 
   // Gerar elementos PCB uma vez (memoizado)
   const pcbElements = useMemo(() => buildRealPcbElements(), []);
@@ -76,13 +76,42 @@ export const PcbRealCanvas: React.FC = () => {
   const holes   = useMemo(() => pcbElements.filter((e) => e.type === 'pcb_plated_hole') as any[], [pcbElements]);
   const traces  = useMemo(() => pcbElements.filter((e) => e.type === 'pcb_trace') as any[], [pcbElements]);
   const nets    = useMemo(() => pcbElements.filter((e) => e.type === 'source_net') as any[], [pcbElements]);
+  const sourceTraces = useMemo(() => pcbElements.filter((e) => e.type === 'source_trace') as any[], [pcbElements]);
+  const traceNetNames = useMemo(() => {
+    const sourceNetNames = new Map(nets.map((net) => [net.source_net_id, net.name]));
+    return new Map(sourceTraces.map((trace) => [
+      trace.source_trace_id,
+      trace.connected_source_net_ids?.map((netId: string) => sourceNetNames.get(netId)).find(Boolean) ?? '',
+    ]));
+  }, [nets, sourceTraces]);
   const silkLines   = useMemo(() => pcbElements.filter((e) => e.type === 'pcb_silkscreen_line') as any[], [pcbElements]);
   const silkCircles = useMemo(() => pcbElements.filter((e) => e.type === 'pcb_silkscreen_circle') as any[], [pcbElements]);
+  const bottomTraceCount = useMemo(
+    () => traces.filter((trace) => trace.route?.some((point: any) => point.layer === 'bottom')).length,
+    [traces],
+  );
 
   // mm → pixels
 
   const onMouseDown  = (e: React.MouseEvent) => { setDrag(true); setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y }); };
-  const onMouseMove  = (e: React.MouseEvent) => { if (drag) setPan({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y }); };
+  const onMouseMove  = (e: React.MouseEvent) => {
+    if (drag) {
+      setPan({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+      return;
+    }
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const scale = zoom * 3.2;
+    const xMm = ((e.clientX - rect.left) - rect.width / 2 - pan.x) / scale + board.width / 2;
+    const yMm = ((e.clientY - rect.top) - rect.height / 2 - pan.y) / scale + board.height / 2;
+    const hoveredComponent = Object.entries(PCB_COMPONENT_POSITIONS).find(([componentId, position]) => {
+      const footprint = KICAD_FOOTPRINT_MAP[componentId];
+      if (!footprint) return false;
+      return Math.abs(xMm - position.x) <= footprint.courtyardW / 2
+        && Math.abs(yMm - position.y) <= footprint.courtyardH / 2;
+    });
+    setHovered(hoveredComponent?.[0] ?? null);
+  };
   const onMouseUp    = () => setDrag(false);
   const onWheel      = (e: React.WheelEvent) => { e.preventDefault(); setZoom((z) => Math.max(0.5, Math.min(8, z * (e.deltaY < 0 ? 1.12 : 0.89)))); };
 
@@ -159,13 +188,17 @@ export const PcbRealCanvas: React.FC = () => {
     ctx.fillText('0,0', 4, -4);
 
     // 6. Trilhas de cobre
-    if (mode === 'routed' && layers.topCopper) {
+    if (mode === 'routed') {
       for (const trace of traces) {
         const route = trace.route;
         if (!route || route.length < 2) continue;
 
+        const traceLayer = route[0]?.layer ?? 'top';
+        if (traceLayer === 'top' && !layers.topCopper) continue;
+        if (traceLayer === 'bottom' && !layers.bottomCopper) continue;
+
         // Cor baseada no índice da rede (netclass via nome)
-        const netName: string = nets.find((n: any) => n.source_net_id === trace.source_trace_id?.replace('pcb_trace_','net_'))?.name ?? '';
+        const netName: string = traceNetNames.get(trace.source_trace_id) ?? '';
         const netDef = FUELGUARD_NETLIST.find((n) => n.name === netName);
         const traceColor = netDef ? NET_CLASS_COLOR[netDef.netClass] : colors.copper;
 
@@ -284,7 +317,7 @@ export const PcbRealCanvas: React.FC = () => {
     ctx.fillText(`${board.height} mm`, bX - 35, bY + bH / 2);
 
     ctx.restore();
-  }, [pcbElements, board, holes, traces, silkLines, silkCircles, nets, zoom, pan, mask, mode, layers, hovered]);
+  }, [pcbElements, board, holes, traces, silkLines, silkCircles, traceNetNames, zoom, pan, mask, mode, layers, hovered]);
 
   const exportPng = () => {
     const canvas = canvasRef.current;
@@ -317,7 +350,7 @@ export const PcbRealCanvas: React.FC = () => {
             onClick={() => setMode('routed')}
             className={`px-2 py-1 rounded flex items-center gap-1 font-bold transition ${mode === 'routed' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
           >
-            <CheckCircle2 className="w-3 h-3" /> PCB Roteada
+            <Compass className="w-3 h-3" /> Proposta de layout
           </button>
           <button
             onClick={() => setMode('concept')}
@@ -330,7 +363,7 @@ export const PcbRealCanvas: React.FC = () => {
         {/* Camadas */}
         {([
           ['topCopper',    'Top Cu',    'text-orange-400'],
-          ['bottomCopper', 'Bot Cu',    'text-sky-400'],
+          ['bottomCopper', `Bot Cu (${bottomTraceCount})`, 'text-sky-400'],
           ['pads',         'Pads',      'text-yellow-400'],
           ['silkscreen',   'Silk',      'text-slate-300'],
           ['courtyard',    'Courtyard', 'text-indigo-400'],
@@ -340,10 +373,11 @@ export const PcbRealCanvas: React.FC = () => {
             <input
               type="checkbox"
               checked={layers[key as keyof LayerVis]}
+              disabled={key === 'bottomCopper' && bottomTraceCount === 0}
               onChange={(e) => setLayers((l) => ({ ...l, [key]: e.target.checked }))}
-              className="w-3 h-3"
+              className="w-3 h-3 disabled:opacity-40"
             />
-            <span className={cls}>{label}</span>
+            <span className={`${cls} ${key === 'bottomCopper' && bottomTraceCount === 0 ? 'opacity-50' : ''}`}>{label}</span>
           </label>
         ))}
 
@@ -368,7 +402,7 @@ export const PcbRealCanvas: React.FC = () => {
       <div className="absolute bottom-2 left-2 z-20 flex flex-wrap gap-2 text-[10px]">
         <div className="px-2 py-1 bg-[#0e141c]/90 border border-emerald-800 text-emerald-300 rounded flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-          {pcbStats.totalPads} pads • {pcbStats.totalTraces} trilhas • {pcbStats.totalNets} redes
+          {pcbStats.totalPads} pads • {pcbStats.totalTraces} segmentos gerados • {pcbStats.totalNets} redes
         </div>
         <div className="px-2 py-1 bg-[#0e141c]/90 border border-slate-700 text-slate-400 rounded">
           {pcbStats.boardWidthMm}×{pcbStats.boardHeightMm}mm • FR-4 1.6mm • {pcbStats.layers} camadas • {pcbStats.mountingHoles}× M3
@@ -389,13 +423,18 @@ export const PcbRealCanvas: React.FC = () => {
         ))}
       </div>
 
+      <div className="absolute top-14 left-2 z-20 max-w-[330px] px-2.5 py-2 bg-amber-950/90 border border-amber-700/80 rounded-lg text-[10px] text-amber-200 leading-relaxed shadow">
+        <strong className="block text-amber-300">Não liberada para fabricação</strong>
+        Esta vista é uma proposta visual derivada do netlist. O gate KiCad/DRC/Gerber continua pendente.
+      </div>
+
       {/* Canvas */}
       <div
         className="flex-1 w-full h-full cursor-crosshair active:cursor-grabbing"
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
+        onMouseLeave={() => { onMouseUp(); setHovered(null); }}
         onWheel={onWheel}
       >
         <canvas

@@ -148,9 +148,9 @@ export const CadView: React.FC = () => {
       />
 
       {/* 2. Área Central de Engenharia CAD (10 Áreas Técnicas) */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden p-4 md:p-6 space-y-4 bg-[#F4F5F7] dark:bg-slate-950">
+      <div className="flex-1 flex flex-col h-full overflow-hidden p-4 md:p-5 space-y-3 bg-[#F4F5F7] dark:bg-slate-950">
         {/* Topo: Cabeçalho com Metadados e Exportação (Permity Style) */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex flex-col xl:flex-row xl:items-center justify-between gap-3">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <div>
               <div className="flex items-center space-x-2">
@@ -197,8 +197,8 @@ export const CadView: React.FC = () => {
         </div>
 
         {/* 10 Sub-Abas Técnicas de Engenharia (Permity Horizontal Pill Tab Strip) */}
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-1 bg-white dark:bg-slate-900 p-1.5 rounded-full border border-slate-200/80 dark:border-slate-800 shadow-xs">
+        <div className="flex flex-wrap items-center justify-between gap-1.5">
+          <div className="flex flex-wrap items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-full border border-slate-200/80 dark:border-slate-800 shadow-xs">
             {[
               { id: 'overview', label: '1. Visão Geral', icon: Compass },
               { id: 'assembly', label: '2. Bancada Física', icon: Box },
@@ -217,7 +217,7 @@ export const CadView: React.FC = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as CadSubTab)}
-                  className={`px-3 py-1.5 rounded-full transition flex items-center gap-1.5 text-xs ${
+                  className={`px-2.5 py-1 rounded-full transition flex items-center gap-1.5 text-xs ${
                     isActive
                       ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold shadow-xs'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 font-medium'

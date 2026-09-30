@@ -12,7 +12,6 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Search,
-  Sparkles,
   Plus
 } from 'lucide-react';
 import { AppRoute } from '@/types/navigation';
@@ -74,15 +73,15 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             <span className="text-sm font-display font-bold tracking-tight text-slate-900 dark:text-white">
               FuelGuard <span className="text-slate-500 dark:text-slate-400 font-normal text-xs">Real Hardware Reference</span>
             </span>
-            {/* Badge Permity Lime / Soft Green de Verificações */}
-            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[#EAF9A5] dark:bg-lime-950/70 text-[#1E3A0F] dark:text-lime-300 border border-[#CDEB65] dark:border-lime-700/60 shadow-xs">
-              <Sparkles className="w-3 h-3 text-[#588000] dark:text-lime-400" />
-              <span>83 verificações • 100% PASS</span>
+            {/* Estado honesto do gate: os contratos nominais estão disponíveis, mas a fabricação ainda depende de evidência física. */}
+            <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 shadow-xs">
+              <ShieldAlert className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+              <span>Gate físico pendente</span>
             </span>
           </div>
           <div className="hidden md:flex text-[10px] font-mono text-slate-400 items-center gap-1.5 truncate">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span>ESP32-S3 v1.1 • PN532 V4 • SEN0311 UART • PCB sob gate</span>
+            <span>ESP32-S3 v1.1 • Adafruit PN532 v1.6 • SEN0311 UART • PCB sob gate</span>
           </div>
         </div>
       </div>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" role="img" aria-labelledby="title desc">
+  <title id="title">Prévia técnica do transistor P2N2222AG TO-92</title>
+  <desc id="desc">Encapsulamento TO-92 de referência para o transistor do driver do buzzer.</desc>
+  <rect width="240" height="160" rx="16" fill="#08101d"/>
+  <path d="M100 118V76m20 42V76m20 42V76" stroke="#d3ad54" stroke-width="4" stroke-linecap="round"/>
+  <path d="M74 70c0-23 12-35 46-35s46 12 46 35H74z" fill="#111827" stroke="#64748b" stroke-width="3"/>
+  <path d="M76 70h88" stroke="#2d3b4f" stroke-width="4"/>
+  <text x="120" y="144" fill="#f0b640" font-family="Arial, sans-serif" font-size="12" font-weight="700" text-anchor="middle">P2N2222AG · TO-92</text>
+</svg>

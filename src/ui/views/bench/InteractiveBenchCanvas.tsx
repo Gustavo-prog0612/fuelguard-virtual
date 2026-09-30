@@ -116,9 +116,10 @@ function getNodeByPin(pinId: string): string {
   if (pinId.startsWith('esp_')) return 'node_esp32';
   if (pinId.startsWith('level_')) return 'node_level';
   if (pinId.startsWith('buzzer_')) return 'node_buzzer';
+  if (pinId.startsWith('q1_') || pinId.startsWith('r_base')) return 'node_buzzer';
   if (pinId.startsWith('nfc_')) return 'node_pn532';
   if (pinId.startsWith('reed_')) return 'node_reed';
-  if (pinId.startsWith('led_')) return 'node_led';
+  if (pinId.startsWith('led_') || pinId.startsWith('r3_')) return 'node_led';
   return 'node_esp32';
 }
 

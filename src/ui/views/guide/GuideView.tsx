@@ -211,7 +211,7 @@ void loop() {
                 <div>
                   <span className="font-bold text-slate-900 dark:text-white">3. Conferência de Part-Number e Chaves do PN532</span>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                    Configure os mini-switches do módulo ELECHOUSE PN532 V4 para o modo SPI documentado (CH1=OFF, CH2=ON para SPI), em vez de I2C ou HSU UART.
+                    Configure os jumpers SEL0/SEL1 da Adafruit PN532 v1.6 para o modo SPI documentado; não trate o módulo como uma placa ELECHOUSE V4 com DIP CH1/CH2.
                   </p>
                 </div>
               </label>

@@ -436,7 +436,7 @@ void loop() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                     <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
-                      <Radio className="w-4 h-4" /> Passo 5: Configuração e Fixação do Leitor PN532 V4
+                      <Radio className="w-4 h-4" /> Passo 5: Configuração e Fixação do Leitor Adafruit PN532 v1.6
                     </h3>
                     <button
                       onClick={() => toggleStep(5)}
@@ -449,7 +449,7 @@ void loop() {
                     </button>
                   </div>
                   <ul className="text-xs text-slate-300 space-y-2 list-disc list-inside">
-                    <li><strong className="text-amber-300">CRÍTICO — Chaves DIP de Protocolo:</strong> O PN532 V4 possui uma micro-chave seletora de 2 posições. Para operar em SPI 4 fios:
+                    <li><strong className="text-amber-300">CRÍTICO — Jumpers de Protocolo:</strong> A Adafruit PN532 v1.6 usa SEL0/SEL1. Para operar em SPI 4 fios, confira o estado dos dois jumpers conforme o esquema oficial:
                       <div className="mt-1 pl-4 font-mono text-[11px]">
                         <div>CH1 = <strong>OFF (0)</strong> | CH2 = <strong>ON (1)</strong></div>
                       </div>
@@ -866,7 +866,7 @@ static bool readSen0311Frame(LevelReading &reading) {
                   id: 'T3',
                   title: 'Teste 3: Leitura e Reconhecimento de Tags RFID PN532',
                   severity: 'Funcional',
-                  procedure: 'Aproxime uma tag ou chaveiro Mifare 13.56MHz da antena do leitor PN532 V4.',
+                  procedure: 'Aproxime uma tag ou chaveiro Mifare 13.56MHz da antena do leitor Adafruit PN532 v1.6.',
                   passCriteria: 'Bip sonoro curto no buzzer e mensagem no Serial Monitor: [RFID] Tag detectada! UID: XX XX XX XX.',
                 },
                 {

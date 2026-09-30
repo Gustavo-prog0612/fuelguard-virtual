@@ -17,8 +17,15 @@ import {
   AlertTriangle,
   FileText,
   Lock,
+  ExternalLink,
 } from 'lucide-react';
 import { CadComponentMetadata } from '@/circuit-cad/component-library';
+import {
+  getCarrierAssetEntry,
+  getCarrierAssetStatusClass,
+  getCarrierAssetStatusLabel,
+} from '@/circuit-cad/carrier-assets';
+import { disposeCarrierAsset, loadCarrierAsset } from './carrier-asset-loader';
 
 interface Component360InspectorModalProps {
   component: CadComponentMetadata;
@@ -76,13 +83,19 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
   const mouseCoordRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const baseCameraDistRef = useRef<number>(120);
 
-  // Determina o path do modelo GLB baseado no component.id
-  const modelPath = useMemo(() => {
+  const carrierAsset = useMemo(() => getCarrierAssetEntry(component.id), [component.id]);
+  const evidenceClass = carrierAsset?.confidenceLevel ?? component.confidenceLevel;
+  const displayPartNumber = carrierAsset?.partNumber ?? component.partNumber;
+  const displayRevision = carrierAsset?.revision ?? component.revision;
+
+  // Caminhos legados continuam disponíveis apenas quando o manifesto Carrier
+  // não possui uma decisão mais específica para o componente.
+  const legacyModelPath = useMemo(() => {
     switch (component.id) {
       case 'esp32_s3_devkit':
         return '/models/official/espressif-esp32-s3-devkitc-1-v1.1.glb';
       case 'pn532_breakout':
-        return '/models/official/elechouse-pn532-v4.glb';
+        return '/assets/cad/carrier/RFID1/reference-derived.glb';
       case 'a02yyuw_sen0311':
         return '/models/reference/dfrobot-sen0311-a02yyuw-reference.glb';
       case 'reed_switch':
@@ -97,6 +110,26 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
         return null;
     }
   }, [component.id]);
+
+  // O GLB verificado sempre tem prioridade. Referências locais pendentes podem
+  // ser inspecionadas para melhorar a geometria, mas continuam com o status
+  // pendente e não são tratadas como CAD liberado para fabricação.
+  const modelPath = useMemo(() => {
+    if (carrierAsset) {
+      if (carrierAsset.assetStatus === 'verified') return carrierAsset.assetPath ?? null;
+      if (carrierAsset.referenceAssetPath) return carrierAsset.referenceAssetPath;
+      if (carrierAsset.assetStatus === 'pending') return null;
+    }
+    return legacyModelPath;
+  }, [carrierAsset, legacyModelPath]);
+
+  const viewportDimensions = carrierAsset?.assetDimensionsMm ?? carrierAsset?.referenceAssetDimensionsMm ?? component.dimensionsMm;
+  const hasDedicatedDemo = ['esp32_s3_devkit', 'pn532_breakout', 'a02yyuw_sen0311', 'reed_switch', 'breadboard_830', 'led_indicator', 'buzzer_active'].includes(component.id);
+  const componentRole = component.id === 'sn74ahct125n'
+    ? 'Buffer lógico quadruplo DIP-14 para acondicionamento dos sinais do Carrier. O modelo renderiza o encapsulamento real da biblioteca KiCad; a lógica funcional continua sendo verificada no circuito elétrico.'
+    : component.id === 'voltage_divider'
+    ? 'Divisor resistivo de entrada: R1 = 10 kΩ e R2 = 15 kΩ. O GLB representa o corpo axial reutilizável; valores, referências e conexões permanecem separados na BOM.'
+    : component.description;
 
   // Tecla ESC fecha a inspeção
   useEffect(() => {
@@ -189,69 +222,92 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
     let isMounted = true;
     setIsLoadingModel(true);
 
-    const createFallbackMesh = () => {
+    const createFallbackEnvelope = () => {
       const fallbackGeo = new THREE.BoxGeometry(
         component.dimensionsMm.width,
         component.dimensionsMm.height,
-        component.dimensionsMm.depth
+        component.dimensionsMm.depth,
       );
-      const fallbackMat = new THREE.MeshStandardMaterial({
-        color: component.id === 'esp32_s3_devkit' ? 0x0f172a : 0x1e3a8a,
-        roughness: 0.3,
-        metalness: 0.4,
-      });
-      const mesh = new THREE.Mesh(fallbackGeo, fallbackMat);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      modelGroup.add(mesh);
+      const envelope = new THREE.LineSegments(
+        new THREE.EdgesGeometry(fallbackGeo),
+        new THREE.LineBasicMaterial({ color: carrierAsset?.assetStatus === 'pending' ? 0xf59e0b : 0x64748b, transparent: true, opacity: 0.9 }),
+      );
+      envelope.userData.assetStatus = carrierAsset?.assetStatus ?? 'unavailable';
+      envelope.userData.isFallbackEnvelope = true;
+      modelGroup.add(envelope);
       setIsLoadingModel(false);
     };
 
-    if (modelPath) {
+    const focusModel = (root: THREE.Object3D) => {
+      const bbox = new THREE.Box3().setFromObject(root);
+      const center = bbox.getCenter(new THREE.Vector3());
+      root.position.sub(center);
+
+      root.traverse((node) => {
+        if (node instanceof THREE.Mesh) {
+          node.castShadow = true;
+          node.receiveShadow = true;
+          if (node.material) {
+            const materials = Array.isArray(node.material) ? node.material : [node.material];
+            materials.forEach((material) => { material.roughness = Math.min(material.roughness ?? 0.5, 0.6); });
+          }
+        }
+      });
+
+      const focusedBounds = new THREE.Box3().setFromObject(root);
+      const sphere = focusedBounds.getBoundingSphere(new THREE.Sphere());
+      const targetDist = Math.max(45, sphere.radius * 2.8);
+      baseCameraDistRef.current = targetDist;
+      camera.position.set(0, targetDist * 0.35, targetDist);
+      camera.lookAt(0, 0, 0);
+      modelGroup.add(root);
+      setIsLoadingModel(false);
+    };
+
+    let loadedCarrierRoot: THREE.Object3D | null = null;
+
+    const loadModel = async () => {
+      if (carrierAsset?.assetStatus === 'verified' || carrierAsset?.referenceAssetPath) {
+        try {
+          const loaded = await loadCarrierAsset(component.id, { includeReference: carrierAsset.assetStatus !== 'verified' });
+          if (!isMounted) return;
+          if (!loaded) {
+            createFallbackEnvelope();
+            return;
+          }
+          loadedCarrierRoot = loaded.root;
+          focusModel(loaded.root);
+          return;
+        } catch (error) {
+          console.warn('Erro ao carregar asset Carrier:', error);
+          if (isMounted) createFallbackEnvelope();
+          return;
+        }
+      }
+
+      if (modelPath) {
       const loader = new GLTFLoader();
       loader.load(
         modelPath,
         (gltf) => {
           if (!isMounted) return;
-          const root = gltf.scene;
-
-          // Auto-centralização rigorosa pelo bounding box
-          const bbox = new THREE.Box3().setFromObject(root);
-          const center = bbox.getCenter(new THREE.Vector3());
-          root.position.sub(center);
-
-          // Ajusta materiais para renderização nítida
-          root.traverse((node) => {
-            if (node instanceof THREE.Mesh) {
-              node.castShadow = true;
-              node.receiveShadow = true;
-              if (node.material) {
-                node.material.roughness = Math.min(node.material.roughness ?? 0.5, 0.6);
-              }
-            }
-          });
-
-          // Calcula raio esférico para definir distância ideal da câmera
-          const sphere = bbox.getBoundingSphere(new THREE.Sphere());
-          const targetDist = Math.max(45, sphere.radius * 2.8);
-          baseCameraDistRef.current = targetDist;
-          camera.position.set(0, targetDist * 0.35, targetDist);
-          camera.lookAt(0, 0, 0);
-
-          modelGroup.add(root);
-          setIsLoadingModel(false);
+          focusModel(gltf.scene);
         },
         undefined,
         (err) => {
           console.warn('Erro ao carregar GLB:', err);
           if (isMounted) {
-            createFallbackMesh();
+            createFallbackEnvelope();
           }
         }
       );
-    } else {
-      createFallbackMesh();
-    }
+        return;
+      }
+
+      createFallbackEnvelope();
+    };
+
+    void loadModel();
 
     // Interações de mouse (Orbit & Zoom)
     let animationFrameId: number;
@@ -285,9 +341,16 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
       isMounted = false;
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
+      if (loadedCarrierRoot) disposeCarrierAsset(loadedCarrierRoot);
+      modelGroup.traverse((object) => {
+        if (!(object instanceof THREE.Mesh) && !(object instanceof THREE.LineSegments)) return;
+        object.geometry.dispose();
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        materials.forEach((material) => material.dispose());
+      });
       renderer.dispose();
     };
-  }, [component.id, component.dimensionsMm, modelPath]);
+  }, [carrierAsset, component.id, component.dimensionsMm, modelPath]);
 
   // Controles de mouse para Orbit manual
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -334,7 +397,7 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
 
   // Badge de Confiança
   const confidenceBadge = useMemo(() => {
-    switch (component.confidenceLevel) {
+    switch (evidenceClass) {
       case 'A':
         return { label: 'Classe A · CAD Exato Fabricante', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50' };
       case 'B':
@@ -345,7 +408,7 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
       default:
         return { label: 'Classe D · Estimado Experimental', color: 'bg-rose-500/20 text-rose-300 border-rose-500/50' };
     }
-  }, [component.confidenceLevel]);
+  }, [evidenceClass]);
 
   return (
     <div
@@ -370,11 +433,16 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
                 <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${confidenceBadge.color}`}>
                   {confidenceBadge.label}
                 </span>
+                {carrierAsset && (
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${getCarrierAssetStatusClass(carrierAsset.assetStatus)}`}>
+                    Carrier · {getCarrierAssetStatusLabel(carrierAsset.assetStatus)}
+                  </span>
+                )}
               </div>
               <h1 id="inspector-title" className="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2">
                 {component.name}
                 <span className="text-xs font-mono font-normal text-slate-400">
-                  ({component.partNumber} Rev {component.revision})
+                  ({displayPartNumber} Rev {displayRevision})
                 </span>
               </h1>
             </div>
@@ -392,10 +460,10 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
         </header>
 
         {/* Content Body: Split into Left (3D Viewer) and Right (Details & Interactive Demo) */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-y-auto lg:overflow-hidden">
           {/* LEFT: Isolated 360° Studio Viewport (7 Cols) */}
           <div
-            className="lg:col-span-7 relative flex flex-col bg-radial from-slate-900/90 via-[#090e17] to-[#060a10] border-b lg:border-b-0 lg:border-r border-slate-800 select-none cursor-grab active:cursor-grabbing"
+            className="lg:col-span-7 relative flex flex-col h-[44vh] min-h-[330px] lg:h-auto lg:min-h-0 bg-radial from-slate-900/90 via-[#090e17] to-[#060a10] border-b lg:border-b-0 lg:border-r border-slate-800 select-none cursor-grab active:cursor-grabbing"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -437,13 +505,27 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
             {/* Canvas 3D */}
             <canvas ref={canvasRef} className="w-full h-full block" />
 
+            <div className="absolute top-14 left-3 max-w-[70%] px-2.5 py-1 rounded-md bg-slate-950/75 border border-slate-800/90 text-[10px] font-mono text-slate-300 pointer-events-none">
+              {carrierAsset?.assetStatus === 'verified'
+                ? 'GLB local verificado · escala em milímetros'
+                : carrierAsset?.referenceAssetPath
+                ? 'GLB de referência local · variante física pendente'
+                : carrierAsset?.assetStatus === 'approximate'
+                ? 'Envelope de aproximação · referência física pendente'
+                : carrierAsset?.assetStatus === 'pending'
+                ? 'Envelope nominal · CAD físico pendente'
+                : modelPath
+                ? 'GLB de referência do componente'
+                : 'Envelope paramétrico · asset não disponível'}
+            </div>
+
             {/* Bottom helper overlay */}
             <div className="absolute bottom-3 inset-x-3 flex justify-between items-center text-[10px] font-mono text-slate-500 pointer-events-none">
               <span className="bg-slate-950/60 px-2.5 py-1 rounded-md border border-slate-800/80">
                 💡 Arraste para orbitar · Scroll do mouse para zoom
               </span>
               <span className="bg-slate-950/60 px-2.5 py-1 rounded-md border border-slate-800/80 text-emerald-400">
-                Dimensões: {component.dimensionsMm.width} × {component.dimensionsMm.height} × {component.dimensionsMm.depth} mm
+                {carrierAsset?.assetDimensionsMm ? 'Asset medido' : 'Dimensão nominal'}: {viewportDimensions.width} × {viewportDimensions.height} × {viewportDimensions.depth} mm
               </span>
             </div>
 
@@ -451,14 +533,14 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
               <div className="absolute inset-0 flex items-center justify-center bg-slate-950/40 backdrop-blur-xs">
                 <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-mono text-xs">
                   <Activity className="w-4 h-4 text-fuelguard-green animate-spin" />
-                  Carregando malha 3D de alta fidelidade...
+                  {carrierAsset?.referenceAssetPath ? 'Carregando referência local rastreável…' : carrierAsset?.assetStatus === 'pending' ? 'Preparando envelope pendente…' : 'Carregando malha 3D rastreável…'}
                 </div>
               </div>
             )}
           </div>
 
           {/* RIGHT: Tabbed Panel with Functional Demo & Engineering Specs (5 Cols) */}
-          <div className="lg:col-span-5 flex flex-col bg-[#0b1019] overflow-hidden">
+          <div className="lg:col-span-5 flex flex-col min-h-[430px] lg:min-h-0 bg-[#0b1019] overflow-hidden">
             {/* Tab Selector */}
             <div className="flex border-b border-slate-800 bg-slate-900/40 px-3 pt-2">
               <button
@@ -608,7 +690,7 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
                     </div>
                   )}
 
-                  {/* --- SIMULADOR: PN532 V4 NFC --- */}
+                  {/* --- SIMULADOR: Adafruit PN532 v1.6 NFC --- */}
                   {component.id === 'pn532_breakout' && (
                     <div className="space-y-3">
                       <div className="rounded-xl border border-purple-500/40 bg-purple-950/20 p-3.5 space-y-2">
@@ -622,7 +704,7 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
                           </span>
                         </div>
                         <p className="text-slate-300 text-[11px] leading-relaxed">
-                          O módulo ELECHOUSE PN532 V4 opera como leitor de proximidade para identificar frotistas e motoristas homologados antes de liberar a válvula de combustível.
+                          A Adafruit PN532 v1.6 opera como leitora de proximidade para identificar frotistas e motoristas homologados antes de liberar a válvula de combustível.
                         </p>
                       </div>
 
@@ -942,6 +1024,32 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
                       </p>
                     </div>
                   )}
+
+                  {!hasDedicatedDemo && (
+                    <div className="rounded-xl border border-sky-800/70 bg-sky-950/20 p-4 space-y-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 text-sky-300 font-bold text-xs font-mono">
+                          <Layers className="w-4 h-4" />
+                          Ficha de engenharia do componente
+                        </div>
+                        <span className="text-[9px] uppercase tracking-wide text-slate-500">Sem simulador dedicado</span>
+                      </div>
+                      <p className="text-slate-300 leading-relaxed text-[11px]">{componentRole}</p>
+                      <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
+                        <div className="rounded-lg bg-slate-950/80 border border-slate-800 p-2">
+                          <div className="text-slate-500 uppercase tracking-wide">Footprint</div>
+                          <div className="text-slate-200 mt-1">{component.footprintType}</div>
+                        </div>
+                        <div className="rounded-lg bg-slate-950/80 border border-slate-800 p-2">
+                          <div className="text-slate-500 uppercase tracking-wide">Nets conectadas</div>
+                          <div className="text-slate-200 mt-1">{component.connectedNets.length ? component.connectedNets.join(' · ') : 'Nenhuma registrada'}</div>
+                        </div>
+                      </div>
+                      <div className="rounded-lg bg-slate-950/80 border border-slate-800 p-2 text-[10px] text-slate-400">
+                        A interação 3D está disponível acima. Para validar comportamento elétrico, use a aba <strong className="text-sky-300">Especificações & Pinagem</strong> e a estação <strong className="text-sky-300">Testes</strong>.
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1047,7 +1155,7 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
                       <div className="flex justify-between">
                         <span className="text-slate-400">Nível de Confiança CAD:</span>
                         <span className="text-sky-300 font-bold">
-                          Classe {component.confidenceLevel}
+                          Classe {evidenceClass}
                         </span>
                       </div>
                       {component.disclaimerNote && (
@@ -1056,6 +1164,36 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
                         </div>
                       )}
                     </div>
+
+                    {carrierAsset && (
+                      <div className="rounded-lg bg-slate-950 p-3 border border-sky-900/70 space-y-2 text-[10px] font-mono">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-slate-400">Registro Carrier</span>
+                          <span className={`px-1.5 py-0.5 rounded border ${getCarrierAssetStatusClass(carrierAsset.assetStatus)}`}>
+                            {getCarrierAssetStatusLabel(carrierAsset.assetStatus)}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                          <span className="text-slate-400">{carrierAsset.assetPath ? 'Asset local verificado' : 'Referência local'}</span>
+                          <span className="text-slate-200 truncate">{carrierAsset.assetPath ?? carrierAsset.referenceAssetPath ?? 'Não disponível'}</span>
+                          <span className="text-slate-400">Dimensão nominal</span>
+                          <span className="text-slate-200">{component.nominalDimensionsMm.width} × {component.nominalDimensionsMm.height} × {component.nominalDimensionsMm.depth} mm</span>
+                          <span className="text-slate-400">Dimensão do asset</span>
+                          <span className="text-slate-200">{carrierAsset.assetDimensionsMm ? `${carrierAsset.assetDimensionsMm.width} × ${carrierAsset.assetDimensionsMm.height} × ${carrierAsset.assetDimensionsMm.depth} mm` : 'Ainda não medida'}</span>
+                          <span className="text-slate-400">Tolerância</span>
+                          <span className="text-slate-200">±{carrierAsset.toleranceMm} mm</span>
+                        </div>
+                        <a href={carrierAsset.sourceUrl} target="_blank" rel="noreferrer" className="text-sky-300 hover:underline inline-flex items-center gap-1">
+                          Abrir fonte original <ExternalLink className="w-3 h-3" />
+                        </a>
+                        {carrierAsset.pendingReason && (
+                          <div className="pt-2 border-t border-slate-800 text-amber-300/90">Pendência: {carrierAsset.pendingReason}</div>
+                        )}
+                        {carrierAsset.limitations.length > 0 && (
+                          <div className="pt-2 border-t border-slate-800 text-slate-400">Limitação: {carrierAsset.limitations[0]}</div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

@@ -10,6 +10,7 @@ import {
   Check
 } from 'lucide-react';
 import { AppRoute } from '@/types/navigation';
+import { runEngineeringVerification } from '@/verification/run-engineering-verification';
 
 interface OverviewViewProps {
   onNavigate?: (route: AppRoute) => void;
@@ -17,6 +18,9 @@ interface OverviewViewProps {
 
 export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigate }) => {
   const [timeRange, setTimeRange] = useState<'today' | '7days' | '30days'>('today');
+  const engineeringChecks = runEngineeringVerification();
+  const pendingChecks = engineeringChecks.filter((check) => check.status !== 'PASS').length;
+  const passingChecks = engineeringChecks.filter((check) => check.status === 'PASS').length;
 
   return (
     <div className="p-5 md:p-8 space-y-6 overflow-y-auto h-full bg-[#F4F5F7] dark:bg-slate-950 font-ui select-none">
@@ -98,12 +102,13 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigate }) => {
 
           {/* Progress Bar (Permity Style) */}
           <div className="space-y-1.5 pt-2">
-            <div className="flex justify-between text-xs font-medium">
-              <span className="text-slate-600 dark:text-slate-400">Validação Geral</span>
-              <span className="font-bold text-slate-900 dark:text-white">83/83 PASS (100%)</span>
+            <div className="flex items-center justify-between gap-3 text-xs font-medium">
+              <span className="text-slate-600 dark:text-slate-400">Gate de fabricação</span>
+              <span className="font-bold text-amber-700 dark:text-amber-300">Não liberada</span>
             </div>
-            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
-              <div className="bg-[#D4F63D] h-2 rounded-full" style={{ width: '100%' }} />
+            <div className="flex items-center gap-2 text-[10px] text-amber-700 dark:text-amber-300">
+              <div className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+              <span>{pendingChecks} gates aguardam medição, peça ou decisão documental</span>
             </div>
           </div>
         </div>
@@ -136,10 +141,10 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigate }) => {
             {/* Big Stat Number */}
             <div className="py-3 flex items-baseline gap-2">
               <span className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                83
+                {engineeringChecks.length}
               </span>
               <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                verificações automatizadas (16 suítes)
+                gates de engenharia executados em tempo real
               </span>
             </div>
 
@@ -261,8 +266,8 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigate }) => {
           </div>
 
           <div className="text-[11px] text-slate-500 font-medium">
-            <strong className="text-slate-800 dark:text-slate-200 block">83/83 verificações</strong>
-            <span>Contratos canônicos OK</span>
+            <strong className="text-slate-800 dark:text-slate-200 block">{passingChecks}/{engineeringChecks.length} gates nominais</strong>
+            <span>{pendingChecks} pendências documentais ou físicas visíveis</span>
           </div>
         </div>
       </div>
@@ -276,7 +281,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({ onNavigate }) => {
               Itens de Atenção & Gates Técnicos
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              4 itens sinalizados • Verificado em tempo real
+              {pendingChecks} gates exigem evidência ou ação • Verificado em tempo real
             </p>
           </div>
 
