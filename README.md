@@ -3,7 +3,7 @@
 > **Referência de engenharia de hardware real & estação de verificação CAD/EDA**  
 > Gêmeo digital auditável do FuelGuard, com peças comerciais identificadas, evidência de medidas e gates explícitos para a PCB adaptadora.
 
-[![Vitest Tests](https://img.shields.io/badge/Vitest-79%20Passed%20(15%20Suites)-brightgreen.svg)](#su%C3%ADte-de-testes-automatizados)
+[![Vitest Tests](https://img.shields.io/badge/Vitest-83%20Passed%20(16%20Suites)-brightgreen.svg)](#su%C3%ADte-de-testes-automatizados)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict%20Checked-blue.svg)](#tecnologias-e-stack)
 [![Three.js](https://img.shields.io/badge/3D%20Graphics-Three.js%20engineering%20reference-orange.svg)](#tanque-tampa-e-metrologia)
 [![tscircuit](https://img.shields.io/badge/EDA-tscircuit%20Core-purple.svg)](#pipeline-de-engenharia-eletr%C3%B4nica--circuit-json)
@@ -129,9 +129,13 @@ npm run build
 
 ---
 
-## 🧪 Suíte de Testes Automatizados (79 testes)
+## 🧪 Suíte de Testes Automatizados (83 testes)
 
-O projeto conta com 15 suítes de testes unitários, mecânicos e elétricos. A interface de CAD não transforma pendências de fabricação em PASS:
+O projeto conta com 16 suítes de testes unitários, mecânicos e elétricos. A interface de CAD não transforma pendências de fabricação em PASS. Rode a verificação completa antes de abrir um Pull Request:
+
+```bash
+npm run verify
+```
 
 - `tests/unit/circuit-validator.test.ts` (5 testes) — Proteção contra sobretensão e casamento de impedâncias.
 - `tests/unit/persistence.test.ts` (5 testes) — Persistência e exportação de dados em IndexedDB.
@@ -146,6 +150,11 @@ O projeto conta com 15 suítes de testes unitários, mecânicos e elétricos. A 
 - `tests/unit/shell-navigation.test.tsx` (8 testes) — Roteamento das abas principais e das estações CAD.
 - `tests/unit/mesh-collision.test.ts` (2 testes) — Consultas de interseção com `three-mesh-bvh`.
 - `tests/unit/engineering-verification.test.ts` (2 testes) — Estados PASS/PENDING e rastreabilidade do painel de engenharia.
+- `tests/unit/scene-object-registry.test.ts` (2 testes) — Registro de objetos selecionáveis, bounds e classes de colisão.
+
+## 🤝 Contribuição
+
+Contribuições são bem-vindas, especialmente em documentação, acessibilidade, testes de engenharia e visualização 3D. Consulte [`CONTRIBUTING.md`](CONTRIBUTING.md) para o fluxo local, os limites de evidência física e os critérios de revisão.
 
 ---
 
