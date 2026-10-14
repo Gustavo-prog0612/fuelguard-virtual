@@ -7,7 +7,7 @@
  */
 
 import { FUELGUARD_CAD_LIBRARY, CadComponentMetadata } from './component-library';
-import { PHYSICAL_WIRING_REGISTRY, PhysicalCable } from './wiring-registry';
+import { PHYSICAL_CONNECTION_BOUNDARIES, PHYSICAL_WIRING_REGISTRY, PhysicalCable } from './wiring-registry';
 
 export type AuditSeverity = 'PASS' | 'PENDING' | 'WARNING' | 'FAIL';
 export type AuditCategory =
@@ -61,11 +61,12 @@ export class AssemblyAuditor {
     add({ id: 'AUD-FST-02', category: 'fasteners_alignment', title: 'Suporte central do sensor na tampa', severity: 'PENDING', componentId: 'a02yyuw_sen0311', message: 'O recorte e o suporte aguardam medição do probe SEN0311 real.', technicalDetails: 'Não assumir rosca M20, flange ou O-ring de um JSN; a referência atual não usa esse conjunto.' });
 
     let danglingCables = 0;
-    const virtualEndpoints = new Set(['breadboard_830', 'external_host', 'tank_cylinder', 'mc38_lid_sensor']);
+    const physicalBoundaryEndpoints = new Set(Object.keys(PHYSICAL_CONNECTION_BOUNDARIES));
     for (const cable of cables) {
-      const fromExists = !!components[cable.fromComponent] || virtualEndpoints.has(cable.fromComponent);
-      const toExists = !!components[cable.toComponent] || virtualEndpoints.has(cable.toComponent);
-      const hasTerminals = Boolean(cable.fromTerminal && cable.toTerminal);
+      const fromExists = !!components[cable.fromComponent] || physicalBoundaryEndpoints.has(cable.fromComponent);
+      const toExists = !!components[cable.toComponent] || physicalBoundaryEndpoints.has(cable.toComponent);
+      const hasNamedPins = Boolean(cable.fromPin.trim() && cable.toPin.trim());
+      const hasTerminals = Boolean(cable.fromTerminal?.trim() && cable.toTerminal?.trim());
       const firstWaypoint = cable.waypoints[0];
       const lastWaypoint = cable.waypoints[cable.waypoints.length - 1];
       const samePoint = (a?: [number, number, number], b?: [number, number, number]) =>
@@ -74,18 +75,23 @@ export class AssemblyAuditor {
         && samePoint(firstWaypoint, cable.fromCoord)
         && samePoint(lastWaypoint, cable.toCoord)
         && cable.estimatedLengthMm > 0;
-      if (!fromExists || !toExists || !hasTerminals || !hasAnchoredGeometry) {
+      if (!fromExists || !toExists || !hasNamedPins || !hasTerminals || !hasAnchoredGeometry) {
         danglingCables++;
+        const message = !fromExists || !toExists
+          ? `Origem ou destino físico inexistente (${cable.fromComponent} -> ${cable.toComponent}).`
+          : !hasNamedPins
+            ? 'O cabo não possui pinos físicos nomeados em ambas as extremidades.'
+            : !hasTerminals
+              ? 'O cabo não possui terminais físicos nomeados em ambas as extremidades.'
+              : 'A rota não coincide com seus endpoints físicos.';
         add({
           id: `AUD-WIR-ERR-${cable.id}`,
           category: 'wiring_endpoints',
           cableId: cable.id,
           title: `Cabo sem terminação válida: ${cable.id}`,
           severity: 'FAIL',
-          message: !fromExists || !toExists
-            ? `Origem ou destino inexistente (${cable.fromComponent} -> ${cable.toComponent}).`
-            : 'O cabo não possui terminal nomeado ou a rota não coincide com seus endpoints.',
-          technicalDetails: 'Todo cabo precisa terminar em componente, trilho ou host explicitamente registrado, com a rota iniciando e terminando na mesma âncora física.',
+          message,
+          technicalDetails: 'Todo cabo precisa terminar em um componente físico ou fronteira externa explicitamente registrada, com pinos, terminais e rota iniciando e terminando na mesma âncora física.',
           mitigationOrAction: 'Corrigir o wiring-registry, os terminais ou os waypoints físicos.',
         });
       }
