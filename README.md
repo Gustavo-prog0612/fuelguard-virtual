@@ -3,7 +3,8 @@
 > **Referência de engenharia de hardware real & estação de verificação CAD/EDA**  
 > Gêmeo digital auditável do FuelGuard, com peças comerciais identificadas, evidência de medidas e gates explícitos para a PCB adaptadora.
 
-[![Vitest Tests](https://img.shields.io/badge/Vitest-79%20Passed%20(15%20Suites)-brightgreen.svg)](#su%C3%ADte-de-testes-automatizados)
+[![CI](https://github.com/Gustavo-prog0612/fuelguard-virtual/actions/workflows/ci.yml/badge.svg)](https://github.com/Gustavo-prog0612/fuelguard-virtual/actions/workflows/ci.yml)
+[![Vitest Tests](https://img.shields.io/badge/Vitest-83%20Passed%20(16%20Suites)-brightgreen.svg)](#su%C3%ADte-de-testes-automatizados)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict%20Checked-blue.svg)](#tecnologias-e-stack)
 [![Three.js](https://img.shields.io/badge/3D%20Graphics-Three.js%20engineering%20reference-orange.svg)](#tanque-tampa-e-metrologia)
 [![tscircuit](https://img.shields.io/badge/EDA-tscircuit%20Core-purple.svg)](#pipeline-de-engenharia-eletr%C3%B4nica--circuit-json)
@@ -96,20 +97,24 @@ Os controles de nível são apenas perfis de ensaio sem unidade física; eles n�
 ## 🚀 Instalação e Execução
 
 ### Pré-requisitos
-- **Node.js** (v18+ recomendado)
-- **npm** (v9+)
+- **Node.js 22** (a mesma versão usada pelo CI; versões LTS mais novas também podem funcionar)
+- **npm** incluído com o Node.js
 
 ### Instalar Dependências
+Para uma instalação reproduzível a partir do lockfile, use:
 ```bash
-npm install
+npm ci
 ```
+
+Durante desenvolvimento local, `npm install` continua apropriado quando você altera dependências.
 
 ### Executar em Desenvolvimento
 Inicia a bancada no servidor local com Vite:
 ```bash
 npm run dev
-# Servidor disponível em: http://127.0.0.1:5173/
 ```
+
+Abra a URL exibida pelo Vite — normalmente [http://127.0.0.1:5173/](http://127.0.0.1:5173/). Use a estação **Projeto CAD** para inspecionar a bancada 3D, o esquemático, a fiação e os gates de fabricação.
 
 ### Compilação de Tipos TypeScript
 ```bash
@@ -127,24 +132,33 @@ npm test
 npm run build
 ```
 
+### Verificação completa antes de enviar mudanças
+O mesmo gate do CI executa typecheck, testes e build:
+```bash
+npm run verify
+```
+
 ---
 
-## 🧪 Suíte de Testes Automatizados (79 testes)
+## 🧪 Suíte de Testes Automatizados (83 testes em 16 suítes)
 
-O projeto conta com 15 suítes de testes unitários, mecânicos e elétricos. A interface de CAD não transforma pendências de fabricação em PASS:
+O projeto conta com 16 suítes de testes unitários, mecânicos, elétricos e de rastreabilidade. A interface de CAD não transforma pendências de fabricação em PASS. Os totais acima foram verificados localmente com `npm test` em outubro de 2026:
 
-- `tests/unit/circuit-validator.test.ts` (5 testes) — Proteção contra sobretensão e casamento de impedâncias.
+- `tests/unit/circuit-validator.test.ts` (4 testes) — Proteção contra sobretensão e casamento de impedâncias.
 - `tests/unit/persistence.test.ts` (5 testes) — Persistência e exportação de dados em IndexedDB.
-- `tests/mechanical/bench-assembly.test.ts` (5 testes) — Ponto de apoio, ausência de componentes flutuantes e regras de folga mecânica.
+- `tests/mechanical/bench-assembly.test.ts` (6 testes) — Ponto de apoio, ausência de componentes flutuantes e regras de folga mecânica.
 - `tests/unit/assembly-auditor.test.ts` (8 testes) — Regras de montagem mecânica da bancada.
 - `tests/electrical/netlist-consistency.test.ts` (6 testes) — Paridade de netlists e conexões elétricas.
-- `tests/unit/cad-circuit-json.test.ts` (6 testes) — Esquema Circuit JSON, classes A/B/C/D e exportações EDA.
+- `tests/unit/cad-circuit-json.test.ts` (8 testes) — Esquema Circuit JSON, classes A/B/C/D e exportações EDA.
 - `tests/assets/asset-manifests.test.ts` (4 testes) — Auditoria de rastreabilidade e integridade dos manifestos CAD 3D.
+- `tests/assets/model-registry.test.ts` (4 testes) — Registro de modelos 3D, dimensões e proveniência em runtime.
+- `tests/hardware/adapter-inputs.test.ts` (3 testes) — Gates de entrada e evidências da PCB adaptadora.
 - `tests/unit/m4-integration.test.ts` (3 testes) — Integração mecatrônica.
 - `tests/unit/core-simulation.test.ts` (16 testes) — Motor acústico, física do líquido, filtro de mediana e máquina de estados.
 - `tests/fluid/water-sensor-consistency.test.ts` (2 testes) — Consistência física entre nível de água, distância e volume.
 - `tests/unit/shell-navigation.test.tsx` (8 testes) — Roteamento das abas principais e das estações CAD.
 - `tests/unit/mesh-collision.test.ts` (2 testes) — Consultas de interseção com `three-mesh-bvh`.
+- `tests/unit/scene-object-registry.test.ts` (2 testes) — Registro de objetos de cena e pendências físicas de colisão.
 - `tests/unit/engineering-verification.test.ts` (2 testes) — Estados PASS/PENDING e rastreabilidade do painel de engenharia.
 
 ---
