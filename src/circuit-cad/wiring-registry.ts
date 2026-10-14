@@ -3,6 +3,15 @@ export type CableSignalGroup = 'power' | 'spi' | 'sensors' | 'usb';
 export type CableSignalType = 'power_5v' | 'power_3v3' | 'ground' | 'uart_level' | 'uart_mode' | 'spi_mosi' | 'spi_miso' | 'spi_sck' | 'spi_cs' | 'reed_interlock' | 'usb_data' | 'led_status' | 'buzzer_signal' | 'mechanical_route';
 export interface PhysicalCable { id: string; netName: string; label: string; group: CableSignalGroup; signalType: CableSignalType; colorHex: string; awgGauge: string; diameterMm: number; fromComponent: string; fromPin: string; toComponent: string; toPin: string; fromTerminal?: string; toTerminal?: string; fromCoord: [number, number, number]; toCoord: [number, number, number]; waypoints: [number, number, number][]; estimatedLengthMm: number; nominalVoltageV: number; description: string; }
 
+/**
+ * Pontos físicos fora da biblioteca CAD que podem encerrar um cabo da bancada.
+ * Eles são explicitamente enumerados para evitar que um identificador arbitrário
+ * seja tratado como uma conexão válida apenas por existir no registro de fiação.
+ */
+export const PHYSICAL_CONNECTION_BOUNDARIES = {
+  external_host: 'Host USB ou fonte externa conectada ao Micro-USB da DevKitC',
+} as const;
+
 const cable = (value: PhysicalCable): PhysicalCable => value;
 
 const RAW_PHYSICAL_WIRING_REGISTRY: PhysicalCable[] = [
