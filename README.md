@@ -182,6 +182,13 @@ npm run build
 
 ---
 
+## 🧪 Suíte de Testes Automatizados (83 testes)
+
+O projeto conta com 16 suítes de testes unitários, mecânicos e elétricos. A interface de CAD não transforma pendências de fabricação em PASS. Rode a verificação completa antes de abrir um Pull Request:
+
+```bash
+npm run verify
+```
 ## 🧪 Suíte de Testes Automatizados (83 testes em 16 suítes)
 
 O projeto conta com 16 suítes de testes unitários, mecânicos e elétricos executadas pelo Vitest com 100% de aprovação. A interface de CAD não transforma pendências de fabricação em PASS:
@@ -201,6 +208,11 @@ O projeto conta com 16 suítes de testes unitários, mecânicos e elétricos exe
 - `tests/fluid/water-sensor-consistency.test.ts` (2 testes) — Consistência física entre nível de água, distância e volume.
 - `tests/unit/mesh-collision.test.ts` (2 testes) — Consultas de colisão e proximidade geométrica.
 - `tests/unit/engineering-verification.test.ts` (2 testes) — Estados PASS/PENDING e rastreabilidade do painel de engenharia.
+- `tests/unit/scene-object-registry.test.ts` (2 testes) — Registro de objetos selecionáveis, bounds e classes de colisão.
+
+## 🤝 Contribuição
+
+Contribuições são bem-vindas, especialmente em documentação, acessibilidade, testes de engenharia e visualização 3D. Consulte [`CONTRIBUTING.md`](CONTRIBUTING.md) para o fluxo local, os limites de evidência física e os critérios de revisão.
 - `tests/unit/shell-navigation.test.tsx` (8 testes) — Roteamento das abas principais e das estações CAD.
 
 ---
