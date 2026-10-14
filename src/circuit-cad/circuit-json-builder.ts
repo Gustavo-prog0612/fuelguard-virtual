@@ -26,8 +26,8 @@ export class CircuitJsonBuilder {
     this.elements.push({ type: 'source_component', source_component_id: sourceCompId, name: designator, ftype: 'simple_chip' });
     const shouldEmitPcb = options.emitPcb ?? this.emitPcb;
     const pcbCompId = `pcb_comp_${instanceId}`;
-    if (shouldEmitPcb) this.elements.push({ type: 'pcb_component', pcb_component_id: pcbCompId, source_component_id: sourceCompId, center: pcbPosition, width: meta.dimensionsMm.width, height: meta.dimensionsMm.height, layer: 'top', obstructs_within_bounds: true });
-    this.elements.push({ type: 'schematic_component', schematic_component_id: `sch_comp_${instanceId}`, source_component_id: sourceCompId, center: schematicPosition, size: { width: Math.max(20, meta.pins.length * 3), height: Math.max(16, meta.pins.length * 2.5) } });
+    if (shouldEmitPcb) this.elements.push({ type: 'pcb_component', pcb_component_id: pcbCompId, source_component_id: sourceCompId, center: pcbPosition, width: meta.dimensionsMm.width, height: meta.dimensionsMm.height, layer: 'top', rotation: 0, obstructs_within_bounds: true });
+    this.elements.push({ type: 'schematic_component', schematic_component_id: `sch_comp_${instanceId}`, source_component_id: sourceCompId, center: schematicPosition, size: { width: Math.max(20, meta.pins.length * 3), height: Math.max(16, meta.pins.length * 2.5) }, is_box_with_pins: true });
     meta.pins.forEach((pin, index) => {
       const portId = `port_${instanceId}_${pin.id}`;
       this.elements.push({ type: 'source_port', source_port_id: portId, source_component_id: sourceCompId, name: pin.label, pin_number: pin.pinNumber });
