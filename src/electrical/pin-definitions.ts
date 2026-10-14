@@ -30,7 +30,7 @@ export const A02YYUW_SPEC: ComponentHardwareSpec = {
 };
 
 export const PN532_SPEC: ComponentHardwareSpec = {
-  id: 'pn532', name: 'ELECHOUSE PN532 V4 (SPI)', nominalVoltage: '3V3', pins: [
+  id: 'pn532', name: 'Adafruit PN532 Breakout v1.6 (SPI)', nominalVoltage: '3V3', pins: [
     { id: 'nfc_vcc', name: 'VCC', label: 'VCC (3V3)', level: '3V3', type: 'power', description: 'Alimentação 3,3 V.' },
     { id: 'nfc_gnd', name: 'GND', label: 'GND', level: 'GND', type: 'power', description: 'Terra comum.' },
     { id: 'nfc_cs', name: 'SS/CS', label: 'SS (GPIO10)', level: '3V3', type: 'input', description: 'SPI CS.' },

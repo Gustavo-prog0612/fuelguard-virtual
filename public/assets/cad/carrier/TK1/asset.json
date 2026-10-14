@@ -1,0 +1,23 @@
+{
+  "designator": "TK1",
+  "componentId": "tank_cylinder",
+  "partNumber": "TK-WATER-5L-CYL",
+  "revision": "Aguardando recipiente físico",
+  "class": "D",
+  "assetStatus": "pending",
+  "assetSourceType": "procedural",
+  "sourceReference": "Placeholder didático FuelGuard",
+  "sourceUrl": "https://github.com/easyw/kicadStepUpMod",
+  "license": "Design didático FuelGuard",
+  "originalFile": null,
+  "assetChecksum": null,
+  "sourceUnits": "mm",
+  "scale": { "x": 1, "y": 1, "z": 1 },
+  "rotationDeg": { "x": 0, "y": 0, "z": 0 },
+  "translationMm": { "x": 0, "y": 0, "z": 0 },
+  "assetDimensionsMm": null,
+  "toleranceMm": 2,
+  "verificationDate": "2026-09-26",
+  "limitations": ["Não apto para fabricação, corte ou gabarito. Requer fabricante, dimensões, tampa, parede e posição do sensor."],
+  "pendingReason": "O recipiente físico de 5 L ainda não foi especificado."
+}

@@ -38,7 +38,7 @@
     {
       "ruleId": "COL-06",
       "name": "External PN532 Front Support",
-      "description": "O PN532 V4 deve ficar em suporte frontal externo, com a antena orientada para o operador e sem atravessar a parede cilíndrica.",
+      "description": "O Adafruit PN532 v1.6 deve ficar em suporte frontal externo, com a antena stripline orientada para o operador e sem atravessar a parede cilíndrica.",
       "zone": "dry",
       "assetRef": "RFID1",
       "support": "PN532_FRONT_DRY_SUPPORT"

@@ -5,18 +5,18 @@ import { getRegisteredModel, MODEL_REGISTRY, RUNTIME_MODEL_REGISTRY } from '@/ci
 
 describe('Registro runtime de modelos 3D', () => {
   it('mantém a origem oficial e as dimensões convertidas do PN532', () => {
-    const pn532 = getRegisteredModel('pn532-elechouse-v4');
-    expect(pn532?.validation).toBe('exact_verified');
-    expect(pn532?.path).toBe('/models/official/elechouse-pn532-v4.glb');
-    expect(pn532?.sourceStep).toContain('.step');
-    expect(pn532?.sourceUrl).toContain('elechouse.com');
-    expect(pn532?.dimensionsMm?.width).toBeCloseTo(42.68, 1);
+    const pn532 = getRegisteredModel('pn532-adafruit-v1-6');
+    expect(pn532?.validation).toBe('pending_physical_evidence');
+    expect(pn532?.path).toBe('/assets/cad/carrier/RFID1/reference-derived.glb');
+    expect(pn532?.sourceStep).toContain('Adafruit PN532_Breakout_v1.6.brd');
+    expect(pn532?.sourceUrl).toContain('github.com/adafruit');
+    expect(pn532?.dimensionsMm?.width).toBeCloseTo(120, 1);
   });
 
   it('expõe o ESP32 detalhado como referência rastreada de runtime', () => {
     expect(MODEL_REGISTRY.length).toBeGreaterThanOrEqual(5);
     expect(RUNTIME_MODEL_REGISTRY.map((asset) => asset.id)).toEqual([
-      'pn532-elechouse-v4',
+      'pn532-adafruit-v1-6',
       'esp32-s3-devkitc-1-v1-1',
       'sen0311-a02yyuw',
       'mc-38-reed-switch',

@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from 'react';
-import { ShieldCheck, Zap, Compass, Droplets, Box, FileCheck2, RefreshCw, Clock3 } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ShieldCheck, Zap, Compass, Droplets, Box, FileCheck2, RefreshCw, Clock3, Activity, CircleCheck, AlertTriangle, Download } from 'lucide-react';
 import { TestResult } from '@/../hardware/tests/TestDefinition';
 import { runEngineeringVerification } from '@/verification/run-engineering-verification';
 
 interface CadTestsTabProps { onSelectTab?: (tabId: string) => void; }
+type RunLogEntry = { label: string; status?: TestResult['status'] };
 
 const iconForScope = (scope: TestResult['scope']) => {
   if (scope === 'electrical') return Zap;
@@ -23,6 +24,14 @@ export const CadTestsTab: React.FC<CadTestsTabProps> = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [lastRunTime, setLastRunTime] = useState<string | null>(null);
   const [results, setResults] = useState<TestResult[]>(() => runEngineeringVerification());
+  const [activeTestId, setActiveTestId] = useState<string | null>(null);
+  const [runLog, setRunLog] = useState<RunLogEntry[]>([]);
+  const [completedCount, setCompletedCount] = useState(() => results.length);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [elapsedMs, setElapsedMs] = useState(0);
+  const [lastRunIso, setLastRunIso] = useState<string | null>(null);
+  const runIdRef = useRef(0);
+  const timerRefs = useRef<number[]>([]);
 
   const summary = useMemo(() => ({
     pass: results.filter((test) => test.status === 'PASS').length,
@@ -31,13 +40,75 @@ export const CadTestsTab: React.FC<CadTestsTabProps> = () => {
     fail: results.filter((test) => test.status === 'FAIL').length,
   }), [results]);
 
+  const progressPercent = results.length === 0 ? 0 : Math.round((completedCount / results.length) * 100);
+
+  useEffect(() => {
+    return () => {
+      timerRefs.current.forEach((timer) => window.clearTimeout(timer));
+      runIdRef.current += 1;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isRunning || startedAt === null) return;
+    const interval = window.setInterval(() => setElapsedMs(Date.now() - startedAt), 100);
+    return () => window.clearInterval(interval);
+  }, [isRunning, startedAt]);
+
   const handleRerun = () => {
+    timerRefs.current.forEach((timer) => window.clearTimeout(timer));
+    timerRefs.current = [];
+    const currentRunId = ++runIdRef.current;
+    const nextResults = runEngineeringVerification();
+    const runStartedAt = Date.now();
     setIsRunning(true);
-    window.setTimeout(() => {
-      setResults(runEngineeringVerification());
-      setLastRunTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-      setIsRunning(false);
-    }, 250);
+    setActiveTestId(nextResults[0]?.id ?? null);
+    setCompletedCount(0);
+    setStartedAt(runStartedAt);
+    setElapsedMs(0);
+    setRunLog([{ label: 'Execução iniciada no navegador' }, { label: 'Carregando contratos do Carrier ESP32…' }]);
+    setResults(nextResults.map((test) => ({ ...test, status: 'PENDING', message: 'Aguardando execução em tempo real…' })));
+    nextResults.forEach((test, index) => {
+      const timer = window.setTimeout(() => {
+        if (runIdRef.current !== currentRunId) return;
+        setResults((current) => current.map((item, itemIndex) => itemIndex <= index ? nextResults[itemIndex] : item));
+        setCompletedCount(index + 1);
+        setActiveTestId(nextResults[index + 1]?.id ?? null);
+        setRunLog((current) => [...current, { label: `${test.id} ${test.status} · ${test.title}`, status: test.status }].slice(-5));
+        if (index === nextResults.length - 1) {
+          setElapsedMs(Date.now() - runStartedAt);
+          setLastRunTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+          setLastRunIso(new Date().toISOString());
+          setIsRunning(false);
+          setStartedAt(null);
+          setActiveTestId(null);
+          setRunLog((current) => [...current, { label: 'Execução concluída — resultados prontos para inspeção.' }].slice(-5));
+        }
+      }, 180 * (index + 1));
+      timerRefs.current.push(timer);
+    });
+  };
+
+  const handleExportReport = () => {
+    const report = {
+      product: 'FuelGuard Virtual Test Bench',
+      scope: 'fuelguard-carrier',
+      generatedAt: lastRunIso ?? new Date().toISOString(),
+      execution: {
+        durationMs: elapsedMs,
+        completed: completedCount,
+        total: results.length,
+      },
+      summary,
+      results,
+    };
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `fuelguard-carrier-verification-${new Date(report.generatedAt).toISOString().replace(/[:.]/g, '-')}.json`;
+    anchor.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
   };
 
   return (
@@ -55,21 +126,42 @@ export const CadTestsTab: React.FC<CadTestsTabProps> = () => {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={handleRerun} disabled={isRunning} className="px-3 py-1.5 rounded-xs bg-inst-canvas border border-inst-border hover:border-fuelguard-green text-xs font-mono transition flex items-center gap-1.5 disabled:opacity-50">
-              <RefreshCw className={`w-3.5 h-3.5 ${isRunning ? 'animate-spin' : ''}`} />
-              <span>{isRunning ? 'Executando...' : 'Executar verificação'}</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button onClick={handleRerun} disabled={isRunning} className="px-3 py-1.5 rounded-xs bg-inst-canvas border border-inst-border hover:border-fuelguard-green text-xs font-mono transition flex items-center gap-1.5 disabled:opacity-50">
+                <RefreshCw className={`w-3.5 h-3.5 ${isRunning ? 'animate-spin' : ''}`} />
+                <span>{isRunning ? 'Executando...' : 'Executar verificação'}</span>
+              </button>
+              <button onClick={handleExportReport} disabled={isRunning} className="p-1.5 rounded-xs bg-inst-canvas border border-inst-border hover:border-sky-500 text-inst-secondary hover:text-sky-300 transition disabled:opacity-40" title="Exportar evidência JSON" aria-label="Exportar evidência JSON">
+                <Download className="w-3.5 h-3.5" />
+              </button>
+            </div>
             <div className={`px-3 py-1.5 rounded-xs border text-xs font-mono font-bold ${summary.fail ? 'bg-rose-950 text-rose-300 border-rose-800' : 'bg-amber-950 text-amber-300 border-amber-800'}`}>
-              {summary.fail ? `${summary.fail} FALHA` : `${summary.pass} PASS • ${summary.pending} PENDENTE`}
+              {isRunning ? `${completedCount}/${results.length} EXECUTADOS` : summary.fail ? `${summary.fail} FALHA` : `${summary.pass} PASS • ${summary.warn} AVISO • ${summary.pending} PENDENTE`}
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs font-mono">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs font-mono">
           <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border"><span className="text-[10px] text-inst-muted block uppercase">PASS</span><span className="text-sm font-bold text-emerald-400">{summary.pass}</span></div>
+          <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border"><span className="text-[10px] text-inst-muted block uppercase">AVISO</span><span className="text-sm font-bold text-sky-300">{summary.warn}</span></div>
           <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border"><span className="text-[10px] text-inst-muted block uppercase">PENDENTE</span><span className="text-sm font-bold text-amber-300">{summary.pending}</span></div>
           <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border"><span className="text-[10px] text-inst-muted block uppercase">FAIL</span><span className="text-sm font-bold text-rose-400">{summary.fail}</span></div>
-          <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border"><span className="text-[10px] text-inst-muted block uppercase">Última execução</span><span className="text-sm font-bold text-sky-400 flex items-center gap-1">{lastRunTime ?? 'ao abrir'} <Clock3 className="w-3 h-3" /></span></div>
+          <div className="bg-inst-canvas p-2.5 rounded-xs border border-inst-border"><span className="text-[10px] text-inst-muted block uppercase">Tempo</span><span className="text-sm font-bold text-sky-400 flex items-center gap-1">{isRunning ? `${(elapsedMs / 1000).toFixed(1)}s` : lastRunTime ?? 'ao abrir'} <Clock3 className="w-3 h-3" /></span></div>
+        </div>
+      </div>
+
+      <div className="bg-inst-surface border border-inst-border rounded-md p-3 font-mono text-[10px]" aria-live="polite">
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <span className="text-inst-secondary uppercase tracking-wider font-bold flex items-center gap-1.5"><Activity className={`w-3.5 h-3.5 text-fuelguard-green ${isRunning ? 'animate-pulse' : ''}`} /> Log de execução no navegador</span>
+          <span className="text-inst-muted">{isRunning ? 'avaliando contratos…' : lastRunTime ? `última execução ${lastRunTime}` : 'ainda não executado nesta sessão'}</span>
+        </div>
+        <div className="h-1 bg-inst-canvas rounded-full overflow-hidden mb-2"><div className="h-full bg-fuelguard-green transition-all duration-300" style={{ width: `${isRunning ? progressPercent : 100}%` }} /></div>
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-inst-muted">
+          {runLog.length ? runLog.map((entry, index) => {
+            const LogIcon = entry.status === 'FAIL' ? AlertTriangle : entry.status === 'PENDING' ? Clock3 : entry.status === 'WARN' ? Activity : CircleCheck;
+            const logColor = entry.status === 'FAIL' ? 'text-rose-400' : entry.status === 'PENDING' ? 'text-amber-300' : entry.status === 'WARN' ? 'text-sky-300' : 'text-emerald-400';
+            return <span key={`${entry.label}-${index}`} className="inline-flex items-center gap-1"><LogIcon className={`w-3 h-3 ${logColor}`} />{entry.label}</span>;
+          }) : <span>Execute a verificação para acompanhar cada gate e sua evidência.</span>}
         </div>
       </div>
 
@@ -77,7 +169,7 @@ export const CadTestsTab: React.FC<CadTestsTabProps> = () => {
         {results.map((test) => {
           const Icon = iconForScope(test.scope);
           return (
-            <div key={test.id} className="bg-inst-surface border border-inst-border rounded-md p-4 space-y-2 font-mono text-xs">
+            <div key={test.id} className={`bg-inst-surface border rounded-md p-4 space-y-2 font-mono text-xs transition ${activeTestId === test.id ? 'border-fuelguard-green shadow-[0_0_0_1px_rgba(16,185,129,0.25)]' : 'border-inst-border'}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-2">
                   <Icon className="w-4 h-4 text-fuelguard-green mt-0.5 shrink-0" />

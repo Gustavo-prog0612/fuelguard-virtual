@@ -12,13 +12,24 @@ interface DesignSystemContextValue {
   toggleTheme: () => void;
 }
 
+const THEME_STORAGE_KEY = 'fuelguard.theme-mode';
+
 const DesignSystemContext = createContext<DesignSystemContextValue | undefined>(undefined);
 
 export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [preset, setPresetState] = useState<TypographyPreset>('A');
-  const [themeMode, setThemeModeState] = useState<ThemeMode>('light');
-
-  const THEME_STORAGE_KEY = 'fuelguard.theme-mode';
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+        if (stored === 'dark' || stored === 'light') return stored;
+      } catch {
+        // Fallback
+      }
+      if (document.documentElement.classList.contains('dark')) return 'dark';
+    }
+    return 'dark';
+  });
 
   const setPreset = (newPreset: TypographyPreset) => {
     setPresetState(newPreset);
@@ -51,12 +62,12 @@ export const DesignSystemProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     // Inicializa variáveis CSS e tema
     setPreset('A');
-    let storedMode: ThemeMode = 'light';
+    let storedMode: ThemeMode = themeMode;
     try {
       const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
       if (stored === 'dark' || stored === 'light') storedMode = stored;
     } catch {
-      // Mantém o padrão claro quando storage não estiver disponível.
+      // Mantém o padrão
     }
     setThemeMode(storedMode);
   }, []);

@@ -4,19 +4,19 @@
   "policy": "A model is exact only when the manufacturer source and conversion provenance are recorded.",
   "assets": [
     {
-      "id": "pn532-elechouse-v4",
-      "label": "ELECHOUSE PN532 NFC Module V4",
+      "id": "pn532-adafruit-v1-6",
+      "label": "Adafruit PN532 RFID/NFC Breakout v1.6",
       "kind": "module",
       "format": "glb",
-      "path": "/models/official/elechouse-pn532-v4.glb",
-      "sourceStep": "/models/vendor/elechouse-pn532-v4/source/3D_NFC_EASY_SHIELD_V4.1_2025-12-13.step",
-      "sourceUrl": "https://www.elechouse.com/docs/pn532-v4/",
-      "sourceAssetUrl": "https://www.elechouse.com/wp-content/uploads/2022/04/ELECHOUSE_PN532_V4_3D.zip",
-      "sourceLicense": "Manufacturer-provided CAD; redistribution terms require vendor confirmation.",
-      "confidence": "A",
-      "validation": "exact_verified",
-      "dimensionsMm": { "width": 42.68, "depth": 40.38, "height": 4.61 },
-      "notes": "Official vendor STEP converted offline with OCCT Import JS. The source archive remains available for audit."
+      "path": "/assets/cad/carrier/RFID1/reference-derived.glb",
+      "sourceStep": "Adafruit PN532_Breakout_v1.6.brd/.sch (Eagle) → local derived GLB",
+      "sourceUrl": "https://github.com/adafruit/Adafruit-PN532-RFID-NFC-Breakout",
+      "sourceAssetUrl": "https://github.com/adafruit/Adafruit-PN532-RFID-NFC-Breakout/blob/master/Adafruit%20PN532_Breakout_v1.6.brd",
+      "sourceLicense": "CC-BY-SA-3.0; local geometry derivative under project provenance",
+      "confidence": "C",
+      "validation": "pending_physical_evidence",
+      "dimensionsMm": { "width": 120, "depth": 50, "height": 5.3 },
+      "notes": "Envelope, mounting holes, JP4/JP3/CN1, SEL0/SEL1 and antenna representation are derived from the official Eagle v1.6 board. Physical unit and full copper/silkscreen conversion remain pending."
     },
     {
       "id": "esp32-s3-devkitc-1-v1-1",

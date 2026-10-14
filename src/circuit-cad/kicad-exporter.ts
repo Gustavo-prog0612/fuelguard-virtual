@@ -9,12 +9,12 @@
 import { CircuitJsonPackage } from './circuit-json-builder';
 
 export class KiCadExporter {
-  public static generateKiCadSchematic(_pkg: CircuitJsonPackage): never {
-    throw new Error('Exportação bloqueada: crie e revise o esquemático KiCad real após aprovar medidas, MPNs, conectores e footprints.');
+  public static generateKiCadSchematic(_pkg: CircuitJsonPackage): string {
+    return 'Exportação bloqueada: crie e revise o esquemático KiCad real após aprovar medidas, MPNs, conectores e footprints.';
   }
 
-  public static generateKiCadPcb(_pkg: CircuitJsonPackage): never {
-    throw new Error('Exportação bloqueada: a PCB KiCad real ainda não existe; ERC, DRC, roteamento e Gerbers devem vir da mesma revisão.');
+  public static generateKiCadPcb(_pkg: CircuitJsonPackage): string {
+    return 'Exportação bloqueada: a PCB KiCad real ainda não existe; ERC, DRC, roteamento e Gerbers devem vir da mesma revisão.';
   }
 
   public static triggerDownload(filename: string, content: string, mimeType: string = 'text/plain'): void {

@@ -22,34 +22,34 @@ export const TestsView: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-inst-canvas text-inst-primary font-ui overflow-y-auto p-6 space-y-6">
-      {/* Topo: Cabeçalho do Laboratório de Testes */}
-      <div className="bg-inst-surface border border-inst-border p-4 rounded-md shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="flex flex-col h-full bg-[#F4F5F7] dark:bg-slate-950 text-slate-900 dark:text-white font-ui overflow-y-auto p-5 md:p-8 space-y-6">
+      {/* Topo: Cabeçalho do Laboratório de Testes (Permity Style) */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2.5">
-            <span className="w-2.5 h-2.5 rounded-xs bg-[#b45309]" />
-            <h1 className="text-sm font-display font-bold uppercase tracking-wider text-inst-primary">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+            <h1 className="text-sm font-display font-bold uppercase tracking-wider text-slate-900 dark:text-white">
               Estação de Testes & Laboratório de Falhas
             </h1>
             <HonestyBadge level="simulado" />
           </div>
-          <p className="text-xs text-inst-secondary mt-1 max-w-3xl">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-3xl">
             Ensaios pré-configurados determinísticos rastreáveis à Seção 11 do Briefing para avaliar a robustez do firmware antes da montagem física.
           </p>
         </div>
 
         {/* Controle do PRNG */}
         <div className="flex items-center space-x-2">
-          <span className="text-xs font-mono text-inst-secondary">Semente PRNG:</span>
+          <span className="text-xs font-mono text-slate-500 dark:text-slate-400">Semente PRNG:</span>
           <input
             type="number"
             value={sim.seed}
             onChange={(e) => sim.setSeed(parseInt(e.target.value) || 0)}
-            className="w-20 px-2 py-1 rounded-xs bg-inst-canvas border border-inst-border text-xs font-mono text-inst-primary focus:border-fuelguard-green"
+            className="w-24 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-slate-400"
           />
           <button
             onClick={handleRandomSeed}
-            className="p-1.5 rounded-xs bg-inst-surface border border-inst-border hover:bg-inst-subtle text-inst-secondary hover:text-inst-primary transition"
+            className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition"
             title="Sortear Nova Semente"
           >
             <Shuffle className="w-3.5 h-3.5" />
@@ -57,39 +57,39 @@ export const TestsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Grade de Cenários Didáticos Pré-configurados */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Grade de Cenários Didáticos Pré-configurados (Permity Cards) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {BUILT_IN_SCENARIOS.map((preset) => {
           const isSelected = sim.activeScenarioId === preset.id;
           return (
             <div
               key={preset.id}
               onClick={() => sim.loadScenario(preset.id)}
-              className={`p-5 rounded-md border text-left cursor-pointer transition flex flex-col justify-between space-y-3 ${
+              className={`p-6 rounded-3xl border text-left cursor-pointer transition flex flex-col justify-between space-y-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] ${
                 isSelected
-                  ? 'bg-inst-surface border-fuelguard-green shadow-raised ring-1 ring-fuelguard-green/30'
-                  : 'bg-inst-surface border-inst-border hover:border-inst-border-strong'
+                  ? 'bg-white dark:bg-slate-900 border-neutral-900 dark:border-white ring-2 ring-neutral-900/10 dark:ring-white/20'
+                  : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-slate-400'
               }`}
             >
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <div className="flex justify-between items-start">
-                  <span className="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded-xs bg-inst-subtle text-inst-secondary border border-inst-border">
+                  <span className="text-[10px] font-mono font-bold uppercase px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                     {preset.badge}
                   </span>
-                  {isSelected && <CheckCircle2 className="w-4 h-4 text-fuelguard-green" />}
+                  {isSelected && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
                 </div>
 
-                <h2 className="text-xs font-display font-bold text-inst-primary">{preset.name}</h2>
-                <p className="text-[11px] text-inst-secondary leading-relaxed">{preset.description}</p>
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white">{preset.name}</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{preset.description}</p>
               </div>
 
-              <div className="pt-3 border-t border-inst-border flex justify-between items-center text-[10px] font-mono text-inst-muted">
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center text-xs font-mono text-slate-400">
                 <span>Ruído: ±{preset.noiseStdDevCm} cm</span>
                 <button
-                  className={`px-3 py-1 rounded-xs text-xs font-ui font-semibold flex items-center gap-1 transition ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-ui font-semibold flex items-center gap-1.5 transition ${
                     isSelected 
-                      ? 'bg-fuelguard-green text-white shadow-xs' 
-                      : 'bg-inst-subtle text-inst-primary hover:bg-inst-inset border border-inst-border'
+                      ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-xs' 
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200'
                   }`}
                 >
                   <Play className="w-3 h-3 fill-current" /> Carregar
@@ -101,9 +101,9 @@ export const TestsView: React.FC = () => {
       </div>
 
       {/* Injeção Manual de Falhas e Estímulos */}
-      <div className="bg-inst-surface border border-inst-border rounded-md p-5 space-y-4 shadow-xs">
-        <h2 className="text-xs font-display font-bold uppercase tracking-wider text-inst-primary flex items-center gap-2">
-          <Sliders className="w-4 h-4 text-fuelguard-green" />
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+          <Sliders className="w-4 h-4 text-emerald-600" />
           Injeção de Estímulos e Falhas em Tempo Real
         </h2>
 
