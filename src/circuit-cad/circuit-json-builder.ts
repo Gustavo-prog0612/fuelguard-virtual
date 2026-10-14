@@ -16,41 +16,41 @@ export class CircuitJsonBuilder {
 
   public reset(): void { this.elements = []; this.netCounter = 1; this.traceCounter = 1; this.placements = {}; this.emitPcb = false; }
   public constructor() { this.reset(); }
-  public addBoard(widthMm = 180, heightMm = 120): void { this.elements.push({ type: 'pcb_board', pcb_board_id: 'fuelguard_carrier_board', center: { x: 0, y: 0 }, width: widthMm, height: heightMm, thickness: 1.6, num_layers: 2 }); }
+  public addBoard(widthMm = 180, heightMm = 120): void { this.elements.push({ type: 'pcb_board', pcb_board_id: 'fuelguard_carrier_board', center: { x: 0, y: 0 }, width: widthMm, height: heightMm, thickness: 1.6, num_layers: 2, material: 'fr4' }); }
 
   public addComponent(instanceId: string, libraryComponentId: string, designator: string, pcbPosition: { x: number; y: number }, schematicPosition: { x: number; y: number }, options: { emitPcb?: boolean } = {}): void {
     const meta: CadComponentMetadata | undefined = FUELGUARD_CAD_LIBRARY[libraryComponentId];
     if (!meta) return;
     this.placements[instanceId] = { instanceId, libraryId: libraryComponentId, designator, pcb: pcbPosition, sch: schematicPosition };
-    const sourceCompId = `src_comp_${instanceId}`;
-    this.elements.push({ type: 'source_component', source_component_id: sourceCompId, name: designator, ftype: 'simple_chip', supplier_part_numbers: { official: [meta.partNumber] } });
+    const sourceCompId = \`src_comp_\${instanceId}\`;
+    this.elements.push({ type: 'source_component', source_component_id: sourceCompId, name: designator, ftype: 'simple_chip' });
     const shouldEmitPcb = options.emitPcb ?? this.emitPcb;
-    const pcbCompId = `pcb_comp_${instanceId}`;
-    if (shouldEmitPcb) this.elements.push({ type: 'pcb_component', pcb_component_id: pcbCompId, source_component_id: sourceCompId, center: pcbPosition, width: meta.dimensionsMm.width, height: meta.dimensionsMm.height, layer: 'top', rotation: 0 });
-    this.elements.push({ type: 'schematic_component', schematic_component_id: `sch_comp_${instanceId}`, source_component_id: sourceCompId, center: schematicPosition, size: { width: Math.max(20, meta.pins.length * 3), height: Math.max(16, meta.pins.length * 2.5) }, rotation: 0 });
+    const pcbCompId = \`pcb_comp_\${instanceId}\`;
+    if (shouldEmitPcb) this.elements.push({ type: 'pcb_component', pcb_component_id: pcbCompId, source_component_id: sourceCompId, center: pcbPosition, width: meta.dimensionsMm.width, height: meta.dimensionsMm.height, layer: 'top', obstructs_within_bounds: true });
+    this.elements.push({ type: 'schematic_component', schematic_component_id: \`sch_comp_\${instanceId}\`, source_component_id: sourceCompId, center: schematicPosition, size: { width: Math.max(20, meta.pins.length * 3), height: Math.max(16, meta.pins.length * 2.5) } });
     meta.pins.forEach((pin, index) => {
-      const portId = `port_${instanceId}_${pin.id}`;
+      const portId = \`port_\${instanceId}_\${pin.id}\`;
       this.elements.push({ type: 'source_port', source_port_id: portId, source_component_id: sourceCompId, name: pin.label, pin_number: pin.pinNumber });
-      if (shouldEmitPcb) this.elements.push({ type: 'pcb_plated_hole', pcb_plated_hole_id: `pcb_hole_${instanceId}_${pin.id}`, pcb_component_id: pcbCompId, x: pcbPosition.x + pin.relativeX, y: pcbPosition.y + pin.relativeY, outer_diameter: 1.7, hole_diameter: 0.9, layers: ['top', 'bottom'] });
+      if (shouldEmitPcb) this.elements.push({ type: 'pcb_plated_hole', pcb_plated_hole_id: \`pcb_hole_\${instanceId}_\${pin.id}\`, pcb_component_id: pcbCompId, x: pcbPosition.x + pin.relativeX, y: pcbPosition.y + pin.relativeY, shape: 'circle', outer_diameter: 1.7, hole_diameter: 0.9, layers: ['top', 'bottom'] });
       const isLeft = index % 2 === 0;
-      this.elements.push({ type: 'schematic_port', schematic_port_id: `sch_port_${instanceId}_${pin.id}`, source_port_id: portId, center: { x: schematicPosition.x + (isLeft ? -15 : 15), y: schematicPosition.y + (Math.floor(index / 2) * 5 - 10) }, facing_direction: isLeft ? 'left' : 'right' });
+      this.elements.push({ type: 'schematic_port', schematic_port_id: \`sch_port_\${instanceId}_\${pin.id}\`, source_port_id: portId, center: { x: schematicPosition.x + (isLeft ? -15 : 15), y: schematicPosition.y + (Math.floor(index / 2) * 5 - 10) }, facing_direction: isLeft ? 'left' : 'right' });
     });
   }
 
   public addConnection(conn: BenchConnection): void {
-    const portA = `port_${conn.fromNode}_${conn.fromPin}`;
-    const portB = `port_${conn.toNode}_${conn.toPin}`;
-    const netName = conn.netName ?? `NET_${this.netCounter++}`;
-    const netId = `net_${netName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-    const traceId = `trace_${this.traceCounter++}`;
+    const portA = \`port_\${conn.fromNode}_\${conn.fromPin}\`;
+    const portB = \`port_\${conn.toNode}_\${conn.toPin}\`;
+    const netName = conn.netName ?? \`NET_\${this.netCounter++}\`;
+    const netId = \`net_\${netName.toLowerCase().replace(/[^a-z0-9]/g, '_')}\`;
+    const traceId = \`trace_\${this.traceCounter++}\`;
     this.elements.push({ type: 'source_net', source_net_id: netId, name: netName, member_source_group_ids: [] });
     this.elements.push({ type: 'source_trace', source_trace_id: traceId, connected_source_port_ids: [portA, portB], connected_source_net_ids: [netId] });
     const from = this.placements[conn.fromNode];
     const to = this.placements[conn.toNode];
     const p1 = from ? this.pinPosition(from, conn.fromPin) : { x: -20, y: 0 };
     const p2 = to ? this.pinPosition(to, conn.toPin) : { x: 20, y: 0 };
-    this.elements.push({ type: 'schematic_trace', schematic_trace_id: `sch_${traceId}`, source_trace_id: traceId, edges: [{ from: { x: p1.x * 0.8, y: p1.y * 0.8 }, to: { x: p2.x * 0.8, y: p2.y * 0.8 } }] });
-    if (this.emitPcb) this.elements.push({ type: 'pcb_trace', pcb_trace_id: `pcb_${traceId}`, source_trace_id: traceId, route: [{ x: p1.x, y: p1.y, width: 0.35, layer: 'top' }, { x: p2.x, y: p2.y, width: 0.35, layer: 'top' }] });
+    this.elements.push({ type: 'schematic_trace', schematic_trace_id: \`sch_\${traceId}\`, source_trace_id: traceId, edges: [{ from: { x: p1.x * 0.8, y: p1.y * 0.8 }, to: { x: p2.x * 0.8, y: p2.y * 0.8 } }], junctions: [] });
+    if (this.emitPcb) this.elements.push({ type: 'pcb_trace', pcb_trace_id: \`pcb_\${traceId}\`, source_trace_id: traceId, route: [{ route_type: 'wire', x: p1.x, y: p1.y, width: 0.35, layer: 'top' }, { route_type: 'wire', x: p2.x, y: p2.y, width: 0.35, layer: 'top' }] });
   }
 
   private pinPosition(placement: ComponentPlacement, pinId: string): { x: number; y: number } {
