@@ -25,8 +25,7 @@
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.0.2",
     "three": "^0.186.1",
-    "three-mesh-bvh": "^0.9.15",
-    "zod": "^4.6.5"
+    "three-mesh-bvh": "^0.9.15"
   },
   "devDependencies": {
     "@fontsource/archivo": "^5.3.0",
