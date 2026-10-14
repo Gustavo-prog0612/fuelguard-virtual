@@ -26,6 +26,7 @@ import {
   getCarrierAssetStatusLabel,
 } from '@/circuit-cad/carrier-assets';
 import { disposeCarrierAsset, loadCarrierAsset } from './carrier-asset-loader';
+import { useModalDialogFocus } from '@/ui/components/accessibility/use-modal-dialog-focus';
 
 interface Component360InspectorModalProps {
   component: CadComponentMetadata;
@@ -40,6 +41,7 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   // Estados de navegação 3D no visualizador isolado
   const [isAutoRotate, setIsAutoRotate] = useState<boolean>(true);
@@ -131,14 +133,11 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
     ? 'Divisor resistivo de entrada: R1 = 10 kΩ e R2 = 15 kΩ. O GLB representa o corpo axial reutilizável; valores, referências e conexões permanecem separados na BOM.'
     : component.description;
 
-  // Tecla ESC fecha a inspeção
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  useModalDialogFocus({
+    dialogRef: containerRef,
+    initialFocusRef: closeButtonRef,
+    onClose,
+  });
 
   // Inicialização do Three.js isolado
   useEffect(() => {
@@ -417,7 +416,11 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
       role="dialog"
       aria-modal="true"
       aria-labelledby="inspector-title"
+      aria-describedby="inspector-keyboard-help"
     >
+      <p id="inspector-keyboard-help" className="sr-only">
+        Inspeção 360 graus aberta. Use Tab para navegar pelos controles, Shift mais Tab para voltar e Escape para fechar e retornar ao controle anterior.
+      </p>
       <div className="relative w-full max-w-6xl h-[92vh] max-h-[880px] bg-[#0c121d] border border-fuelguard-green/60 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
         {/* Top Header */}
         <header className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-slate-900/60 shrink-0">
@@ -450,6 +453,7 @@ export const Component360InspectorModal: React.FC<Component360InspectorModalProp
 
           <div className="flex items-center gap-2">
             <button
+              ref={closeButtonRef}
               onClick={onClose}
               className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 border border-transparent hover:border-slate-700 transition"
               aria-label="Fechar modal de inspeção"

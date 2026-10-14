@@ -57,6 +57,7 @@ import { getCarrierAssetEntry } from '@/circuit-cad/carrier-assets';
 import { SceneObjectRegistry, CollisionStatus } from '@/geometry/scene-object-registry';
 import { useSimulation } from '@/core/worker/use-simulation';
 import { Component360InspectorModal } from './Component360InspectorModal';
+import { restoreInspectionScene } from './inspection-scene';
 
 interface BenchAssemblyCanvasProps {
   onSelectTab?: (tab: 'schematic' | 'pcb' | '3d' | 'assembly' | 'drc' | 'catalog') => void;
@@ -233,26 +234,15 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
   }, []);
 
   const closeComponentInspection = useCallback(() => {
-    if (inspectionObjectRef.current && inspectionBaseRotationRef.current) {
-      inspectionObjectRef.current.rotation.copy(inspectionBaseRotationRef.current);
-    }
-    restoreInspectionVisibility();
-    inspectionAngleRef.current = 0;
-    inspectionObjectRef.current = null;
-    inspectionBaseRotationRef.current = null;
+    restoreInspectionScene({
+      objectRef: inspectionObjectRef,
+      baseRotationRef: inspectionBaseRotationRef,
+      angleRef: inspectionAngleRef,
+      visibilityRef: inspectionVisibilityRef,
+    });
     setIsInspectionAutoRotate(false);
     setSelectedComp(null);
-  }, [restoreInspectionVisibility]);
-
-  // O foco 3D é modal: ESC fecha a inspeção e devolve o foco ao canvas.
-  useEffect(() => {
-    if (!selectedComp) return undefined;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeComponentInspection();
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [selectedComp, closeComponentInspection]);
+  }, []);
 
   const handleToggleFullscreen = () => {
     if (!containerRef.current) return;
