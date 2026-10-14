@@ -2,9 +2,9 @@
  * FuelGuard Virtual Test Bench — Cena 3D de Montagem da Bancada Física (Assembly View)
  * Renderiza o arranjo tridimensional da referência de engenharia, com proveniência explícita:
  * - Tapete ESD e Protoboard MB-102 com furação e barramentos
- * - ESP32-S3 DevKitC-1 v1.1 com WROOM-1, pinagem 2x22, duas portas Micro-USB e botões (GLB documentado Classe B)
- * - A02YYUW / SEN0311 com GLB reconstruído a partir do desenho mecânico documentado (Classe B)
- * - Módulo PN532 em suporte frontal seco, fora do tanque, com antena espiral plana (Classe A no GLB)
+ * - ESP32-S3 DevKitC-1 v1.1 com WROOM-1, pinagem 2x22, portas Micro-USB e botões (referência 3D pendente de confirmação física)
+ * - A02YYUW / SEN0311 com referência 3D documentada, ainda pendente de equivalência com JSN-SR04T v2.0
+ * - Módulo PN532 em suporte frontal seco, fora do tanque, com antena espiral plana (referência, não CAD validado da Adafruit v1.6)
  * - Reed Switch em ampola de vidro e ímã de neodímio na tampa (Classe C)
  * - Tanque cilíndrico paramétrico FG-TANK-5L-CYL-R1 com tampa 4x M3
  * - Chicote tubular físico com terminais DuPont e rotas respeitando conectores
@@ -31,7 +31,6 @@ import {
   Zap,
   Eye,
   EyeOff,
-  ExternalLink,
   ShieldCheck,
   AlertTriangle,
   Flame,
@@ -41,15 +40,11 @@ import {
   Grid3X3,
   Waves,
   SlidersHorizontal,
-  Play,
-  Pause,
-  Focus,
 } from 'lucide-react';
 import { ViewCube } from './ViewCube';
 import {
   FUELGUARD_CAD_LIBRARY,
   CadComponentMetadata,
-  CadConfidenceLevel,
 } from '@/circuit-cad/component-library';
 import {
   PHYSICAL_WIRING_REGISTRY,
@@ -57,10 +52,12 @@ import {
   CableSignalGroup,
 } from '@/circuit-cad/wiring-registry';
 import { AssemblyAuditor, AssemblyAuditReport } from '@/circuit-cad/assembly-auditor';
-import { getSceneObject, TANK_SPEC } from '@/circuit-cad/assembly-source';
+import { getSceneObject, TANK_PHYSICAL_RELEASED, TANK_SPEC } from '@/circuit-cad/assembly-source';
+import { getCarrierAssetEntry } from '@/circuit-cad/carrier-assets';
 import { SceneObjectRegistry, CollisionStatus } from '@/geometry/scene-object-registry';
 import { useSimulation } from '@/core/worker/use-simulation';
-import { COMPONENT_FUNCTION_CATALOG } from '@/circuit-cad/component-function-catalog';
+import { Component360InspectorModal } from './Component360InspectorModal';
+import { restoreInspectionScene } from './inspection-scene';
 
 interface BenchAssemblyCanvasProps {
   onSelectTab?: (tab: 'schematic' | 'pcb' | '3d' | 'assembly' | 'drc' | 'catalog') => void;
@@ -92,7 +89,6 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
   const [selectedComp, setSelectedComp] = useState<CadComponentMetadata | null>(null);
   const [selectedCable, setSelectedCable] = useState<PhysicalCable | null>(null);
   const [isInspectionAutoRotate, setIsInspectionAutoRotate] = useState<boolean>(false);
-  const [selectedFunctionalDetail, setSelectedFunctionalDetail] = useState<string | null>(null);
   const [isAuditModalOpen, setIsAuditModalOpen] = useState<boolean>(false);
   const [collisionStatus, setCollisionStatus] = useState<CollisionStatus>('PENDING_PHYSICAL_EVIDENCE');
   const focusTargetRef = useRef<{ object: THREE.Object3D; distance: number } | null>(null);
@@ -154,6 +150,9 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
   const isSensorModeRef = useRef<boolean>(false);
   isSensorModeRef.current = benchMode === 'sensores';
 
+  const showCalipersRef = useRef<boolean>(false);
+  showCalipersRef.current = showCalipers;
+
   const updateRotation = useCallback((newX: number, newY: number) => {
     rotRef.current = { rotX: newX, rotY: newY };
     setRotX(newX);
@@ -171,29 +170,29 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     setIsInspectionAutoRotate(false);
     switch (preset) {
       case 'iso':
-        animTargetRef.current = { targetX: 0.38, targetY: -0.65, targetCamZ: 560 };
+        animTargetRef.current = { targetX: 0.38, targetY: -0.65, targetCamZ: 600 };
         setIsExploded(false);
         break;
       case 'top':
-        animTargetRef.current = { targetX: Math.PI / 2 - 0.04, targetY: 0, targetCamZ: 580 };
+        animTargetRef.current = { targetX: Math.PI / 2 - 0.04, targetY: 0, targetCamZ: 470 };
         break;
       case 'front':
-        animTargetRef.current = { targetX: 0.08, targetY: 0, targetCamZ: 520 };
+        animTargetRef.current = { targetX: 0.08, targetY: 0, targetCamZ: 450 };
         break;
       case 'right':
-        animTargetRef.current = { targetX: 0.15, targetY: -Math.PI / 2, targetCamZ: 520 };
+        animTargetRef.current = { targetX: 0.15, targetY: -Math.PI / 2, targetCamZ: 450 };
         break;
       case 'left':
-        animTargetRef.current = { targetX: 0.15, targetY: Math.PI / 2, targetCamZ: 520 };
+        animTargetRef.current = { targetX: 0.15, targetY: Math.PI / 2, targetCamZ: 450 };
         break;
       case 'wiring':
-        animTargetRef.current = { targetX: 0.52, targetY: -0.35, targetCamZ: 460 };
+        animTargetRef.current = { targetX: 0.52, targetY: -0.35, targetCamZ: 390 };
         setActiveCableGroup('all');
         setShowCables(true);
         break;
       case 'exploded':
         setIsExploded(true);
-        animTargetRef.current = { targetX: 0.42, targetY: -0.75, targetCamZ: 620 };
+        animTargetRef.current = { targetX: 0.42, targetY: -0.75, targetCamZ: 520 };
         break;
     }
   };
@@ -235,27 +234,15 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
   }, []);
 
   const closeComponentInspection = useCallback(() => {
-    if (inspectionObjectRef.current && inspectionBaseRotationRef.current) {
-      inspectionObjectRef.current.rotation.copy(inspectionBaseRotationRef.current);
-    }
-    restoreInspectionVisibility();
-    inspectionAngleRef.current = 0;
-    inspectionObjectRef.current = null;
-    inspectionBaseRotationRef.current = null;
+    restoreInspectionScene({
+      objectRef: inspectionObjectRef,
+      baseRotationRef: inspectionBaseRotationRef,
+      angleRef: inspectionAngleRef,
+      visibilityRef: inspectionVisibilityRef,
+    });
     setIsInspectionAutoRotate(false);
-    setSelectedFunctionalDetail(null);
     setSelectedComp(null);
-  }, [restoreInspectionVisibility]);
-
-  // O foco 3D é modal: ESC fecha a inspeção e devolve o foco ao canvas.
-  useEffect(() => {
-    if (!selectedComp) return undefined;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeComponentInspection();
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [selectedComp, closeComponentInspection]);
+  }, []);
 
   const handleToggleFullscreen = () => {
     if (!containerRef.current) return;
@@ -263,36 +250,6 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       containerRef.current.requestFullscreen().catch(() => {});
     } else {
       document.exitFullscreen().catch(() => {});
-    }
-  };
-
-  // Helper para classes de fidelidade
-  const getConfidenceBadge = (level: CadConfidenceLevel) => {
-    switch (level) {
-      case 'A':
-        return {
-          label: 'Classe A — Modelo Oficial Verificado',
-          color: 'bg-emerald-950/80 text-emerald-400 border-emerald-600',
-          dot: 'bg-emerald-400',
-        };
-      case 'B':
-        return {
-          label: 'Classe B — Biblioteca Confiável (KiCad/JEDEC)',
-          color: 'bg-sky-950/80 text-sky-400 border-sky-600',
-          dot: 'bg-sky-400',
-        };
-      case 'C':
-        return {
-          label: 'Classe C — Aproximação Paramétrica (Datasheet)',
-          color: 'bg-amber-950/80 text-amber-300 border-amber-600',
-          dot: 'bg-amber-400',
-        };
-      case 'D':
-        return {
-          label: 'Classe D — Placeholder Visual Didático',
-          color: 'bg-purple-950/80 text-purple-300 border-purple-600',
-          dot: 'bg-purple-400',
-        };
     }
   };
 
@@ -311,8 +268,8 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     scene.background = new THREE.Color(0x06090d);
 
     const camera = new THREE.PerspectiveCamera(40, width / height, 1, 3500);
-    camera.position.set(0, 235, 560);
-    const defaultCameraTarget = new THREE.Vector3(0, 70, 0);
+    camera.position.set(0, 235, 600);
+    const defaultCameraTarget = new THREE.Vector3(0, 0, 0);
     camera.lookAt(defaultCameraTarget);
 
     let renderer: THREE.WebGLRenderer;
@@ -409,6 +366,8 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
         registryId?: string;
         position?: [number, number, number];
         rotation?: [number, number, number];
+        verified?: boolean;
+        status?: 'verified' | 'approximate' | 'pending';
         onLoaded?: (root: THREE.Object3D) => void;
       } = {},
     ) => {
@@ -422,7 +381,8 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
             return;
           }
           fallbackNodes.forEach((node) => { node.visible = false; });
-          gltf.scene.name = `${designator} — documented reference GLB`;
+          const assetStatus = options.status ?? (options.verified ? 'verified' : 'approximate');
+          gltf.scene.name = `${designator} — ${assetStatus === 'verified' ? 'verified local CAD GLB' : 'local documented reference GLB'}`;
           if (options.position) gltf.scene.position.set(...options.position);
           if (options.rotation) gltf.scene.rotation.set(...options.rotation);
           gltf.scene.traverse((node) => {
@@ -430,10 +390,11 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
               node.castShadow = enableShadows;
               node.receiveShadow = true;
               node.userData.componentKey = componentKey;
+              node.userData.assetStatus = assetStatus;
             }
           });
           targetGroup.add(gltf.scene);
-          sceneRegistry.register(options.registryId ?? designator, gltf.scene, { designator, collisionClass: 'DOCUMENTED_REFERENCE_ASSET', verified: false });
+          sceneRegistry.register(options.registryId ?? designator, gltf.scene, { designator, collisionClass: assetStatus === 'verified' ? 'VERIFIED_LOCAL_ASSET' : 'DOCUMENTED_REFERENCE_ASSET', verified: assetStatus === 'verified' });
           pickableObjects.push({ mesh: gltf.scene, compKey: componentKey });
           options.onLoaded?.(gltf.scene);
         },
@@ -553,10 +514,11 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     benchGroup.add(bbGroup);
     sceneRegistry.register('BB1', bbGroup, { designator: 'BB1', collisionClass: 'SOLID_BASE' });
     pickableObjects.push({ mesh: bbBody, compKey: 'breadboard_830' });
-    loadReferenceAsset('/models/reference/mb102-830-reference.glb', bbGroup, 'BB1', 'breadboard_830', [...bbGroup.children]);
+    loadReferenceAsset(getCarrierAssetEntry('breadboard_830')?.referenceAssetPath ?? '/models/reference/mb102-830-reference.glb', bbGroup, 'BB1', 'breadboard_830', [...bbGroup.children], { status: 'pending' });
 
     // =========================================================================
-    // 6. ESP32-S3 DevKitC-1 v1.1 na baia seca — GLB detalhado Classe B
+    // 6. ESP32-S3 DevKitC-1 v1.1 na baia seca — referência 3D, pendente de
+    // confirmação dimensional da variante física registrada no Carrier.
     // =========================================================================
     const espGroup = new THREE.Group();
     espGroup.position.set(u1Position[0], u1Position[1], u1Position[2]);
@@ -640,11 +602,12 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     pickableObjects.push({ mesh: espCan, compKey: 'esp32_s3_devkit' });
     pickableObjects.push({ mesh: espPcb, compKey: 'esp32_s3_devkit' });
 
-    // GLB detalhado reconstruído a partir da documentação oficial Espressif.
+    // Referência GLB reconstruída a partir de documentação Espressif. Ela melhora
+    // a leitura da bancada, mas não substitui a pendência U1 do manifesto.
     let espAssetRoot: THREE.Object3D | null = null;
     const espLoader = new GLTFLoader();
     espLoader.load(
-      '/models/official/espressif-esp32-s3-devkitc-1-v1.1.glb',
+      getCarrierAssetEntry('esp32_s3_devkit')?.referenceAssetPath ?? '/models/official/espressif-esp32-s3-devkitc-1-v1.1.glb',
       (gltf) => {
         if (sceneDisposed) {
           gltf.scene.traverse((node) => {
@@ -653,13 +616,14 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
           return;
         }
         espAssetRoot = gltf.scene;
-        espAssetRoot.name = 'ESP32-S3-DevKitC-1-N8R8 v1.1 — detailed reference GLB';
+        espAssetRoot.name = 'ESP32-S3-DevKitC-1-N8R8 v1.1 — local reference GLB (pending physical verification)';
         espAssetRoot.position.set(u1Position[0], u1Position[1], u1Position[2]);
         espAssetRoot.traverse((node) => {
           if (node instanceof THREE.Mesh) {
             node.castShadow = enableShadows;
             node.receiveShadow = true;
             node.userData.componentKey = 'esp32_s3_devkit';
+            node.userData.assetStatus = 'pending_physical_verification';
           }
         });
         espGroup.visible = false;
@@ -680,7 +644,14 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     );
     usbPlug.position.set(u1Position[0], u1Position[1] + 4.5, u1Position[2] + 45);
     usbPlug.castShadow = enableShadows;
+    usbPlug.userData.designator = 'CBL_USB';
+    usbPlug.userData.assetStatus = 'approximate';
     benchGroup.add(usbPlug);
+    sceneRegistry.register('CBL_USB', usbPlug, {
+      designator: 'CBL_USB',
+      collisionClass: 'STANDALONE_MODULE',
+      verified: false,
+    });
     pickableObjects.push({ mesh: usbPlug, compKey: 'usb_cable_assembly' });
 
     // Origem física do cabo USB: o cabo não começa em um ponto abstrato no
@@ -742,7 +713,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     sceneRegistry.register('D1', ledIndicatorGroup, { designator: 'D1', collisionClass: 'PASSIVE_COMPONENT' });
     pickableObjects.push({ mesh: ledBody, compKey: 'led_indicator' });
     pickableObjects.push({ mesh: ledDome, compKey: 'led_indicator' });
-    loadReferenceAsset('/models/reference/kingbright-wp7113gd-reference.glb', ledIndicatorGroup, 'D1', 'led_indicator', [...ledIndicatorGroup.children]);
+    loadReferenceAsset('/assets/cad/carrier/D1/model.glb', ledIndicatorGroup, 'D1', 'led_indicator', [...ledIndicatorGroup.children], { rotation: [-Math.PI / 2, 0, 0], verified: true });
 
     // Buzzer ativo Same Sky CMI-1295IC-0385T THT 12mm (-5, 11.5, 20)
     const buzzerGroup = new THREE.Group();
@@ -775,7 +746,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     benchGroup.add(buzzerGroup);
     sceneRegistry.register('BZ1', buzzerGroup, { designator: 'BZ1', collisionClass: 'ACTIVE_MODULE' });
     pickableObjects.push({ mesh: bzBody, compKey: 'buzzer_active' });
-    loadReferenceAsset('/models/reference/samesky-cmi-1295ic-0385t-reference.glb', buzzerGroup, 'BZ1', 'buzzer_active', [...buzzerGroup.children]);
+    loadReferenceAsset('/assets/cad/carrier/BZ1/model.glb', buzzerGroup, 'BZ1', 'buzzer_active', [...buzzerGroup.children], { rotation: [-Math.PI / 2, 0, 0], verified: true });
 
     // =========================================================================
     // 8. SEN0311 / A02YYUW — asset documentado, centralizado na tampa
@@ -783,7 +754,9 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     const tankDefinition = getSceneObject('TK1');
     const tankPosition = tankDefinition?.positionMm ?? [85, 84, -10];
 
-    const TANK_GEOMETRY_RELEASED = true;
+    // O envelope permanece visível para simulação de água, mas não está
+    // liberado como geometria física: TK1 é Classe D até existir recipiente,
+    // tampa, parede e posição do sensor medidos em laboratório.
     // =========================================================================
     // 9. TANQUE E TAMPA REAIS (somente após gate de geometria)
     // =========================================================================
@@ -1015,44 +988,99 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
 
     let sensorAssetRoot: THREE.Object3D | null = null;
     loadReferenceAsset(
-      '/models/reference/dfrobot-sen0311-a02yyuw-reference.glb',
+      getCarrierAssetEntry('a02yyuw_sen0311')?.referenceAssetPath ?? '/models/reference/dfrobot-sen0311-a02yyuw-reference.glb',
       lidAssemblyGroup,
       'SEN1',
       'a02yyuw_sen0311',
       [probeMesh],
-      { registryId: 'SEN1_PROBE', onLoaded: (root) => { sensorAssetRoot = root; } },
+      { registryId: 'SEN1_PROBE', status: 'pending', onLoaded: (root) => { sensorAssetRoot = root; } },
     );
 
-    // Suporte acrílico transparente para o PN532
+    // Suporte acrílico transparente para a placa Adafruit PN532 v1.6,
+    // cujo envelope oficial derivado do Eagle é 120 × 50 mm.
     const pn532DryGroup = new THREE.Group();
-    pn532DryGroup.name = 'PN532 V4 — dry external front support';
+    pn532DryGroup.name = 'Adafruit PN532 v1.6 — dry external front support';
     pn532DryGroup.position.set(pn532Position[0], pn532Position[1] - 15.5, pn532Position[2]);
     benchGroup.add(pn532DryGroup);
 
+    // 1. Placa base de sustentação no tapete ESD (Y = -9.5 a -7.5)
+    const nfcBasePlate = new THREE.Mesh(
+      new THREE.BoxGeometry(128, 2.0, 58),
+      new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.65, metalness: 0.25 })
+    );
+    nfcBasePlate.position.set(0, -8.5, 0);
+    nfcBasePlate.receiveShadow = true;
+    pn532DryGroup.add(nfcBasePlate);
+
+    // 2. Quatro pés antiderrapantes de borracha apoiados no tapete ESD (Y = -9.5)
+    const footMat = new THREE.MeshStandardMaterial({ color: 0x09090b, roughness: 0.95 });
+    const footGeo = new THREE.CylinderGeometry(3.5, 4.0, 1.0, 16);
+    [
+      [-55, -9.0, -20],
+      [55, -9.0, -20],
+      [-55, -9.0, 20],
+      [55, -9.0, 20],
+    ].forEach(([fx, fy, fz]) => {
+      const foot = new THREE.Mesh(footGeo, footMat);
+      foot.position.set(fx, fy, fz);
+      pn532DryGroup.add(foot);
+    });
+
+    // 3. Quatro pilares verticais em alumínio anodizado conectando a base ao suporte
+    const pillarMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.88, roughness: 0.22 });
+    const pillarGeo = new THREE.CylinderGeometry(2.5, 2.5, 16.25, 16);
+    [
+      [-55, 0.625, -20],
+      [55, 0.625, -20],
+      [-55, 0.625, 20],
+      [55, 0.625, 20],
+    ].forEach(([px, py, pz]) => {
+      const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+      pillar.position.set(px, py, pz);
+      pillar.castShadow = enableShadows;
+      pn532DryGroup.add(pillar);
+    });
+
+    // 4. Placa de acrílico cristal de fixação do PN532 (Y = 10)
     const nfcBracket = new THREE.Mesh(
-      new THREE.BoxGeometry(46, 2.5, 46),
+      new THREE.BoxGeometry(124, 2.5, 54),
       new THREE.MeshPhysicalMaterial({ color: 0xffffff, transmission: 0.85, roughness: 0.15 })
     );
     nfcBracket.position.set(0, 10, 0);
     pn532DryGroup.add(nfcBracket);
 
-    // 4 espaçadores de nylon M3 nos cantos da placa
+    // 5. Porcas serrilhadas de retenção M3 no topo da placa de acrílico
+    const nutMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.92, roughness: 0.18 });
+    const nutGeo = new THREE.CylinderGeometry(3.0, 3.0, 1.8, 6);
+    [
+      [-55, 11.5, -20],
+      [55, 11.5, -20],
+      [-55, 11.5, 20],
+      [55, 11.5, 20],
+    ].forEach(([nx, ny, nz]) => {
+      const nut = new THREE.Mesh(nutGeo, nutMat);
+      nut.position.set(nx, ny, nz);
+      pn532DryGroup.add(nut);
+    });
+
+    // 6. Quatro espaçadores de nylon M3 entre o acrílico e a PCB do PN532
     const standoffMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.4 });
     const standoffGeo = new THREE.CylinderGeometry(1.6, 1.6, 5, 12);
     [
-      [-18, 12.5, -17],
-      [18, 12.5, -17],
-      [-18, 12.5, 17],
-      [18, 12.5, 17],
+      [-55, 12.5, -20],
+      [55, 12.5, -20],
+      [-55, 12.5, 20],
+      [55, 12.5, 20],
     ].forEach(([sx, sy, sz]) => {
       const so = new THREE.Mesh(standoffGeo, standoffMat);
       so.position.set(sx, sy, sz);
       pn532DryGroup.add(so);
     });
 
-    // Módulo PN532 Breakout PCB (Classe C)
+    // Fallback da placa Adafruit PN532 v1.6 (Classe C): o GLB derivado
+    // substitui esta geometria assim que termina o carregamento.
     const nfcPcb = new THREE.Mesh(
-      new THREE.BoxGeometry(42.7, 1.6, 40.4),
+      new THREE.BoxGeometry(120, 1.6, 50),
       new THREE.MeshStandardMaterial({ color: 0x4c1d95, roughness: 0.4 })
     );
     nfcPcb.position.set(0, 15.5, 0);
@@ -1062,10 +1090,10 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     // 4 Furos de fixação M3 com anéis metalizados em ouro ENIG nos vértices
     const nfcEnigMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.95, roughness: 0.2 });
     [
-      [-18, -17],
-      [18, -17],
-      [-18, 17],
-      [18, 17],
+      [-55, -20],
+      [55, -20],
+      [-55, 20],
+      [55, 20],
     ].forEach(([hx, hz]) => {
       const pad = new THREE.Mesh(new THREE.RingGeometry(1.6, 2.8, 16), nfcEnigMat);
       pad.rotation.x = -Math.PI / 2;
@@ -1078,7 +1106,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       new THREE.BoxGeometry(6.0, 0.9, 6.0),
       new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.3 })
     );
-    pn532Ic.position.set(0, 1.25, 0);
+    pn532Ic.position.set(35.7, 1.25, -0.4);
     nfcPcb.add(pn532Ic);
 
     // Cristal cerâmico oscilador 27.12 MHz
@@ -1086,7 +1114,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       new THREE.BoxGeometry(3.2, 0.8, 2.5),
       new THREE.MeshStandardMaterial({ color: 0xd4d4d8, metalness: 0.9 })
     );
-    oscCrystal.position.set(7.0, 1.2, 2.0);
+    oscCrystal.position.set(35.0, 1.2, -9.8);
     nfcPcb.add(oscCrystal);
 
     // Regulador de tensão LDO 3.3V SOT-223
@@ -1094,7 +1122,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       new THREE.BoxGeometry(6.5, 1.6, 3.5),
       new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.5 })
     );
-    sot223.position.set(-10.0, 1.6, 8.0);
+    sot223.position.set(51.2, 1.6, 12.5);
     nfcPcb.add(sot223);
 
     // Antena planar impressa (espiras concêntricas em ouro ENIG)
@@ -1130,14 +1158,13 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     nfcHeader.position.set(-18, 17.0, -10);
     pn532DryGroup.add(nfcHeader);
 
-    // Asset real do fabricante: o STEP oficial do ELECHOUSE PN532 V4 foi
-    // convertido para GLB offline e só substitui a geometria didática quando
-    // o arquivo termina de carregar. Assim a bancada continua utilizável se
-    // um servidor local for iniciado sem os assets públicos.
+    // GLB derivado do Eagle oficial Adafruit v1.6. Continua pendente para
+    // fabricação, mas já preserva o envelope e os principais elementos físicos
+    // do arquivo de origem em vez de usar o módulo ELECHOUSE genérico.
     let nfcAssetRoot: THREE.Object3D | null = null;
     const nfcLoader = new GLTFLoader();
     nfcLoader.load(
-      '/models/official/elechouse-pn532-v4.glb',
+      getCarrierAssetEntry('pn532_breakout')?.referenceAssetPath ?? '/assets/cad/carrier/RFID1/reference-derived.glb',
       (gltf) => {
         if (sceneDisposed) {
           gltf.scene.traverse((node) => {
@@ -1146,23 +1173,23 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
           return;
         }
         nfcAssetRoot = gltf.scene;
-        nfcAssetRoot.name = 'PN532 V4 — ELECHOUSE / official GLB';
-        nfcAssetRoot.rotation.x = -Math.PI / 2;
-        nfcAssetRoot.position.set(19.35, 17.4, 0);
+        nfcAssetRoot.name = 'Adafruit PN532 v1.6 — Eagle-derived reference (physical validation pending)';
+        nfcAssetRoot.position.set(0, 17.4, 0);
         nfcAssetRoot.traverse((node) => {
           if (node instanceof THREE.Mesh) {
             node.castShadow = enableShadows;
             node.receiveShadow = true;
             node.userData.componentKey = 'pn532_breakout';
+            node.userData.assetStatus = 'pending_physical_verification';
           }
         });
-        // Os elementos abaixo são fallback visual e não ficam duplicados no
-        // estado normal da cena quando o modelo oficial está disponível.
+        // Os elementos abaixo são fallback visual e não ficam duplicados quando
+        // a referência GLB estiver disponível.
         nfcPcb.visible = false;
         dipSwitchNfc.visible = false;
         nfcHeader.visible = false;
         pn532DryGroup.add(nfcAssetRoot);
-        sceneRegistry.register('RFID1', nfcAssetRoot, { designator: 'RFID1', collisionClass: 'STANDALONE_MODULE', verified: true });
+        sceneRegistry.register('RFID1', nfcAssetRoot, { designator: 'RFID1', collisionClass: 'STANDALONE_MODULE', verified: false });
         pickableObjects.push({ mesh: nfcAssetRoot, compKey: 'pn532_breakout' });
       },
       undefined,
@@ -1217,13 +1244,18 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
 
     reedGroup.add(reedGlass, glassCap1, glassCap2, bladeLeft, bladeRight, lead1, lead2);
     tankGroup.add(reedGroup);
+    sceneRegistry.register('SW1', reedGroup, {
+      designator: 'SW1',
+      collisionClass: 'LID_INTERLOCK',
+      verified: false,
+    });
     loadReferenceAsset(
-      '/models/reference/mc-38-reed-switch-magnet-reference.glb',
+      getCarrierAssetEntry('reed_switch')?.referenceAssetPath ?? '/models/reference/mc-38-reed-switch-magnet-reference.glb',
       tankGroup,
       'SW1',
       'reed_switch',
       [reedGroup, magnetNorth, magnetSouth],
-      { registryId: 'SW1', position: [tankOuterRadius - 5, tankHeight - 10, 0] },
+      { registryId: 'SW1', status: 'approximate', position: [tankOuterRadius - 5, tankHeight - 10, 0] },
     );
 
     // =========================================================================
@@ -1281,9 +1313,16 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     acousticGroup.visible = false;
 
     tankGroup.add(lidAssemblyGroup);
-    tankGroup.visible = TANK_GEOMETRY_RELEASED;
+    tankGroup.visible = true;
+    tankGroup.userData.assetStatus = TANK_PHYSICAL_RELEASED
+      ? 'verified_physical_container'
+      : 'class-d-parametric-placeholder';
     benchGroup.add(tankGroup);
-    sceneRegistry.register('TK1', tankGroup, { designator: 'TK1', collisionClass: 'TRANSPARENT_FLUID_CONTAINER' });
+    sceneRegistry.register('TK1', tankGroup, {
+      designator: 'TK1',
+      collisionClass: 'TRANSPARENT_FLUID_CONTAINER',
+      verified: TANK_PHYSICAL_RELEASED,
+    });
     sceneRegistry.register('LID1', lidAssemblyGroup, { designator: 'LID1', collisionClass: 'LID_ASSEMBLY' });
     sceneRegistry.register('SEN1_PROBE', probeMesh, { designator: 'SEN1', collisionClass: 'SENSOR_PROBE' });
     sceneRegistry.register('WATER_VOLUME', waterMesh, { collisionClass: 'FLUID_VOLUME' });
@@ -1348,21 +1387,17 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     benchGroup.add(cableRootGroup);
 
     PHYSICAL_WIRING_REGISTRY.forEach((cable) => {
-      // A rota é resolvida pelo ID do cabo no registro físico. Nunca usar
-      // netName aqui: GND e 3V3 podem ter múltiplos condutores distintos.
+      // A rota é resolvida pelo ID do cabo no registro físico.
       const waypoints = cable.waypoints;
       const vectors = waypoints.map((p) => new THREE.Vector3(...p));
-      // Rotas de chicote não podem "cortar caminho" por interpolação spline:
-      // uma curva suave poderia atravessar o tanque mesmo com waypoints seguros.
-      // CurvePath linear preserva cada corredor mecânico e cada endpoint.
-      const curve = new THREE.CurvePath<THREE.Vector3>();
-      vectors.slice(1).forEach((end, index) => {
-        curve.add(new THREE.LineCurve3(vectors[index], end));
-      });
 
-      const segments = lowPowerMode ? 24 : 40;
+      // Catmull-Rom spline centripetally tensionada gera curvas suaves e realistas
+      // de chicote mecatrônico sem quinas poligonais quebradas ou loops anormais.
+      const curve = new THREE.CatmullRomCurve3(vectors, false, 'centripetal', 0.5);
+
+      const segments = lowPowerMode ? 32 : 64;
       const radius = cable.diameterMm / 2;
-      const tubeGeo = new THREE.TubeGeometry(curve, segments, radius, 8, false);
+      const tubeGeo = new THREE.TubeGeometry(curve, segments, radius, 10, false);
 
       const baseMat = new THREE.MeshStandardMaterial({
         color: new THREE.Color(cable.colorHex),
@@ -1388,25 +1423,40 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       tubeMesh.castShadow = enableShadows;
       cableRootGroup.add(tubeMesh);
 
-      // Terminais plásticos DuPont retangulares pretos (2.54 x 2.54 x 12mm)
-      const dupontGeo = new THREE.BoxGeometry(2.54, 10.0, 2.54);
-      const dupontMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.6 });
+      // Terminais DuPont retangulares pretos (2.54 x 2.54 x 9.5 mm) orientados verticalmente
+      // assentados nos furos da protoboard e nas barras de pinos (sem quinas no ar)
+      const dupontGeo = new THREE.BoxGeometry(2.54, 9.5, 2.54);
+      const dupontMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.55 });
+      const pinCollarMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9, roughness: 0.2 });
+      const bootMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.7 });
 
-      const d1 = new THREE.Mesh(dupontGeo, dupontMat);
-      d1.position.copy(vectors[0]);
-      d1.name = `${cable.id} terminal ${cable.fromTerminal ?? 'origem'}`;
-      d1.userData.cableId = cable.id;
-      const d2 = new THREE.Mesh(dupontGeo, dupontMat);
-      d2.position.copy(vectors[vectors.length - 1]);
-      d2.name = `${cable.id} terminal ${cable.toTerminal ?? 'destino'}`;
-      d2.userData.cableId = cable.id;
-      const terminalAxis = new THREE.Vector3(0, 1, 0);
-      const orientTerminal = (terminal: THREE.Mesh, origin: THREE.Vector3, next: THREE.Vector3) => {
-        const direction = next.clone().sub(origin).normalize();
-        terminal.quaternion.setFromUnitVectors(terminalAxis, direction);
+      const createTerminal = (pos: THREE.Vector3, isOrigin: boolean) => {
+        const terminalGroup = new THREE.Group();
+        terminalGroup.name = `${cable.id} terminal ${isOrigin ? (cable.fromTerminal ?? 'origem') : (cable.toTerminal ?? 'destino')}`;
+        terminalGroup.userData.cableId = cable.id;
+
+        // Corpo plástico principal do terminal DuPont
+        const body = new THREE.Mesh(dupontGeo, dupontMat);
+        body.position.y = 4.75;
+        body.castShadow = enableShadows;
+        terminalGroup.add(body);
+
+        // Anel metálico de contato niquelado
+        const collar = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.2, 2.2), pinCollarMat);
+        collar.position.y = 0.6;
+        terminalGroup.add(collar);
+
+        // Bota de alívio de tensão onde o fio flexível entra
+        const boot = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.4, 2.0, 8), bootMat);
+        boot.position.y = 9.8;
+        terminalGroup.add(boot);
+
+        terminalGroup.position.copy(pos);
+        return terminalGroup;
       };
-      orientTerminal(d1, vectors[0], vectors[1]);
-      orientTerminal(d2, vectors[vectors.length - 1], vectors[vectors.length - 2]);
+
+      const d1 = createTerminal(vectors[0], true);
+      const d2 = createTerminal(vectors[vectors.length - 1], false);
       cableRootGroup.add(d1, d2);
 
       cableMeshes.push({
@@ -1447,7 +1497,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     caliperGroup.add(createCaliperLine([-80, 2, 60], [-80, 8, 60]));
     caliperGroup.add(createCaliperLine([85, 2, 60], [85, 8, 60]));
 
-    caliperGroup.visible = showCalipers;
+    caliperGroup.visible = showCalipersRef.current;
 
     // =========================================================================
     // 14. INTERAÇÃO ORBITAL E RAYCASTING
@@ -1565,8 +1615,6 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
               setIsExploded(false);
               isExplodedTargetRef.current = 0;
               setSelectedComp(FUELGUARD_CAD_LIBRARY[found.compKey]);
-              const functionDetails = COMPONENT_FUNCTION_CATALOG[found.compKey] ?? [];
-              setSelectedFunctionalDetail(functionDetails[0]?.id ?? null);
               setIsInspectionAutoRotate(true);
               inspectionObjectRef.current = inspectionRoot;
               inspectionBaseRotationRef.current = inspectionRoot.rotation.clone();
@@ -1587,7 +1635,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       camera.position.z += e.deltaY * 0.22;
-      camera.position.z = Math.max(220, Math.min(800, camera.position.z));
+      camera.position.z = Math.max(170, Math.min(700, camera.position.z));
     };
 
     const dom = renderer.domElement;
@@ -1745,7 +1793,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       const curGrp = activeGroupRef.current;
 
       cableRootGroup.visible = isVisible;
-      caliperGroup.visible = showCalipers;
+      caliperGroup.visible = showCalipersRef.current;
 
       if (isVisible) {
         cableMeshes.forEach((item) => {
@@ -1795,29 +1843,20 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
         mount.removeChild(renderer.domElement);
       }
 
-      if (nfcAssetRoot) {
-        nfcAssetRoot.traverse((node) => {
-          if (node instanceof THREE.Mesh) {
-            node.geometry.dispose();
-            const materials = Array.isArray(node.material) ? node.material : [node.material];
-            materials.forEach((material) => material.dispose());
+      scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh) {
+          obj.geometry?.dispose();
+          if (Array.isArray(obj.material)) {
+            obj.material.forEach(m => m.dispose());
+          } else if (obj.material) {
+            obj.material.dispose();
           }
-        });
-      }
+        }
+      });
       renderer.dispose();
-      tankShellGeo.dispose();
-      innerShellMesh.geometry.dispose();
-      waterGeo.dispose();
-      matGeo.dispose();
-      bbBody.geometry.dispose();
+      renderer.forceContextLoss();
     };
-  }, [updateRotation, enableShadows, lowPowerMode, showCalipers]);
-
-  const selectedFunctionalDetails = selectedComp
-    ? COMPONENT_FUNCTION_CATALOG[selectedComp.id] ?? []
-    : [];
-  const activeFunctionalDetail = selectedFunctionalDetails.find((detail) => detail.id === selectedFunctionalDetail)
-    ?? selectedFunctionalDetails[0];
+  }, [enableShadows, lowPowerMode]);
 
   return (
     <div
@@ -1830,17 +1869,25 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
       </div>
 
       {/* 2. Barra Superior de Alternância, Auditoria e Presets */}
-      <div className="absolute top-3 right-3 z-40 flex flex-wrap items-center gap-2 text-xs">
-        <div className="hidden lg:flex items-center gap-1.5 rounded-md border border-emerald-500/40 bg-emerald-950/80 px-2 py-1 text-[10px] text-emerald-300 shadow-xs" title="Modelo oficial ELECHOUSE convertido de STEP para GLB">
+      <div className="absolute top-3 right-3 z-40 flex max-w-[calc(100%-5.5rem)] flex-wrap justify-end items-center gap-2 text-xs">
+        <button
+          onClick={() => setSelectedComp(FUELGUARD_CAD_LIBRARY['pn532_breakout'])}
+          className="hidden 2xl:flex items-center gap-1.5 rounded-md border border-emerald-500/40 hover:border-emerald-400 bg-emerald-950/80 px-2 py-1 text-[10px] text-emerald-300 hover:text-white shadow-xs cursor-pointer transition"
+          title="Clique para inspecionar a Adafruit PN532 v1.6, sua referência 3D e o simulador RFID"
+        >
           <ShieldCheck className="w-3 h-3" />
-          <span>PN532 V4 • GLB oficial</span>
-        </div>
-        <div className="hidden lg:flex items-center gap-1.5 rounded-md border border-sky-500/40 bg-sky-950/80 px-2 py-1 text-[10px] text-sky-300 shadow-xs" title="GLB detalhado reconstruído a partir das dimensões e referências oficiais da Espressif; não é CAD oficial exportado pelo fabricante.">
+          <span>Adafruit PN532 v1.6 • referência 3D (360°)</span>
+        </button>
+        <button
+          onClick={() => setSelectedComp(FUELGUARD_CAD_LIBRARY['esp32_s3_devkit'])}
+          className="hidden 2xl:flex items-center gap-1.5 rounded-md border border-sky-500/40 hover:border-sky-400 bg-sky-950/80 px-2 py-1 text-[10px] text-sky-300 hover:text-white shadow-xs cursor-pointer transition"
+          title="Clique para inspecionar o ESP32-S3, sua referência 3D e o simulador de firmware"
+        >
           <Cpu className="w-3 h-3" />
-          <span>ESP32-S3 • GLB detalhado</span>
-        </div>
+          <span>ESP32-S3 • referência 3D (360°)</span>
+        </button>
         <div
-          className={`hidden lg:flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] shadow-xs ${
+          className={`hidden 2xl:flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] shadow-xs ${
             collisionStatus === 'FAIL'
               ? 'border-rose-500/60 bg-rose-950/80 text-rose-300'
               : collisionStatus === 'PASS'
@@ -1851,6 +1898,13 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
         >
           <ShieldCheck className="w-3 h-3" />
           <span>BVH • {collisionStatus}</span>
+        </div>
+        <div
+          className="hidden 2xl:flex items-center gap-1.5 rounded-md border border-slate-700 bg-[#0b0f15]/95 px-2 py-1 text-[10px] text-slate-400 shadow-xs"
+          title="D1 e BZ1 usam GLBs locais validados. U1, RFID1 e SEN1 são referências até validação da variante física."
+        >
+          <Info className="w-3 h-3 text-sky-300" />
+          <span>Proveniência: GLB validado + referências explícitas</span>
         </div>
         {/* Alternador de Vistas Principais */}
         <div className="flex items-center space-x-1 bg-[#0b0f15]/95 backdrop-blur-xs border border-inst-border p-1 rounded-sm shadow-xs">
@@ -1888,11 +1942,11 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
           title="Abrir Relatório de Auditoria Mecânica e Elétrica da Montagem"
         >
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Auditoria: {auditReport.isCompliant ? 'Conforme (15 Regras)' : 'Atenção Requerida'}</span>
+          <span className="hidden xl:inline">Auditoria: {auditReport.isCompliant ? 'Conforme (15 Regras)' : 'Atenção Requerida'}</span>
         </button>
 
         {/* Presets de Câmera Mecânica */}
-        <div className="hidden lg:flex items-center space-x-1 bg-[#0b0f15]/95 backdrop-blur-xs border border-inst-border p-1 rounded-sm shadow-xs text-[11px]">
+        <div className="hidden 2xl:flex items-center space-x-1 bg-[#0b0f15]/95 backdrop-blur-xs border border-inst-border p-1 rounded-sm shadow-xs text-[11px]">
           <button
             onClick={() => setPresetView('iso')}
             className="px-2 py-0.5 rounded-xs hover:bg-inst-subtle text-inst-secondary hover:text-fuelguard-green transition"
@@ -1946,7 +2000,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
         </button>
 
         {/* 4 Modos Oficiais da Bancada: Montagem | Explodida | Conexões | Sensores */}
-        <div className="flex items-center space-x-1 bg-[#0b0f15]/95 backdrop-blur-xs border border-inst-border p-1 rounded-sm shadow-xs">
+        <div className="hidden xl:flex items-center space-x-1 bg-[#0b0f15]/95 backdrop-blur-xs border border-inst-border p-1 rounded-sm shadow-xs">
           <button
             onClick={() => handleSelectMode('montagem')}
             className={`px-2.5 py-1 rounded-xs text-xs font-bold transition flex items-center gap-1.5 ${
@@ -1957,7 +2011,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
             title="Modo Montagem: Vista física nominal da bancada; validar dimensões no hardware"
           >
             <Layers className="w-3.5 h-3.5" />
-            <span>Montagem</span>
+            <span className="hidden xl:inline">Montagem</span>
           </button>
           <button
             onClick={() => handleSelectMode('explodida')}
@@ -1969,7 +2023,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
             title="Modo Explodida: Deslocamento axial com linhas de alinhamento"
           >
             <Split className="w-3.5 h-3.5" />
-            <span>Explodida</span>
+            <span className="hidden xl:inline">Explodida</span>
           </button>
           <button
             onClick={() => handleSelectMode('conexoes')}
@@ -1981,7 +2035,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
             title="Modo Conexões: Destaque da fiação física e barramentos"
           >
             <Zap className="w-3.5 h-3.5" />
-            <span>Conexões</span>
+            <span className="hidden xl:inline">Conexões</span>
           </button>
           <button
             onClick={() => handleSelectMode('sensores')}
@@ -1993,7 +2047,7 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
             title="Modo Sensores: Feixe acústico ultrassônico, zona cega e tempo de trânsito"
           >
             <Radio className="w-3.5 h-3.5" />
-            <span>Sensores</span>
+            <span className="hidden xl:inline">Sensores</span>
           </button>
         </div>
 
@@ -2300,21 +2354,46 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
 
       {/* 6. Rodapé com Metadados da Montagem Mecatrônica e Réguas */}
       <div className="absolute bottom-3 left-3 z-10 flex flex-wrap gap-2 text-[10px]">
-        <div className="px-2.5 py-1 rounded-xs bg-[#0e141c]/90 border border-emerald-800 text-emerald-300 flex items-center gap-1.5 shadow-xs">
+        <button
+          onClick={() => setSelectedComp(FUELGUARD_CAD_LIBRARY['esp32_s3_devkit'])}
+          className="px-2.5 py-1 rounded-xs bg-[#0e141c]/90 border border-emerald-800 hover:border-fuelguard-green text-emerald-300 hover:text-white flex items-center gap-1.5 shadow-xs cursor-pointer transition"
+          title="Clique para inspecionar a referência 3D e o simulador funcional do ESP32-S3"
+        >
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-          <span>ESP32-S3 DevKitC-1 v1.1 • GLB detalhado documentado • baia seca</span>
-        </div>
-        <div className="px-2.5 py-1 rounded-xs bg-[#0e141c]/90 border border-sky-800 text-sky-300 flex items-center gap-1.5 shadow-xs">
-          <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
-          <span>Tanque/tampa: cilindro Ø206 × 168 mm paramétrico; validação física pendente</span>
-        </div>
-        <div className="px-2.5 py-1 rounded-xs bg-[#0e141c]/90 border border-purple-800 text-purple-300 flex items-center gap-1.5 shadow-xs">
+          <span>ESP32-S3 DevKitC-1 v1.1 • referência 3D & funcionalidades</span>
+        </button>
+        <button
+          onClick={() => setSelectedComp(FUELGUARD_CAD_LIBRARY['pn532_breakout'])}
+          className="px-2.5 py-1 rounded-xs bg-[#0e141c]/90 border border-purple-800 hover:border-purple-400 text-purple-300 hover:text-white flex items-center gap-1.5 shadow-xs cursor-pointer transition"
+          title="Clique para inspecionar a referência 3D e o simulador RFID do PN532"
+        >
           <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-          <span>Leitor NFC PN532 + Reed Switch Magnético</span>
-        </div>
-        <span className="text-inst-muted self-center ml-2 hidden sm:inline">
-          • Clique numa peça ou cabo para inspecionar parâmetros CAD
-        </span>
+          <span>Leitor NFC PN532 • referência 3D & RFID</span>
+        </button>
+        <button
+          onClick={() => setSelectedComp(FUELGUARD_CAD_LIBRARY['a02yyuw_sen0311'])}
+          className="px-2.5 py-1 rounded-xs bg-[#0e141c]/90 border border-sky-800 hover:border-sky-400 text-sky-300 hover:text-white flex items-center gap-1.5 shadow-xs cursor-pointer transition"
+          title="Clique para inspecionar em 360° e ver simulador ultrassônico do SEN0311"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+          <span>Sensor SEN0311 • Inspeção 360° & ToF</span>
+        </button>
+        <button
+          onClick={() => setSelectedComp(FUELGUARD_CAD_LIBRARY['reed_switch'])}
+          className="px-2.5 py-1 rounded-xs bg-[#0e141c]/90 border border-amber-800 hover:border-amber-400 text-amber-300 hover:text-white flex items-center gap-1.5 shadow-xs cursor-pointer transition"
+          title="Clique para inspecionar em 360° e ver simulador de interlock do Reed Switch"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+          <span>Reed Switch MC-38 • Interlock</span>
+        </button>
+        <button
+          onClick={() => setSelectedComp(FUELGUARD_CAD_LIBRARY['breadboard_830'])}
+          className="px-2.5 py-1 rounded-xs bg-[#0e141c]/90 border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white flex items-center gap-1.5 shadow-xs cursor-pointer transition"
+          title="Clique para inspecionar em 360° a Protoboard MB-102"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+          <span>Protoboard MB-102</span>
+        </button>
       </div>
 
       {/* 7. Modal de Auditoria Mecatrônica & Elétrica (Assembly Auditor) */}
@@ -2415,213 +2494,12 @@ export const BenchAssemblyCanvas: React.FC<BenchAssemblyCanvasProps> = ({ onSele
         </div>
       )}
 
-      {/* 8. Cartão de Inspeção de Componente Selecionado (Click-to-Inspect com Classes A/B/C/D) */}
+      {/* 8. Modal de Inspeção 360° com Foco Isolado, Background Blur e Simulador Funcional */}
       {selectedComp && (
-        <div
-          className="absolute inset-0 z-30 flex items-center justify-end bg-black/42 backdrop-blur-md p-3 sm:p-5"
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.currentTarget === event.target) closeComponentInspection();
-          }}
-        >
-          <div className="absolute inset-x-0 top-4 flex justify-center pointer-events-none">
-            <div className="rounded-full border border-sky-400/50 bg-slate-950/80 px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.16em] text-sky-200 shadow-overlay">
-              Foco de inspeção · componente isolado · rotação 360° ativa
-            </div>
-          </div>
-          <aside
-          role="dialog"
-          aria-modal="true"
-          aria-label={`Inspeção técnica de ${selectedComp.name}`}
-          tabIndex={-1}
-          onMouseDown={(event) => event.stopPropagation()}
-          className="relative z-10 w-[min(36rem,100%)] max-h-[calc(100%-1rem)] overflow-y-auto bg-[#0e141c]/96 backdrop-blur-xl border border-fuelguard-green/70 p-4 sm:p-5 rounded-2xl shadow-overlay text-xs text-inst-primary animate-in fade-in slide-in-from-right-4 duration-200 space-y-3 font-ui"
-        >
-          <div className="flex justify-between items-start border-b border-inst-border pb-2.5">
-            <div>
-              <div className="text-[10px] text-inst-muted uppercase tracking-[0.12em]">Designator: {selectedComp.designatorPrefix}</div>
-              <h2 className="text-sm font-bold text-fuelguard-green flex items-center gap-1.5 mt-0.5">
-                <Info className="w-3.5 h-3.5 shrink-0" />
-                {selectedComp.name}
-              </h2>
-              <div className="text-[11px] text-inst-secondary font-mono">{selectedComp.partNumber} ({selectedComp.revision})</div>
-            </div>
-            <button
-              onClick={closeComponentInspection}
-              aria-label="Fechar inspeção técnica"
-              className="p-1.5 rounded-lg hover:bg-inst-subtle text-inst-muted hover:text-inst-primary transition"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 gap-1.5">
-            <button
-              onClick={() => setIsInspectionAutoRotate((value) => !value)}
-              className={`px-2.5 py-2 rounded-lg border text-[10px] font-bold flex items-center justify-center gap-1.5 transition ${
-                isInspectionAutoRotate
-                  ? 'bg-fuelguard-green text-white border-fuelguard-green'
-                  : 'bg-inst-canvas text-inst-secondary border-inst-border hover:text-inst-primary'
-              }`}
-              aria-pressed={isInspectionAutoRotate}
-              title="Girar a peça selecionada continuamente em 360 graus"
-            >
-              {isInspectionAutoRotate ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-              {isInspectionAutoRotate ? 'Parar 360°' : 'Girar 360°'}
-            </button>
-            <button
-              onClick={() => {
-                if (inspectionObjectRef.current && inspectionBaseRotationRef.current) {
-                  inspectionObjectRef.current.rotation.copy(inspectionBaseRotationRef.current);
-                }
-                inspectionAngleRef.current = 0;
-                setIsInspectionAutoRotate(false);
-              }}
-              className="px-2.5 py-2 rounded-lg border border-inst-border bg-inst-canvas text-inst-secondary hover:text-inst-primary text-[10px] font-bold flex items-center justify-center gap-1.5 transition"
-              title="Restaurar a rotação original da peça"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Vista original
-            </button>
-          </div>
-
-          {selectedFunctionalDetails.length > 0 && (
-            <section className="space-y-2">
-              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.12em] text-inst-muted">
-                <Focus className="w-3.5 h-3.5 text-sky-400" />
-                Função e componentes
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {selectedFunctionalDetails.map((detail) => (
-                  <button
-                    key={detail.id}
-                    onClick={() => setSelectedFunctionalDetail(detail.id)}
-                    className={`px-2 py-1 rounded-md border text-[9px] transition ${
-                      activeFunctionalDetail?.id === detail.id
-                        ? 'bg-sky-950/70 border-sky-500 text-sky-200 font-bold'
-                        : 'bg-inst-canvas border-inst-border text-inst-muted hover:text-inst-primary'
-                    }`}
-                  >
-                    {detail.label}
-                  </button>
-                ))}
-              </div>
-              {activeFunctionalDetail && (
-                <div className="rounded-lg border border-sky-800/70 bg-sky-950/30 p-2.5 space-y-1 text-[10px]">
-                  <strong className="text-sky-200 block">{activeFunctionalDetail.role}</strong>
-                  <p className="text-inst-secondary leading-relaxed">{activeFunctionalDetail.behavior}</p>
-                  <p className="text-emerald-300/90 leading-relaxed"><span className="font-bold">Validação:</span> {activeFunctionalDetail.validation}</p>
-                </div>
-              )}
-            </section>
-          )}
-
-          {(() => {
-            const badge = getConfidenceBadge(selectedComp.confidenceLevel);
-            return (
-              <div className={`p-2 rounded-xs border text-[11px] flex items-start gap-2 ${badge.color}`}>
-                <span className={`w-2 h-2 rounded-full mt-1 shrink-0 ${badge.dot}`} />
-                <div>
-                  <strong className="block font-bold">{badge.label}</strong>
-                  <span className="text-[10px] font-ui opacity-90 leading-tight block mt-0.5">
-                    {selectedComp.confidenceRationale}
-                  </span>
-                </div>
-              </div>
-            );
-          })()}
-
-          <p className="text-[11px] text-inst-secondary font-ui leading-relaxed">
-            {selectedComp.description}
-          </p>
-
-          <div className="grid grid-cols-2 gap-2 text-[10px] bg-inst-canvas/80 p-2.5 rounded-xs border border-inst-border">
-            <div>
-              <span className="text-inst-muted block">Fabricante:</span>
-              <strong className="text-inst-primary">{selectedComp.manufacturer}</strong>
-            </div>
-            <div>
-              <span className="text-inst-muted block">Dimensões Nominais:</span>
-              <strong className="text-inst-primary">
-                {selectedComp.nominalDimensionsMm.width} × {selectedComp.nominalDimensionsMm.height} × {selectedComp.nominalDimensionsMm.depth} mm
-              </strong>
-            </div>
-            <div>
-              <span className="text-inst-muted block">Encapsulamento:</span>
-              <strong className="text-inst-primary">{selectedComp.footprintType}</strong>
-            </div>
-            <div>
-              <span className="text-inst-muted block">Formato / Verificação:</span>
-              <strong className="text-inst-primary">{selectedComp.format} ({selectedComp.verificationDate})</strong>
-            </div>
-          </div>
-
-          {selectedComp.inferredDimensions.length > 0 && (
-            <div className="p-2 rounded-xs bg-amber-950/40 border border-amber-800 text-[10px] text-amber-200 font-ui space-y-1">
-              <strong className="block text-amber-300">⚠️ Dimensões a Confirmar na Compra Física:</strong>
-              <ul className="list-disc list-inside space-y-0.5">
-                {selectedComp.inferredDimensions.map((inf, i) => (
-                  <li key={i}>{inf}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {selectedComp.connectedNets.length > 0 && (
-            <div className="space-y-1">
-              <span className="text-[10px] text-inst-muted block uppercase">Redes Interligadas ({selectedComp.connectedNets.length}):</span>
-              <div className="flex flex-wrap gap-1">
-                {selectedComp.connectedNets.map((net) => (
-                  <span
-                    key={net}
-                    className="px-1.5 py-0.5 rounded-xs bg-inst-canvas border border-inst-border text-[9px] text-inst-primary"
-                  >
-                    {net}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {selectedComp.pins.length > 0 && (
-            <section className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-inst-muted uppercase tracking-[0.12em]">Interfaces e pinos</span>
-                <span className="text-[9px] text-inst-muted">{selectedComp.pins.length} pontos</span>
-              </div>
-              <div className="rounded-lg border border-inst-border bg-inst-canvas/70 divide-y divide-inst-border overflow-hidden">
-                {selectedComp.pins.map((pinDef) => (
-                  <div key={pinDef.id} className="grid grid-cols-[2rem_1fr_auto] gap-2 px-2.5 py-2 items-start">
-                    <span className="text-[9px] text-inst-muted font-mono pt-0.5">P{pinDef.pinNumber}</span>
-                    <div className="min-w-0">
-                      <strong className="block text-[10px] text-inst-primary truncate">{pinDef.label}</strong>
-                      <span className="block text-[9px] text-inst-secondary leading-tight">{pinDef.description}</span>
-                    </div>
-                    <span className="text-[9px] text-sky-300 whitespace-nowrap">{pinDef.nominalVoltageV === 0 ? 'GND' : `${pinDef.nominalVoltageV} V`}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          <section className="grid grid-cols-1 gap-1.5 rounded-lg border border-inst-border bg-inst-canvas/50 p-2.5 text-[9px] text-inst-muted">
-            <div><span className="text-inst-secondary">Proveniência: </span>{selectedComp.sourceReference}</div>
-            <div><span className="text-inst-secondary">Licença: </span>{selectedComp.license}</div>
-            {selectedComp.disclaimerNote && <div className="text-amber-200/80"><span className="text-amber-300">Nota: </span>{selectedComp.disclaimerNote}</div>}
-          </section>
-
-          <div className="border-t border-inst-border pt-2 text-[10px] font-ui text-inst-muted space-y-1">
-            <strong className="text-inst-secondary block">Substituição por Arquivo CAD Oficial:</strong>
-            <p className="leading-tight">{selectedComp.replacementInstructions}</p>
-            <div className="flex items-center gap-1 text-[9px] text-sky-400 mt-1 truncate">
-              <ExternalLink className="w-3 h-3 shrink-0" />
-              <a href={selectedComp.sourceUrl} target="_blank" rel="noreferrer" className="hover:underline truncate">
-                {selectedComp.sourceUrl}
-              </a>
-            </div>
-          </div>
-          </aside>
-        </div>
+        <Component360InspectorModal
+          component={selectedComp}
+          onClose={closeComponentInspection}
+        />
       )}
     </div>
   );

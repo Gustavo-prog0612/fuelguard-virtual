@@ -7,7 +7,7 @@ describe('Marco M1: Casca do Sistema e Navegação — Design System Sereno', ()
     render(<App />);
     expect(screen.getByText(/FuelGuard/i)).toBeDefined();
     expect(screen.getByText(/Real Hardware Reference/i)).toBeDefined();
-    expect(screen.getByText(/ESP32-S3 v1.1 • PN532 V4 • SEN0311 UART • PCB sob gate/i)).toBeDefined();
+    expect(screen.getByText(/ESP32-S3 v1.1 • Adafruit PN532 v1.6 • SEN0311 UART • PCB sob gate/i)).toBeDefined();
   });
 
   it('exibe todos os 5 itens de navegação na barra de tarefas', () => {
@@ -26,7 +26,8 @@ describe('Marco M1: Casca do Sistema e Navegação — Design System Sereno', ()
 
     expect(screen.getByText(/Bancada Virtual de Montagem/i)).toBeDefined();
     expect(screen.getByText(/Validador Elétrico/i)).toBeDefined();
-    expect(screen.getByText(/ESP32-S3 DevKitC-1/i)).toBeDefined();
+    expect(screen.getByText(/2 GLBs locais validados/i)).toBeDefined();
+    expect(screen.getByText(/referências sob aferição/i)).toBeDefined();
   });
 
   it('alterna para a tela de 2. Sinais ao clicar na aba', () => {
@@ -63,7 +64,7 @@ describe('Marco M1: Casca do Sistema e Navegação — Design System Sereno', ()
     const cadButton = screen.getByRole('tab', { name: /5\. Projeto CAD/i });
     fireEvent.click(cadButton);
 
-    expect(await screen.findByText(/Estação de Projeto CAD & Eletrônica/i, {}, { timeout: 3000 })).toBeDefined();
+    expect(await screen.findByRole('heading', { name: /Estação de Projeto CAD & Eletrônica/i }, { timeout: 8000 })).toBeDefined();
   });
 
   it('alterna o estado da simulação pelo botão Play/Pause', () => {

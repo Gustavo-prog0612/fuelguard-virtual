@@ -44,92 +44,92 @@ export const SignalsView: React.FC = () => {
   }, [rawDist, filteredDist, waterHeight, sim.simTimeMs]);
 
   return (
-    <div className="flex flex-col h-full bg-inst-canvas text-inst-primary font-ui overflow-y-auto p-6 space-y-6">
+    <div className="flex flex-col h-full bg-[#F4F5F7] dark:bg-slate-950 text-slate-900 dark:text-white font-ui overflow-y-auto p-5 md:p-8 space-y-6">
       {/* Topo: Título da Estação de Sinais */}
-      <div className="bg-inst-surface border border-inst-border p-4 rounded-md shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2.5">
-            <span className="w-2.5 h-2.5 rounded-xs bg-[#0369a1]" />
-            <h1 className="text-sm font-display font-bold uppercase tracking-wider text-inst-primary">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#0284c7]" />
+            <h1 className="text-sm font-display font-bold uppercase tracking-wider text-slate-900 dark:text-white">
               Estação de Sinais Acústicos & Telemetria do Tanque
             </h1>
             <HonestyBadge level="simulado" />
           </div>
-          <p className="text-xs text-inst-secondary mt-1 max-w-3xl">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-3xl">
             Sensoriamento ultrassônico DFRobot A02YYUW/SEN0311 via UART TTL 9600 8N1, geometria do FG-TANK-5L-CYL-R1, ondas de slosh e filtro mediano de 5 amostras.
           </p>
         </div>
 
-        <div className="flex items-center gap-3 text-xs font-mono text-inst-secondary">
-          <span>Líquido: <strong className="text-inst-primary">Água Aberta</strong></span>
-          <span>Sensor: <strong className="text-inst-primary">A02YYUW / SEN0311</strong></span>
+        <div className="flex items-center gap-3 text-xs font-mono text-slate-500 dark:text-slate-400">
+          <span>Líquido: <strong className="text-slate-900 dark:text-white">Água Aberta</strong></span>
+          <span>Sensor: <strong className="text-slate-900 dark:text-white">A02YYUW / SEN0311</strong></span>
         </div>
       </div>
 
-      {/* Mostradores Numéricos Serenos (Precisão Instrumental) */}
+      {/* Mostradores Numéricos (Cards Permity) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Nível d'água */}
-        <div className="bg-inst-surface border border-inst-border p-4 rounded-md shadow-xs space-y-2">
-          <div className="flex justify-between items-center text-xs text-inst-secondary font-medium">
-            <span className="flex items-center gap-1.5"><Waves className="w-4 h-4 text-sky-700" /> Nível da Água</span>
-            <span className="text-[10px] font-mono text-inst-muted">h = Href - d</span>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] space-y-2">
+          <div className="flex justify-between items-center text-xs text-slate-500 font-medium">
+            <span className="flex items-center gap-1.5"><Waves className="w-4 h-4 text-sky-600" /> Nível da Água</span>
+            <span className="text-[10px] font-mono text-slate-400">h = Href - d</span>
           </div>
           <div className="flex items-baseline justify-between font-mono">
-            <div className="text-2xl font-bold text-inst-primary">{waterHeight.toFixed(1)} <span className="text-xs font-normal text-inst-secondary">cm</span></div>
-            <div className="text-xs text-inst-secondary font-semibold">{(waterHeight / href * 100).toFixed(1)}%</div>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">{waterHeight.toFixed(1)} <span className="text-xs font-normal text-slate-500">cm</span></div>
+            <div className="text-xs text-slate-700 dark:text-slate-300 font-semibold">{(waterHeight / href * 100).toFixed(1)}%</div>
           </div>
-          <div className="w-full bg-inst-subtle rounded-xs h-1.5 overflow-hidden border border-inst-border">
-            <div className="bg-fuelguard-green h-1.5 transition-all duration-150" style={{ width: `${(waterHeight / href * 100)}%` }} />
+          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+            <div className="bg-[#D4F63D] h-2 rounded-full transition-all duration-150" style={{ width: `${(waterHeight / href * 100)}%` }} />
           </div>
         </div>
 
         {/* Distância Acústica */}
-        <div className="bg-inst-surface border border-inst-border p-4 rounded-md shadow-xs space-y-2">
-          <div className="flex justify-between items-center text-xs text-inst-secondary font-medium">
-            <span className="flex items-center gap-1.5"><Gauge className="w-4 h-4 text-emerald-700" /> Distância do Sensor</span>
-            <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-xs border ${
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] space-y-2">
+          <div className="flex justify-between items-center text-xs text-slate-500 font-medium">
+            <span className="flex items-center gap-1.5"><Gauge className="w-4 h-4 text-emerald-600" /> Distância do Sensor</span>
+            <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
               echoValid 
                 ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
                 : 'bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-400 border-rose-200 dark:border-rose-800 animate-pulse font-bold'
             }`}>
-              {echoValid ? 'ECO VÁLIDO' : 'ZONA CEGA / TIMEOUT'}
+              {echoValid ? 'ECO VÁLIDO' : 'ZONA CEGA'}
             </span>
           </div>
           <div className="flex items-baseline justify-between font-mono">
-            <div className="text-2xl font-bold text-inst-primary">{filteredDist.toFixed(1)} <span className="text-xs font-normal text-inst-secondary">cm</span></div>
-            <div className="text-xs text-inst-secondary">t_echo = {echoTimeUs} μs</div>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">{filteredDist.toFixed(1)} <span className="text-xs font-normal text-slate-500">cm</span></div>
+            <div className="text-xs text-slate-500">t_echo = {echoTimeUs} μs</div>
           </div>
-          <div className="text-[10px] font-mono text-inst-muted truncate">
+          <div className="text-[10px] font-mono text-slate-400 truncate">
             Zona Cega: 3 cm • Faixa: 30–450 cm • UART: 9600 8N1
           </div>
         </div>
 
         {/* Volume Estimado */}
-        <div className="bg-inst-surface border border-inst-border p-4 rounded-md shadow-xs space-y-2">
-          <div className="flex justify-between items-center text-xs text-inst-secondary font-medium">
-            <span className="flex items-center gap-1.5"><Activity className="w-4 h-4 text-purple-700" /> Volume Estimado</span>
-            <span className="text-[10px] font-mono text-inst-muted">V(h) Prismático</span>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] space-y-2">
+          <div className="flex justify-between items-center text-xs text-slate-500 font-medium">
+            <span className="flex items-center gap-1.5"><Activity className="w-4 h-4 text-purple-600" /> Volume Estimado</span>
+            <span className="text-[10px] font-mono text-slate-400">V(h) Prismático</span>
           </div>
           <div className="flex items-baseline justify-between font-mono">
-            <div className="text-2xl font-bold text-inst-primary">{volumeL} <span className="text-xs font-normal text-inst-secondary">L</span></div>
-            <div className="text-xs text-inst-secondary">de 1.000 L</div>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">{volumeL} <span className="text-xs font-normal text-slate-500">L</span></div>
+            <div className="text-xs text-slate-500">de 1.000 L</div>
           </div>
-          <div className="text-[10px] font-mono text-inst-muted">
+          <div className="text-[10px] font-mono text-slate-400">
             Base: 1,0 m × 1,0 m • Incerteza: ±0,5 L
           </div>
         </div>
 
         {/* Temperatura e Acústica */}
-        <div className="bg-inst-surface border border-inst-border p-4 rounded-md shadow-xs space-y-2">
-          <div className="flex justify-between items-center text-xs text-inst-secondary font-medium">
-            <span className="flex items-center gap-1.5"><Thermometer className="w-4 h-4 text-amber-700" /> Temperatura Nominal</span>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] space-y-2">
+          <div className="flex justify-between items-center text-xs text-slate-500 font-medium">
+            <span className="flex items-center gap-1.5"><Thermometer className="w-4 h-4 text-amber-600" /> Temperatura</span>
             <HonestyBadge level="simulado" size="sm" />
           </div>
           <div className="flex items-baseline justify-between font-mono">
-            <div className="text-2xl font-bold text-inst-primary">{temp.toFixed(1)} <span className="text-xs font-normal text-inst-secondary">°C</span></div>
-            <div className="text-xs text-inst-secondary">c = {soundSpeed.toFixed(2)} m/s</div>
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">{temp.toFixed(1)} <span className="text-xs font-normal text-slate-500">°C</span></div>
+            <div className="text-xs text-slate-500">c = {soundSpeed.toFixed(2)} m/s</div>
           </div>
-          <div className="text-[10px] font-mono text-inst-muted">
+          <div className="text-[10px] font-mono text-slate-400">
             c(T) = 331,3 · √(1 + T/273,15)
           </div>
         </div>
@@ -138,7 +138,7 @@ export const SignalsView: React.FC = () => {
       {/* Área Central: Corte Didático 2D do Tanque & Gráficos Temporais */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Painel do Tanque e Acústica Interativo (5 Colunas) */}
-        <div className="lg:col-span-5 bg-inst-surface border border-inst-border p-5 rounded-md shadow-xs space-y-4">
+        <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-6 rounded-3xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] space-y-4">
           <div className="flex justify-between items-center border-b border-inst-border pb-3">
             <span className="text-xs font-display font-bold uppercase tracking-wider text-inst-primary flex items-center gap-1.5">
               <Cylinder className="w-4 h-4 text-sky-700" />

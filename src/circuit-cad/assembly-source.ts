@@ -55,6 +55,12 @@ export const TANK_SPEC = {
   operationalMaxLiters: Math.PI * 100 * 100 * 130 / 1_000_000,
 } as const;
 
+/**
+ * O tanque paramétrico pode aparecer na bancada didática, mas não é uma
+ * geometria física liberada até que o recipiente real seja medido e aprovado.
+ */
+export const TANK_PHYSICAL_RELEASED = false;
+
 const rawObjects = benchLayout.objects as Array<{
   id: string;
   assetRef: string;

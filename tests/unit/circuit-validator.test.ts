@@ -24,6 +24,14 @@ describe('Validador elétrico da bancada FuelGuard real', () => {
     expect(rule03?.status).toBe('WARN');
   });
 
+  it('não aprova buzzer ligado diretamente ao GPIO14', () => {
+    const directBuzzer = SAFE_CANONICAL_WIRING.filter((wire) => !wire.id.startsWith('w_buzzer') && !wire.id.startsWith('w_rbase') && !wire.id.startsWith('w_q1'))
+      .concat({ id: 'unsafe_direct_buzzer', sourcePinId: 'esp_gpio14', targetPinId: 'buzzer_ctrl', wireType: 'buzzer' });
+    const rule07 = CircuitValidator.evaluate(directBuzzer).rules.find((rule) => rule.ruleId === 'RULE-07');
+    expect(rule07?.status).toBe('WARN');
+    expect(rule07?.message).toContain('R_BASE');
+  });
+
   it('emite advertências para circuito desconectado', () => {
     const report = CircuitValidator.evaluate([]);
     expect(report.overallStatus).toBe('WARNING');

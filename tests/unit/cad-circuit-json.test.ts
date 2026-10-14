@@ -20,7 +20,7 @@ describe('CAD & Circuit JSON Pipeline (tscircuit Integration)', () => {
 
     const pn532 = FUELGUARD_CAD_LIBRARY['pn532_breakout'];
     expect(pn532.validationStatus).toBe('documented_reference');
-    expect(pn532.partNumber).toBe('NFC-PN532_V4');
+    expect(pn532.partNumber).toBe('PN532-BREAKOUT-V1.6');
     expect(pn532.pins).toHaveLength(8);
   });
 
@@ -156,7 +156,7 @@ describe('CAD & Circuit JSON Pipeline (tscircuit Integration)', () => {
       'W_5V_ESP_TO_RAIL', 'W_3V3_ESP_TO_RAIL', 'W_GND_ESP_TO_RAIL',
       'W_LEVEL_VCC', 'W_LEVEL_GND', 'W_LEVEL_UART', 'W_LEVEL_MODE',
       'W_PN532_VCC', 'W_PN532_GND', 'W_SPI_CS', 'W_SPI_MOSI', 'W_SPI_SCK', 'W_SPI_MISO',
-      'W_REED_INTERLOCK', 'W_REED_GND', 'W_LED_STATUS', 'W_LED_GND', 'W_BUZZER_CTRL', 'W_BUZZER_GND', 'W_USBC_MAIN',
+      'W_REED_INTERLOCK', 'W_REED_GND', 'W_LED_STATUS', 'W_LED_GND', 'W_BUZZER_CTRL', 'W_BUZZER_LOAD', 'W_BUZZER_GND', 'W_USBC_MAIN',
     ];
     const byId = new Map(PHYSICAL_WIRING_REGISTRY.map((cable) => [cable.id, cable]));
     expect(PHYSICAL_WIRING_REGISTRY).toHaveLength(required.length);

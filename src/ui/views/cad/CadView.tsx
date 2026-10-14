@@ -25,7 +25,6 @@ import {
   Compass,
   Cable as CableIcon,
   Droplets,
-  AlertTriangle,
   FileCheck2,
 } from 'lucide-react';
 import { HonestyBadge } from '@/ui/components/badges/HonestyBadge';
@@ -33,13 +32,14 @@ import { CircuitJsonBuilder, CircuitJsonPackage } from '@/circuit-cad/circuit-js
 import { DrcChecker } from '@/circuit-cad/drc-checker';
 import { KiCadExporter } from '@/circuit-cad/kicad-exporter';
 import { SchematicCanvas } from './SchematicCanvas';
-import { PcbCanvas } from './PcbCanvas';
+import { PcbRealCanvas } from './PcbRealCanvas';
+import { BomView } from './BomView';
 import { DrcReportPanel } from './DrcReportPanel';
+import ErrorBoundary from '@/ui/components/ErrorBoundary';
 import { AgentSessionPanel } from './AgentSessionPanel';
 import { CadOverviewTab } from './CadOverviewTab';
 import { CadConnectionsTab } from './CadConnectionsTab';
 import { CadSensorsWaterTab } from './CadSensorsWaterTab';
-import { CadBomAssetsTab } from './CadBomAssetsTab';
 import { CadTestsTab } from './CadTestsTab';
 
 const BenchAssemblyCanvas = lazy(() => import('./BenchAssemblyCanvas').then((module) => ({ default: module.BenchAssemblyCanvas })));
@@ -148,29 +148,29 @@ export const CadView: React.FC = () => {
       />
 
       {/* 2. Área Central de Engenharia CAD (10 Áreas Técnicas) */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden p-4 md:p-6 space-y-4">
-        {/* Topo: Cabeçalho com Metadados, Dual-Board Switcher e Exportação */}
-        <div className="apple-surface p-5 rounded-2xl flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+      <div className="flex-1 flex flex-col h-full overflow-hidden p-4 md:p-5 space-y-3 bg-[#F4F5F7] dark:bg-slate-950">
+        {/* Topo: Cabeçalho com Metadados e Exportação (Permity Style) */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] flex flex-col xl:flex-row xl:items-center justify-between gap-3">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <div>
               <div className="flex items-center space-x-2">
-                <span className="w-2.5 h-2.5 rounded-xs bg-[#22c55e]" />
-                <h1 className="text-sm font-display font-bold uppercase tracking-wider text-inst-primary flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                <h1 className="text-sm font-display font-bold uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
                   Estação de Projeto CAD & Eletrônica
                 </h1>
                 <HonestyBadge level="simulado" />
               </div>
-              <p className="text-[11px] text-inst-secondary mt-0.5">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                 <span>Gêmeo digital FuelGuard: bancada, placas, sensores, assets rastreáveis e fiação de referência.</span>
               </p>
             </div>
           </div>
 
-          {/* Exportações Oficiais & Ações Rápidas */}
+          {/* Exportações Oficiais & Ações Rápidas (Pills Permity) */}
           <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
             <button
               onClick={handleDownloadCircuitJson}
-              className="px-2.5 py-1 rounded-xs bg-inst-canvas border border-inst-border hover:border-fuelguard-green text-inst-primary hover:text-fuelguard-green transition flex items-center gap-1.5 shadow-xs"
+              className="px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition flex items-center gap-1.5 font-sans font-semibold shadow-xs"
               title="Baixar arquivo Circuit JSON universal"
             >
               <Download className="w-3.5 h-3.5" />
@@ -178,7 +178,7 @@ export const CadView: React.FC = () => {
             </button>
             <button
               onClick={handleDownloadKiCadSch}
-              className="px-2.5 py-1 rounded-xs bg-inst-canvas border border-inst-border hover:border-sky-500 text-inst-primary hover:text-sky-400 transition flex items-center gap-1.5 shadow-xs"
+              className="px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition flex items-center gap-1.5 font-sans font-semibold shadow-xs"
               title="Bloqueado até existir fonte KiCad real revisada"
             >
               <Download className="w-3.5 h-3.5" />
@@ -187,7 +187,7 @@ export const CadView: React.FC = () => {
             <button
               onClick={handleDownloadKiCadPcb}
               disabled={circuitPkg.pcbReadiness !== 'manufacturing-ready'}
-              className="px-2.5 py-1 rounded-xs bg-inst-canvas border border-inst-border hover:border-purple-500 text-inst-primary hover:text-purple-400 transition flex items-center gap-1.5 shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 transition flex items-center gap-1.5 font-sans font-semibold shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
               title={circuitPkg.pcbReadiness !== 'manufacturing-ready' ? 'Bloqueado até revisão de fabricação e DRC' : 'Baixar layout PCB KiCad 8/9 (.kicad_pcb)'}
             >
               <Download className="w-3.5 h-3.5" />
@@ -196,9 +196,9 @@ export const CadView: React.FC = () => {
           </div>
         </div>
 
-        {/* 10 Sub-Abas Técnicas de Engenharia */}
-        <div className="flex flex-wrap items-center justify-between border-b border-inst-border pb-2 text-xs font-mono gap-2">
-          <div className="flex flex-wrap items-center gap-1.5 bg-inst-canvas p-1.5 rounded-xl border border-inst-border">
+        {/* 10 Sub-Abas Técnicas de Engenharia (Permity Horizontal Pill Tab Strip) */}
+        <div className="flex flex-wrap items-center justify-between gap-1.5">
+          <div className="flex flex-wrap items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-full border border-slate-200/80 dark:border-slate-800 shadow-xs">
             {[
               { id: 'overview', label: '1. Visão Geral', icon: Compass },
               { id: 'assembly', label: '2. Bancada Física', icon: Box },
@@ -217,21 +217,21 @@ export const CadView: React.FC = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as CadSubTab)}
-                  className={`px-2.5 py-1 rounded-xs transition flex items-center gap-1.5 text-[11px] ${
+                  className={`px-2.5 py-1 rounded-full transition flex items-center gap-1.5 text-xs ${
                     isActive
-                    ? 'bg-inst-surface text-inst-primary font-bold shadow-sm border border-inst-border-strong text-fuelguard-green'
-                      : 'text-inst-secondary hover:text-inst-primary hover:bg-inst-subtle'
+                      ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 font-medium'
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 ${tab.hasBadge ? 'text-rose-500' : ''}`} />
+                  <Icon className={`w-3.5 h-3.5 ${tab.hasBadge ? 'text-rose-400' : ''}`} />
                   <span>{tab.label}</span>
                 </button>
               );
             })}
           </div>
 
-          <div className="text-[10px] text-inst-muted hidden md:block">
-            Projeto: <strong className="text-inst-primary">FuelGuard Digital Twin</strong>
+          <div className="text-[11px] text-slate-500 font-medium hidden lg:block">
+            Projeto: <strong className="text-slate-900 dark:text-white">FuelGuard Digital Twin</strong>
           </div>
         </div>
 
@@ -247,9 +247,11 @@ export const CadView: React.FC = () => {
 
           {/* Estação 2: Bancada Física 3D */}
           {activeTab === 'assembly' && (
-            <Suspense fallback={<CadViewerLoading />}>
-              <BenchAssemblyCanvas onSelectTab={handleNavigateTab} />
-            </Suspense>
+            <ErrorBoundary fallbackMessage="Erro ao carregar estação CAD. Verifique se seu navegador suporta WebGL.">
+              <Suspense fallback={<CadViewerLoading />}>
+                <BenchAssemblyCanvas onSelectTab={handleNavigateTab} />
+              </Suspense>
+            </ErrorBoundary>
           )}
 
           {/* Estação 3: Esquemático Elétrico */}
@@ -257,31 +259,22 @@ export const CadView: React.FC = () => {
             <SchematicCanvas circuitPkg={circuitPkg} />
           )}
 
-          {/* Estação 4: PCB 2D */}
+          {/* Estação 4: PCB 2D Real com Footprints KiCad */}
           {activeTab === 'pcb' && (
             <div className="h-full flex flex-col overflow-hidden">
-                <div className="bg-amber-950/40 border border-amber-600/70 p-2.5 rounded-sm mb-2 text-xs font-mono text-amber-200 flex items-center justify-between gap-2 shrink-0">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span>
-                      <strong>REFERÊNCIA DE ENGENHARIA: protótipo em Protoboard MB-102</strong> • PCB Adaptadora: em especificação / não roteada em cobre físico.
-                    </span>
-                  </div>
-                  <span className="text-[10px] bg-amber-900/60 px-2 py-0.5 rounded-2xs border border-amber-500/50 text-amber-300">
-                    [IPC-2221A / JLCPCB Class 2]
-                  </span>
-                </div>
               <div className="flex-1 overflow-hidden">
-                <PcbCanvas circuitPkg={circuitPkg} />
+                <PcbRealCanvas />
               </div>
             </div>
           )}
 
           {/* Estação 5: Placa PCB 3D */}
           {activeTab === '3d' && (
-            <Suspense fallback={<CadViewerLoading />}>
-              <Pcb3DCanvas onSelectTab={handleNavigateTab} />
-            </Suspense>
+            <ErrorBoundary fallbackMessage="Erro ao carregar estação CAD. Verifique se seu navegador suporta WebGL.">
+              <Suspense fallback={<CadViewerLoading />}>
+                <Pcb3DCanvas onSelectTab={handleNavigateTab} />
+              </Suspense>
+            </ErrorBoundary>
           )}
 
           {/* Estação 6: Conexões, Chicote & Pinagem */}
@@ -294,9 +287,11 @@ export const CadView: React.FC = () => {
             <CadSensorsWaterTab onSelectTab={handleNavigateTab} />
           )}
 
-          {/* Estação 8: BOM & Catálogo de Assets */}
+          {/* Estação 8: BOM & Catálogo de Assets (Completo com Compras BR) */}
           {activeTab === 'bom' && (
-            <CadBomAssetsTab onSelectTab={handleNavigateTab} />
+            <div className="h-full flex flex-col overflow-hidden">
+              <BomView />
+            </div>
           )}
 
           {/* Estação 9: Testes Automatizados */}

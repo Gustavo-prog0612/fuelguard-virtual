@@ -10,6 +10,8 @@ import {
   Waves,
   Layers,
 } from 'lucide-react';
+import { TANK_SPEC } from '@/circuit-cad/assembly-source';
+import { getSensorAssetStatus, getSensorWaterSnapshot, SEN0311_SENSOR_SPEC } from '@/circuit-cad/sensor-water-model';
 const BenchAssemblyCanvas = lazy(() => import('./BenchAssemblyCanvas').then((module) => ({ default: module.BenchAssemblyCanvas })));
 
 interface CadSensorsWaterTabProps {
@@ -18,6 +20,14 @@ interface CadSensorsWaterTabProps {
 
 export const CadSensorsWaterTab: React.FC<CadSensorsWaterTabProps> = ({ onSelectTab }) => {
   const [waterLevelPct, setWaterLevelPct] = useState<number>(50);
+  const snapshot = getSensorWaterSnapshot(waterLevelPct);
+  const sensorAsset = getSensorAssetStatus();
+  const formatMm = (value: number) => `${value.toFixed(1).replace('.', ',')} mm`;
+  const formatLiters = (value: number) => `${value.toFixed(3).replace('.', ',')} L`;
+  const zoneLabel = snapshot.zone === 'blind-zone' ? 'Zona cega' : 'Faixa nominal';
+  const zoneClass = snapshot.zone === 'blind-zone'
+    ? 'text-red-300 border-red-800 bg-red-950/50'
+    : 'text-emerald-300 border-emerald-800 bg-emerald-950/50';
 
   return (
     <div className="h-full flex flex-col space-y-3 font-ui text-inst-primary overflow-hidden select-text">
@@ -30,11 +40,11 @@ export const CadSensorsWaterTab: React.FC<CadSensorsWaterTabProps> = ({ onSelect
               Estação de Metrologia Ultrassônica — Dados Pendentes
             </h2>
             <span className="px-2 py-0.5 rounded-xs text-[10px] font-mono font-bold bg-sky-950 text-sky-300 border border-sky-800">
-              A02YYUW / SEN0311 • UART 9600 8N1
+              {SEN0311_SENSOR_SPEC.model} • {SEN0311_SENSOR_SPEC.protocol}
             </span>
           </div>
           <p className="text-xs text-inst-secondary mt-1">
-            Baseline paramétrica: tanque cilíndrico interno Ø200 × 160 mm, tampa circular 5 mm, sensor central. A geometria orienta o desenho; a calibração exige peça fabricada e medida.
+            Baseline paramétrica: tanque cilíndrico interno Ø{TANK_SPEC.innerDiameterMm} × {TANK_SPEC.innerHeightMm} mm, tampa circular {TANK_SPEC.lidThicknessMm} mm, sensor central. A geometria orienta o desenho; a calibração exige peça fabricada e medida.
           </p>
         </div>
 
@@ -87,7 +97,7 @@ export const CadSensorsWaterTab: React.FC<CadSensorsWaterTabProps> = ({ onSelect
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between">
                 <span className="text-inst-muted font-ui">Distância à Água (d):</span>
-                <strong className="text-sky-300">30–128 mm nominal (1–4,084 L)</strong>
+                <strong className="text-sky-300">{formatMm(snapshot.distanceMm)} · {formatLiters(snapshot.volumeLiters)}</strong>
               </div>
               <div className="flex justify-between">
                 <span className="text-inst-muted font-ui">Tempo de Voo (ToF):</span>
@@ -95,17 +105,24 @@ export const CadSensorsWaterTab: React.FC<CadSensorsWaterTabProps> = ({ onSelect
               </div>
               <div className="flex justify-between">
                 <span className="text-inst-muted font-ui">Volume de Água:</span>
-                <strong className="text-amber-300">5,0265 L geométrico; não calibrado</strong>
+                <strong className="text-amber-300">{TANK_SPEC.geometricCapacityLiters.toFixed(4).replace('.', ',')} L geométrico</strong>
               </div>
               <div className="flex justify-between">
                 <span className="text-inst-muted font-ui">Altura da Coluna:</span>
-                <strong className="text-sky-300">32–130 mm nominal</strong>
+                <strong className="text-sky-300">{formatMm(snapshot.waterHeightMm)} de coluna</strong>
               </div>
+
+            <div className="flex items-center justify-between gap-2 pt-1">
+              <span className={`px-2 py-1 rounded-xs border text-[10px] font-bold uppercase ${zoneClass}`}>
+                {zoneLabel}
+              </span>
+              <span className="text-[10px] text-inst-muted">Preset {snapshot.levelPct}%</span>
+            </div>
             </div>
 
             <div className="p-2 rounded-xs bg-amber-950/40 border border-amber-700/60 text-amber-300 text-[10px] flex items-start gap-1.5 font-ui">
               <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <span>O SEN0311 documenta zona cega nominal de 30 mm, faixa 30–4500 mm e IP67. O suporte do probe, a visada e a calibração dependem da unidade e do tanque fabricado.</span>
+              <span>O SEN0311 documenta zona cega nominal de {SEN0311_SENSOR_SPEC.blindZoneMm} mm e faixa de {SEN0311_SENSOR_SPEC.blindZoneMm}–{SEN0311_SENSOR_SPEC.maximumRangeMm} mm. O suporte, a visada e a calibração dependem da unidade e do tanque fabricado.</span>
             </div>
           </div>
 
@@ -117,11 +134,11 @@ export const CadSensorsWaterTab: React.FC<CadSensorsWaterTabProps> = ({ onSelect
             <div className="space-y-1 text-[11px] text-inst-secondary">
               <div className="flex justify-between">
                 <span>Zona cega SEN0311:</span>
-                <strong className="text-sky-300">30 mm nominal</strong>
+                <strong className="text-sky-300">{SEN0311_SENSOR_SPEC.blindZoneMm} mm nominal</strong>
               </div>
               <div className="flex justify-between">
                 <span>Faixa SEN0311:</span>
-                <strong className="text-sky-300">30–4500 mm</strong>
+                <strong className="text-sky-300">{SEN0311_SENSOR_SPEC.blindZoneMm}–{SEN0311_SENSOR_SPEC.maximumRangeMm} mm</strong>
               </div>
               <div className="flex justify-between">
                 <span>Protocolo:</span>
@@ -129,11 +146,11 @@ export const CadSensorsWaterTab: React.FC<CadSensorsWaterTabProps> = ({ onSelect
               </div>
               <div className="flex justify-between">
                 <span>Volume operacional:</span>
-                <strong className="text-sky-300">1,0–4,084 L</strong>
+                <strong className="text-sky-300">0–{TANK_SPEC.operationalMaxLiters.toFixed(3).replace('.', ',')} L</strong>
               </div>
               <div className="flex justify-between">
                 <span>Capacidade geométrica:</span>
-                <strong className="text-amber-300">5,0265 L nominal</strong>
+                <strong className="text-amber-300">{TANK_SPEC.geometricCapacityLiters.toFixed(4).replace('.', ',')} L nominal</strong>
               </div>
             </div>
           </div>
@@ -145,7 +162,15 @@ export const CadSensorsWaterTab: React.FC<CadSensorsWaterTabProps> = ({ onSelect
               <span>Pipeline 3D paramétrico [REFERÊNCIA]</span>
             </div>
             <div className="text-[10px] text-amber-300">
-              A cena 3D usa o cilindro FG-TANK-5L-CYL-R1 e mostra a coluna d'água nominal. Não usar o render para liberar corte, vedação ou calibração sem a peça fabricada e medida.
+              A cena 3D usa o envelope {TANK_SPEC.id} e mostra a coluna d'água derivada do preset. O asset {sensorAsset?.designator} continua {sensorAsset?.assetStatus === 'pending' ? 'pendente' : 'em análise'}: não usar o render para liberar corte, vedação ou calibração sem a peça fabricada e medida.
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button onClick={() => onSelectTab?.('tests')} className="px-2.5 py-1.5 rounded-xs border border-sky-800 bg-sky-950/50 text-sky-300 text-[10px] font-bold hover:bg-sky-900/60">
+                Abrir testes em tempo real
+              </button>
+              <button onClick={() => onSelectTab?.('bom')} className="px-2.5 py-1.5 rounded-xs border border-inst-border text-inst-secondary text-[10px] font-bold hover:text-inst-primary">
+                Ver SEN1 e compra
+              </button>
             </div>
           </div>
         </div>

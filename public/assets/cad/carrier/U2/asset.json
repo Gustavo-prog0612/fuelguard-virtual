@@ -1,0 +1,23 @@
+{
+  "designator": "U2",
+  "componentId": "sn74ahct125n",
+  "partNumber": "SN74AHCT125N",
+  "revision": "DIP-14 W7.62 mm / JEDEC MS-001 BA",
+  "class": "B",
+  "assetStatus": "verified",
+  "assetSourceType": "kicad",
+  "sourceReference": "KiCad Packages3D / Package_DIP.3dshapes/DIP-14_W7.62mm.step",
+  "sourceUrl": "https://gitlab.com/kicad/libraries/kicad-packages3D",
+  "license": "KiCad library license / CC-BY-SA-4.0",
+  "originalFile": "Package_DIP.3dshapes/DIP-14_W7.62mm.step",
+  "sourceRevision": "9e55be14ea704091c1b1ae1fe44e8d57d88ba24e",
+  "assetChecksum": "20bfc306d3cbc3b22657b74df431439c081b8ebe6c2eb3268bba5ec2b2b6a3ff",
+  "sourceUnits": "mm",
+  "scale": { "x": 1, "y": 1, "z": 1 },
+  "rotationDeg": { "x": -90, "y": 0, "z": 0 },
+  "translationMm": { "x": 0, "y": 0, "z": 0 },
+  "assetDimensionsMm": { "width": 7.874, "height": 6.98, "depth": 19.05 },
+  "toleranceMm": 0.15,
+  "verificationDate": "2026-09-26",
+  "limitations": ["O GLB confirma o encapsulamento DIP-14; não representa marcações comerciais específicas do lote do CI."]
+}

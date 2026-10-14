@@ -26,7 +26,7 @@ export const HARDWARE_REQUIREMENTS: HardwareRequirement[] = [
   },
   {
     id: 'REQ-ELEC-03', category: 'ELECTRICAL_SAFETY', title: 'Terra comum da bancada',
-    description: 'ESP32-S3, PN532 V4, SEN0311, MC-38, LED e buzzer ativo devem compartilhar a referência GND; VBUS de 5 V não pode ser aplicado diretamente a GPIO.',
+    description: 'ESP32-S3, Adafruit PN532 v1.6, SEN0311, MC-38, LED e buzzer ativo devem compartilhar a referência GND; VBUS de 5 V não pode ser aplicado diretamente a GPIO.',
     condition: 'V_GND_OFFSET <= 0.05V', nominalValue: '0.00', minTolerance: 0.00, maxTolerance: 0.05, unit: 'V', status: 'ACTIVE_AUDIT',
   },
   {

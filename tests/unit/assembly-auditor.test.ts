@@ -107,12 +107,15 @@ describe('Auditoria de Montagem Mecatrônica & Elétrica (Assembly Auditor)', ()
     const ledCable = PHYSICAL_WIRING_REGISTRY.find((c) => c.id === 'W_LED_STATUS');
     const bzCtrlCable = PHYSICAL_WIRING_REGISTRY.find((c) => c.id === 'W_BUZZER_CTRL');
     const bzGndCable = PHYSICAL_WIRING_REGISTRY.find((c) => c.id === 'W_BUZZER_GND');
+    const bzLoadCable = PHYSICAL_WIRING_REGISTRY.find((c) => c.id === 'W_BUZZER_LOAD');
 
     expect(ledCable).toBeDefined();
     expect(bzCtrlCable).toBeDefined();
     expect(bzGndCable).toBeDefined();
+    expect(bzLoadCable).toBeDefined();
     expect(ledCable?.fromComponent).toBe('esp32_s3_devkit');
-    expect(bzCtrlCable?.toComponent).toBe('buzzer_active');
+    expect(bzCtrlCable?.toComponent).toBe('q1_driver');
+    expect(bzLoadCable?.toComponent).toBe('buzzer_active');
   });
 
   it('deve validar confinamento hidrostático e caminho acústico desobstruído do sensor', () => {

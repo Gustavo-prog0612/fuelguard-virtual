@@ -230,6 +230,6 @@ export class SimulationBridge {
 // Instância singleton global para toda a aplicação React
 export const globalSimulationBridge = new SimulationBridge();
 
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
   (window as any).__fuelguard_bridge = globalSimulationBridge;
 }

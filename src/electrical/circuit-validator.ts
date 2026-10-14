@@ -7,6 +7,24 @@ export interface CircuitValidationReport { overallStatus: 'NOMINAL' | 'WARNING' 
 export class CircuitValidator {
   public static evaluate(connections: CircuitConnection[]): CircuitValidationReport {
     const isConnected = (a: string, b: string) => connections.some((c) => (c.sourcePinId === a && c.targetPinId === b) || (c.sourcePinId === b && c.targetPinId === a));
+    const hasPathThrough = (source: string, target: string, required: string[]) => {
+      const graph = new Map<string, Set<string>>();
+      for (const connection of connections) {
+        if (!graph.has(connection.sourcePinId)) graph.set(connection.sourcePinId, new Set());
+        if (!graph.has(connection.targetPinId)) graph.set(connection.targetPinId, new Set());
+        graph.get(connection.sourcePinId)!.add(connection.targetPinId);
+        graph.get(connection.targetPinId)!.add(connection.sourcePinId);
+      }
+      const queue: Array<{ node: string; visited: Set<string> }> = [{ node: source, visited: new Set([source]) }];
+      while (queue.length) {
+        const current = queue.shift()!;
+        if (current.node === target && required.every((node) => current.visited.has(node))) return true;
+        for (const next of graph.get(current.node) ?? []) {
+          if (!current.visited.has(next)) queue.push({ node: next, visited: new Set([...current.visited, next]) });
+        }
+      }
+      return false;
+    };
     const rules: RuleEvaluation[] = [];
 
     const uartSafe = isConnected('level_tx', 'esp_gpio16');
@@ -26,17 +44,20 @@ export class CircuitValidator {
     const gndOk = gndReferenceOk && (isConnected('rail_gnd', 'level_gnd') || isConnected('esp_gnd', 'level_gnd')) && (isConnected('rail_gnd', 'nfc_gnd') || isConnected('esp_gnd', 'nfc_gnd')) && (isConnected('rail_gnd', 'reed_pin2') || isConnected('esp_gnd', 'reed_pin2'));
     rules.push({ ruleId: 'RULE-03', title: 'Barramento de terra comum', category: 'GROUNDING', status: gndOk ? 'PASS' : 'WARN', voltageObserved: gndOk ? '0,00 V' : 'Flutuante', voltageAllowed: 'Referencial comum', message: gndOk ? 'ESP32, SEN0311, PN532 e MC-38 compartilham GND.' : 'Um ou mais periféricos estão sem retorno no GND comum.', recommendation: 'Ligue todos os retornos ao mesmo barramento de terra da protoboard.' });
 
-    const ledOk = isConnected('esp_gpio4', 'led_anode') && (isConnected('led_cathode', 'rail_gnd') || isConnected('led_cathode', 'esp_gnd'));
+    const ledOk = hasPathThrough('esp_gpio4', 'led_anode', ['r3_in', 'r3_out']) && (isConnected('led_cathode', 'rail_gnd') || isConnected('led_cathode', 'esp_gnd'));
     rules.push({ ruleId: 'RULE-04', title: 'Limitador do LED verde (220 Ω)', category: 'FUNCTIONAL', status: ledOk ? 'PASS' : 'WARN', voltageObserved: ledOk ? 'R3 = 220 Ω' : 'Incompleto', voltageAllowed: 'Resistor em série obrigatório', message: ledOk ? 'LED verde está limitado por R3 de 220 Ω.' : 'LED verde não está completo com resistor e retorno.', recommendation: 'Use GPIO4 -> R3 220 Ω -> ânodo D1 -> cátodo -> GND.' });
 
     const spiOk = isConnected('esp_gpio10', 'nfc_cs') && isConnected('esp_gpio11', 'nfc_mosi') && isConnected('esp_gpio12', 'nfc_sck') && isConnected('esp_gpio13', 'nfc_miso');
-    rules.push({ ruleId: 'RULE-05', title: 'Barramento SPI do PN532 V4', category: 'SIGNAL_INTEGRITY', status: spiOk ? 'PASS' : 'WARN', voltageObserved: spiOk ? '3,30 V' : 'Parcial', voltageAllowed: '3,30 V', message: spiOk ? 'CS/MOSI/SCK/MISO estão conectados ao PN532.' : 'Uma ou mais linhas SPI do PN532 estão desconectadas.', recommendation: 'Conecte GPIO10/11/12/13 ao header SPI 1/8/3/2 documentado.' });
+    rules.push({ ruleId: 'RULE-05', title: 'Barramento SPI da Adafruit PN532 v1.6', category: 'SIGNAL_INTEGRITY', status: spiOk ? 'PASS' : 'WARN', voltageObserved: spiOk ? '3,30 V' : 'Parcial', voltageAllowed: '3,30 V', message: spiOk ? 'CS/MOSI/SCK/MISO estão conectados ao PN532.' : 'Uma ou mais linhas SPI do PN532 estão desconectadas.', recommendation: 'Conecte GPIO10/11/12/13 ao JP4.5/JP4.4/JP4.2/JP4.3 da placa v1.6.' });
 
     const reedOk = isConnected('esp_gpio7', 'reed_pin1') && (isConnected('reed_pin2', 'rail_gnd') || isConnected('reed_pin2', 'esp_gnd'));
     rules.push({ ruleId: 'RULE-06', title: 'Interlock MC-38 da tampa', category: 'FUNCTIONAL', status: reedOk ? 'PASS' : 'WARN', voltageObserved: reedOk ? '3,30 V pull-up' : 'Aberto', voltageAllowed: '3,30 V seguro', message: reedOk ? 'MC-38 está no GPIO7 e GND.' : 'MC-38 ainda não está completamente ligado.', recommendation: 'Confirmar NO/NC na unidade e conectar sinal ao GPIO7 com pull-up.' });
 
-    const buzzerOk = isConnected('esp_gpio14', 'buzzer_ctrl') && (isConnected('buzzer_gnd', 'rail_gnd') || isConnected('buzzer_gnd', 'esp_gnd'));
-    rules.push({ ruleId: 'RULE-07', title: 'Buzzer ativo CMI-1295IC-0385T', category: 'SAFETY', status: buzzerOk ? 'PASS' : 'WARN', voltageObserved: buzzerOk ? '2–5 V / até 30 mA' : 'Incompleto', voltageAllowed: 'Conforme datasheet e medição', message: buzzerOk ? 'Indicador ativo conectado; corrente, polaridade e passo ainda exigem confirmação física.' : 'Buzzer ativo ainda não está completamente conectado.', recommendation: 'Confirmar polaridade, passo e corrente antes de ligar a carga ao GPIO14.' });
+    const buzzerControlOk = hasPathThrough('esp_gpio14', 'q1_base', ['r_base_in', 'r_base_out']);
+    const buzzerLoadOk = hasPathThrough('q1_collector', 'buzzer_minus', []) && isConnected('rail_5v', 'buzzer_vcc');
+    const buzzerReturnOk = isConnected('q1_emitter', 'rail_gnd') || isConnected('q1_emitter', 'esp_gnd');
+    const buzzerOk = buzzerControlOk && buzzerLoadOk && buzzerReturnOk;
+    rules.push({ ruleId: 'RULE-07', title: 'Driver protegido do buzzer ativo CMI-1295IC-0385T', category: 'SAFETY', status: buzzerOk ? 'PASS' : 'WARN', voltageObserved: buzzerOk ? 'GPIO14 → R_BASE 1 kΩ → Q1 → BZ1' : 'Caminho incompleto', voltageAllowed: 'GPIO14 sem carga direta; BZ1 em trilho de alimentação', message: buzzerOk ? 'O GPIO14 comanda a base de Q1 através de R_BASE; a corrente da carga não passa pelo GPIO.' : 'O caminho do buzzer não está comprovadamente protegido por R_BASE e Q1.', recommendation: 'Manter GPIO14 → R_BASE (1 kΩ) → base Q1; coletor Q1 → BZ1−; BZ1+ → +5V; emissor Q1 → GND.' });
 
     const fails = rules.filter((r) => r.status === 'FAIL').length;
     const warns = rules.filter((r) => r.status === 'WARN').length;
@@ -61,9 +82,16 @@ export const SAFE_CANONICAL_WIRING: CircuitConnection[] = [
   { id: 'w_spi_mosi', sourcePinId: 'esp_gpio11', targetPinId: 'nfc_mosi', wireType: 'spi' },
   { id: 'w_spi_sck', sourcePinId: 'esp_gpio12', targetPinId: 'nfc_sck', wireType: 'spi' },
   { id: 'w_spi_miso', sourcePinId: 'esp_gpio13', targetPinId: 'nfc_miso', wireType: 'spi' },
-  { id: 'w_led_anode', sourcePinId: 'esp_gpio4', targetPinId: 'led_anode', wireType: 'led' },
+  { id: 'w_led_r3_in', sourcePinId: 'esp_gpio4', targetPinId: 'r3_in', wireType: 'led' },
+  { id: 'w_r3_internal', sourcePinId: 'r3_in', targetPinId: 'r3_out', wireType: 'passive' },
+  { id: 'w_led_r3_out', sourcePinId: 'r3_out', targetPinId: 'led_anode', wireType: 'led' },
   { id: 'w_reed_signal', sourcePinId: 'esp_gpio7', targetPinId: 'reed_pin1', wireType: 'reed' },
-  { id: 'w_buzzer', sourcePinId: 'esp_gpio14', targetPinId: 'buzzer_ctrl', wireType: 'buzzer' },
+  { id: 'w_buzzer_base', sourcePinId: 'esp_gpio14', targetPinId: 'r_base_in', wireType: 'buzzer' },
+  { id: 'w_rbase_internal', sourcePinId: 'r_base_in', targetPinId: 'r_base_out', wireType: 'passive' },
+  { id: 'w_rbase_q1', sourcePinId: 'r_base_out', targetPinId: 'q1_base', wireType: 'buzzer' },
+  { id: 'w_q1_buzzer_minus', sourcePinId: 'q1_collector', targetPinId: 'buzzer_minus', wireType: 'buzzer' },
+  { id: 'w_buzzer_plus', sourcePinId: 'rail_5v', targetPinId: 'buzzer_vcc', wireType: 'vcc5v' },
+  { id: 'w_q1_emitter_gnd', sourcePinId: 'q1_emitter', targetPinId: 'rail_gnd', wireType: 'gnd' },
   { id: 'w_usb_main', sourcePinId: 'external_usb', targetPinId: 'esp_micro_usb', wireType: 'usb' },
 ];
 

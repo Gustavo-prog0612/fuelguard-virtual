@@ -112,7 +112,7 @@ export const StyleGuideView: React.FC = () => {
 
                   {/* Nome do Componente e Especificações */}
                   <div style={{ fontFamily: p.uiFont }} className="text-xs text-inst-secondary">
-                    ESP32-S3 DevKitC-1 v1.1 • SEN0311 UART • PN532 V4 em SPI
+                    ESP32-S3 DevKitC-1 v1.1 • SEN0311 UART • Adafruit PN532 v1.6 em SPI
                   </div>
 
                   {/* Telemetria e Medições Numéricas Monoespaçadas */}
@@ -125,7 +125,7 @@ export const StyleGuideView: React.FC = () => {
 
                   {/* Pinagem e Níveis Lógicos */}
                   <div style={{ fontFamily: p.monoFont }} className="text-[11px] text-inst-secondary space-y-0.5">
-                    <div>GPIO16: UART1_RX (SEN0311 TX) • GPIO10–13: SPI (PN532 V4) • GPIO7: MC-38</div>
+                    <div>GPIO16: UART1_RX (SEN0311 TX) • GPIO10–13: SPI (Adafruit PN532 v1.6) • GPIO7: MC-38</div>
                     <div>SPI PN532: CS:10, MOSI:11, SCK:12, MISO:13 • Reed Switch: GPIO7 (3V3)</div>
                   </div>
 
@@ -329,14 +329,15 @@ export const StyleGuideView: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs leading-relaxed">
           <div className="space-y-2">
-            <h3 className="font-bold text-fuelguard-green flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4" /> Diretrizes Obrigatórias
+            <h3 className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4" /> Diretrizes do Design System Permity
             </h3>
             <ul className="space-y-1.5 text-inst-secondary list-disc pl-4">
               <li>A bancada virtual de fiação é a protagonista espacial da aplicação.</li>
-              <li>Linhas de divisão de 1px substituem cartões e sombras desnecessárias.</li>
+              <li>Componentes de navegação, ações e filtros utilizam formato em pílula (pill buttons e chips).</li>
+              <li>Superfícies de instrumentação utilizam cartões com cantos arredondados (rounded-3xl) e sombras suaves.</li>
               <li>Toda grandeza física deve exibir unidade visível (cm, L, °C, ms, V).</li>
-              <li>O verde FuelGuard é reservado para ação de decisão ou confirmação física.</li>
+              <li>O verde elétrico (#D4F63D) e esmeralda são reservados para validação, telemetria e confirmação física.</li>
             </ul>
           </div>
 
@@ -345,10 +346,10 @@ export const StyleGuideView: React.FC = () => {
               <AlertTriangle className="w-4 h-4" /> Antipadrões Terminantemente Proibidos
             </h3>
             <ul className="space-y-1.5 text-inst-secondary list-disc pl-4">
-              <li>Proibido o uso de temas escuros genéricos de jogos ou dashboards de marketing.</li>
-              <li>Proibido criar botões tipo cápsula ultra-arredondada (*pill buttons*).</li>
-              <li>Proibido usar fontes monoespaçadas em parágrafos ou descrições longas.</li>
-              <li>Proibido apresentar valores simulados sem o badge semântico correspondente.</li>
+              <li>Proibido o uso de temas escuros genéricos sem contraste para instrumentação de laboratório.</li>
+              <li>Proibido criar elementos decorativos puramente visuais sem propósito mecatrônico mensurável.</li>
+              <li>Proibido usar fontes monoespaçadas em parágrafos de texto corrido ou descrições longas.</li>
+              <li>Proibido apresentar valores de telemetria simulados sem o badge de honestidade de dados correspondente.</li>
             </ul>
           </div>
         </div>
